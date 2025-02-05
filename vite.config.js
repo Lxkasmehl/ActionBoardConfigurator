@@ -1,0 +1,19 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    minify: false,
+    outDir: 'dist', // der von dir gewünschte Ausgabeordner
+    assetsInlineLimit: 0, // damit alle Dateien in die Ausgabe kopiert werden
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/index.js', // Hier wird der Name der Hauptdatei festgelegt
+        chunkFileNames: 'chunks/[name].js', // Wenn du Dateien für dynamische Importe anpassen möchtest
+        assetFileNames: 'assets/[name].[ext]', // Wenn du benannte Assets anpassen möchtest
+      },
+    },
+  },
+});
