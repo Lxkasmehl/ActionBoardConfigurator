@@ -90,19 +90,39 @@ export default function App() {
   console.log(relevantEntities);
 
   return (
-    <div className='flex items-center justify-center h-screen flex-col'>
+    <div className='flex items-center h-screen flex-col pt-14 mb-52'>
       <h1 className='underline'>API Entities</h1>
-      <ul className=''>
-        {relevantEntities.length > 0 ? (
-          relevantEntities.map((entity) => (
-            <li key={entity.name}>
-              <p>{entity.name}</p>
-            </li>
-          ))
-        ) : (
-          <p>No relevant entities found.</p>
-        )}
-      </ul>
+      <table className='table-auto'>
+        <thead>
+          <tr>
+            {relevantEntities.length > 0 &&
+              Object.keys(relevantEntities[0]).map((key) => (
+                <th key={key} className='px-4 py-2'>
+                  {key}
+                </th>
+              ))}
+          </tr>
+        </thead>
+        <tbody>
+          {relevantEntities.length > 0 ? (
+            relevantEntities.map((entity, index) => (
+              <tr key={index}>
+                {Object.values(entity).map((value, idx) => (
+                  <td key={idx} className='border px-4 py-2'>
+                    {value}
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan='100%' className='px-4 py-2 text-center'>
+                No relevant entities found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }
