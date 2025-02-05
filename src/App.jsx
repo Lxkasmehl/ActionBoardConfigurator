@@ -127,12 +127,8 @@ export default function App() {
         ? prev.filter((item) => item !== entity)
         : [...prev, entity],
     );
-  };
 
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
+    setCurrentStep(currentStep + 1);
   };
 
   useEffect(() => {
@@ -166,15 +162,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      <div className='flex justify-center mt-8'>
-        <button
-          onClick={handleNext}
-          className='px-6 py-2 bg-blue-500 text-white rounded-lg'
-        >
-          Next
-        </button>
-      </div>
     </div>
   );
 }
