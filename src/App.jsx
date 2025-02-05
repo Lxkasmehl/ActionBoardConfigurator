@@ -40,36 +40,46 @@ const fetchData = async () => {
   headers.set('X-SF-Correlation-Id', crypto.randomUUID());
   headers.set('successfactors-sourcetype', 'Application');
 
+  let allData = []; // Um alle abgerufenen Daten zu speichern
+  let url = '/api/odata/v2/$metadata'; // Start-URL
+
   try {
-    const response = await fetch(`/api/odata/v2/$metadata`, {
-      mode: 'cors',
-      headers: headers,
-    });
-
-    if (!response.ok) {
-      throw new Error('Error while fetching data');
-    }
-
-    const text = await response.text();
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(text, 'application/xml');
-
-    console.log(xmlDoc);
-
-    const entitySets = Array.from(xmlDoc.getElementsByTagName('EntitySet'));
-    const filteredMetadata = entitySets
-      .filter((entity) =>
-        relevantEntities.has(entity.getAttribute('Name') || ''),
-      )
-      .map((entity) => {
-        const attributes = {};
-        Array.from(entity.attributes).forEach((attr) => {
-          attributes[attr.name.toLowerCase()] = attr.value;
-        });
-        return attributes;
+    while (url) {
+      const response = await fetch(url, {
+        mode: 'cors',
+        headers: headers,
       });
 
-    return filteredMetadata;
+      if (!response.ok) {
+        throw new Error('Error while fetching data');
+      }
+
+      const text = await response.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(text, 'application/xml');
+
+      console.log(xmlDoc);
+
+      const entitySets = Array.from(xmlDoc.getElementsByTagName('EntitySet'));
+      const filteredMetadata = entitySets
+        .filter((entity) =>
+          relevantEntities.has(entity.getAttribute('Name') || ''),
+        )
+        .map((entity) => {
+          const attributes = {};
+          Array.from(entity.attributes).forEach((attr) => {
+            attributes[attr.name.toLowerCase()] = attr.value;
+          });
+          return attributes;
+        });
+
+      allData = [...allData, ...filteredMetadata];
+
+      const nextLink = response.headers.get('OData-NextLink');
+      url = nextLink ? nextLink : null;
+    }
+
+    return allData;
   } catch (error) {
     console.error('API Error:', error);
     return null;
