@@ -11,7 +11,7 @@
     "format": "prettier --write ./src"
   },
   "dependencies": {
-    "@headlessui/react": "^1.7.18",
+    "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^2.1.1",
     "@nextui-org/react": "^2.3.5",
     "axios": "^1.6.8",

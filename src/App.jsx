@@ -90,9 +90,9 @@ export default function App() {
   console.log(relevantEntities);
 
   return (
-    <div>
-      <h1>API Entities</h1>
-      <ul>
+    <div className='flex items-center justify-center h-screen flex-col'>
+      <h1 className='underline'>API Entities</h1>
+      <ul className=''>
         {relevantEntities.length > 0 ? (
           relevantEntities.map((entity) => (
             <li key={entity.name}>
