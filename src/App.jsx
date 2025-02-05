@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 
+import EntityButton from './components/EntityButton';
+import Steps from './components/Steps';
+
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
 
@@ -140,19 +143,10 @@ export default function App() {
     return <p>Loading data...</p>;
   }
 
-  console.log(relevantEntities);
-
   return (
     <div className='lex flex-col w-screen h-screen justify-center content-center'>
       <div className='w-full'>
-        <div className='flex justify-center space-x-2'>
-          {steps.map((step, index) => (
-            <div
-              key={index}
-              className={`h-2 w-2 rounded-full ${index <= currentStep ? 'bg-blue-500' : 'bg-gray-300'}`}
-            />
-          ))}
-        </div>
+        <Steps currentStep={currentStep} steps={steps} />
         <div className='mt-8 text-center'>
           <h2 className='text-2xl font-semibold'>{steps[currentStep]}</h2>
         </div>
@@ -162,17 +156,12 @@ export default function App() {
         <div className='flex justify-center mt-8'>
           <div className='max-w-5xl flex justify-center flex-wrap'>
             {relevantEntities.map((entity) => (
-              <button
+              <EntityButton
                 key={entity.name}
-                onClick={() => handleEntityClick(entity)}
-                className={`m-2 px-4 py-2 border rounded-full ${
-                  selectedEntities.includes(entity)
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200'
-                }`}
-              >
-                {entity['sap:label']}
-              </button>
+                entity={entity}
+                isSelected={selectedEntities.includes(entity)}
+                onClick={handleEntityClick}
+              />
             ))}
           </div>
         </div>
