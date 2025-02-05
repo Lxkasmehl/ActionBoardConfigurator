@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-
+import { useSelector, useDispatch } from 'react-redux';
+import { setEntities, toggleEntitySelection } from '../redux/entitiesSlice';
 import EntityButton from './components/EntityButton';
 import Steps from './components/Steps';
 
@@ -63,15 +64,12 @@ const fetchData = async () => {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(text, 'application/xml');
 
-      console.log(xmlDoc);
-
       const entitySets = Array.from(xmlDoc.getElementsByTagName('EntitySet'));
       const entityTypes = Array.from(xmlDoc.getElementsByTagName('EntityType'));
 
       const entityTypesMap = new Map();
       entityTypes.forEach((entityType) => {
         const name = entityType.getAttribute('Name');
-
         const properties = Array.from(
           entityType.getElementsByTagName('Property'),
         ).map((property) => {
@@ -81,7 +79,6 @@ const fetchData = async () => {
           });
           return attributes;
         });
-
         entityTypesMap.set(name, properties);
       });
 
@@ -117,25 +114,25 @@ const fetchData = async () => {
 };
 
 export default function App() {
-  const [relevantEntities, setRelevantEntities] = useState(null);
+  const dispatch = useDispatch();
+  const relevantEntities = useSelector(
+    (state) => state.entities.relevantEntities,
+  );
+  const selectedEntities = useSelector(
+    (state) => state.entities.selectedEntities,
+  );
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedEntities, setSelectedEntities] = useState([]);
 
   const handleEntityClick = (entity) => {
-    setSelectedEntities((prev) =>
-      prev.includes(entity)
-        ? prev.filter((item) => item !== entity)
-        : [...prev, entity],
-    );
-
+    dispatch(toggleEntitySelection(entity));
     setCurrentStep(currentStep + 1);
   };
 
   useEffect(() => {
-    fetchData().then(setRelevantEntities);
-  }, []);
+    fetchData().then((data) => dispatch(setEntities(data)));
+  }, [dispatch]);
 
-  if (!relevantEntities) {
+  if (!relevantEntities.length) {
     return <p>Loading data...</p>;
   }
 
