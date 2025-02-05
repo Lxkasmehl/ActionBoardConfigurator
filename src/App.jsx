@@ -34,7 +34,7 @@ const relevantEntities = new Set([
   'FOCostCenter',
 ]);
 
-const steps = ['Step 1', 'Step 2', 'Step 3'];
+const steps = ['Pick Entity', 'Step 2', 'Step 3'];
 
 const fetchData = async () => {
   const headers = new Headers();
@@ -143,8 +143,8 @@ export default function App() {
   console.log(relevantEntities);
 
   return (
-    <div className='p-40'>
-      <div className='w-full py-4'>
+    <div className='lex flex-col w-screen h-screen justify-center content-center'>
+      <div className='w-full'>
         <div className='flex justify-center space-x-2'>
           {steps.map((step, index) => (
             <div
@@ -159,20 +159,22 @@ export default function App() {
       </div>
 
       {currentStep === 0 && (
-        <div className='flex flex-wrap justify-center mt-8'>
-          {relevantEntities.map((entity) => (
-            <button
-              key={entity.name}
-              onClick={() => handleEntityClick(entity)}
-              className={`m-2 px-4 py-2 border rounded-full ${
-                selectedEntities.includes(entity)
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200'
-              }`}
-            >
-              {entity['sap:label']}
-            </button>
-          ))}
+        <div className='flex justify-center mt-8'>
+          <div className='max-w-5xl flex justify-center flex-wrap'>
+            {relevantEntities.map((entity) => (
+              <button
+                key={entity.name}
+                onClick={() => handleEntityClick(entity)}
+                className={`m-2 px-4 py-2 border rounded-full ${
+                  selectedEntities.includes(entity)
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200'
+                }`}
+              >
+                {entity['sap:label']}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
