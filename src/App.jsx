@@ -1,75 +1,108 @@
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-function App({ children }) {
-  const [isOpen, setIsOpen] = useState(true);
+const API_USER = import.meta.env.VITE_API_USER;
+const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
 
-  function closeModal() {
-    setIsOpen(false);
+const relevantEntities = new Set([
+  'User',
+  'EmpEmployment',
+  'EmpJob',
+  'EmpCompensation',
+  'WorkSchedule',
+  'TimeAccount',
+  'EmployeeTime',
+  'JobRequisition',
+  'JobApplication',
+  'Candidate',
+  'JobOffer',
+  'InterviewOverallAssessment',
+  'OnboardingInfo',
+  'ONB2Process',
+  'ONB2ProcessTask',
+  'ONB2ProcessTrigger',
+  'Goal',
+  'GoalAchievements',
+  'FormReviewFeedback',
+  'ContinuousFeedback',
+  'TalentPool',
+  'Successor',
+  'MentoringProgram',
+  'DevGoal',
+  'FOCompany',
+  'FOBusinessUnit',
+  'FODepartment',
+  'FOCostCenter',
+]);
+
+const fetchData = async () => {
+  const headers = new Headers();
+  headers.set('Authorization', 'Basic ' + btoa(`${API_USER}:${API_PASSWORD}`));
+  headers.set('X-SF-Correlation-Id', crypto.randomUUID());
+  headers.set('successfactors-sourcetype', 'Application');
+
+  try {
+    const response = await fetch(`/api/odata/v2/$metadata`, {
+      mode: 'cors',
+      headers: headers,
+    });
+
+    if (!response.ok) {
+      throw new Error('Error while fetching data');
+    }
+
+    const text = await response.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(text, 'application/xml');
+
+    console.log(xmlDoc);
+
+    const entitySets = Array.from(xmlDoc.getElementsByTagName('EntitySet'));
+    const filteredMetadata = entitySets
+      .filter((entity) =>
+        relevantEntities.has(entity.getAttribute('Name') || ''),
+      )
+      .map((entity) => {
+        const attributes = {};
+        Array.from(entity.attributes).forEach((attr) => {
+          attributes[attr.name.toLowerCase()] = attr.value;
+        });
+        return attributes;
+      });
+
+    return filteredMetadata;
+  } catch (error) {
+    console.error('API Error:', error);
+    return null;
+  }
+};
+
+export default function App() {
+  const [relevantEntities, setRelevantEntities] = useState(null);
+
+  useEffect(() => {
+    fetchData().then(setRelevantEntities);
+  }, []);
+
+  if (!relevantEntities) {
+    return <p>Loading data...</p>;
   }
 
-  const appTitle = self.pidget.language.getI18n({
-    key: 'app.title',
-    i18n: self.pentos.hcmintegrationlog.config.pidgetTranslation,
-  });
+  console.log(relevantEntities);
 
   return (
-    <>
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog
-          id="pidgetDialog"
-          as="div"
-          className="relative z-10 bg-slate-500"
-          onClose={closeModal}
-        >
-          {/* Transition.Child to apply one transition to the backdrop */}
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            {/* Backdrop */}
-            <div className="fixed inset-0 bg-black/25" />
-          </Transition.Child>
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              {/* Another Transition.Child to apply a separate transition to the contents */}
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full h-full transform overflow-hidden rounded-lg bg-white p-0 text-left align-middle shadow-xl transition-all">
-                  <div className="flex bg-slate-300 h-14 p-2">
-                    <img
-                      src={import.meta.env.VITE_PENTOS_LOGO_ICON}
-                      alt="Pentos"
-                      className="h-10"
-                    />
-                    <Dialog.Title
-                      as="h3"
-                      className="text-lg font-medium leading-6 text-gray-900 p-2 pl-3"
-                    >
-                      {appTitle}
-                    </Dialog.Title>
-                  </div>
-                  {children}
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
-    </>
+    <div>
+      <h1>API Entities</h1>
+      <ul>
+        {relevantEntities.length > 0 ? (
+          relevantEntities.map((entity) => (
+            <li key={entity.name}>
+              <p>{entity.name}</p>
+            </li>
+          ))
+        ) : (
+          <p>No relevant entities found.</p>
+        )}
+      </ul>
+    </div>
   );
 }
-
-export default App;
