@@ -1,9 +1,11 @@
 import PropTypes from 'prop-types';
 
-export default function Steps({ currentStep, steps }) {
+export default function Steps({ currentStep, totalSteps }) {
+  const steps = new Array(totalSteps).fill(null);
+
   return (
     <div className='flex justify-center space-x-2'>
-      {steps.map((step, index) => (
+      {steps.map((_, index) => (
         <div
           key={index}
           className={`h-2 w-2 rounded-full ${index <= currentStep ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -15,5 +17,5 @@ export default function Steps({ currentStep, steps }) {
 
 Steps.propTypes = {
   currentStep: PropTypes.number.isRequired,
-  steps: PropTypes.arrayOf(PropTypes.string).isRequired,
+  totalSteps: PropTypes.number.isRequired,
 };

@@ -38,8 +38,6 @@ const relevantEntities = new Set([
   'FOCostCenter',
 ]);
 
-const steps = ['Pick Entity', 'Step 2', 'Step 3'];
-
 const fetchData = async () => {
   const headers = new Headers();
   headers.set('Authorization', 'Basic ' + btoa(`${API_USER}:${API_PASSWORD}`));
@@ -139,9 +137,9 @@ export default function App() {
   return (
     <div className='lex flex-col w-screen h-screen justify-center content-center'>
       <div className='w-full'>
-        <Steps currentStep={currentStep} steps={steps} />
+        <Steps currentStep={currentStep} totalSteps={3} />
         <div className='mt-8 text-center'>
-          <h2 className='text-2xl font-semibold'>{steps[currentStep]}</h2>
+          <h2 className='text-2xl font-semibold'>Pick Entity</h2>
         </div>
       </div>
 
