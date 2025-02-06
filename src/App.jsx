@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setEntities, toggleEntitySelection } from '../redux/entitiesSlice';
-import EntityButton from './components/EntityButton';
+import { setEntities } from '../redux/entitiesSlice';
 import Steps from './components/Steps';
+import EntitySelection from './components/EntitySelection';
+import PropertySelection from './components/PropertySelection.jsx';
 
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
@@ -49,14 +50,8 @@ const fetchData = async () => {
 
   try {
     while (url) {
-      const response = await fetch(url, {
-        mode: 'cors',
-        headers: headers,
-      });
-
-      if (!response.ok) {
-        throw new Error('Error while fetching data');
-      }
+      const response = await fetch(url, { mode: 'cors', headers });
+      if (!response.ok) throw new Error('Error while fetching data');
 
       const text = await response.text();
       const parser = new DOMParser();
@@ -116,15 +111,7 @@ export default function App() {
   const relevantEntities = useSelector(
     (state) => state.entities.relevantEntities,
   );
-  const selectedEntities = useSelector(
-    (state) => state.entities.selectedEntities,
-  );
-  const [currentStep, setCurrentStep] = useState(0);
-
-  const handleEntityClick = (entity) => {
-    dispatch(toggleEntitySelection(entity));
-    setCurrentStep(currentStep + 1);
-  };
+  const currentStep = useSelector((state) => state.entities.currentStep);
 
   useEffect(() => {
     fetchData().then((data) => dispatch(setEntities(data)));
@@ -135,28 +122,20 @@ export default function App() {
   }
 
   return (
-    <div className='lex flex-col w-screen h-screen justify-center content-center'>
+    <div className='flex flex-col w-screen h-screen justify-center content-center py-20'>
       <div className='w-full'>
         <Steps currentStep={currentStep} totalSteps={3} />
         <div className='mt-8 text-center'>
-          <h2 className='text-2xl font-semibold'>Pick Entity</h2>
+          <h2 className='text-2xl font-semibold'>
+            {currentStep === 0 && 'Pick Entity'}
+            {currentStep === 1 && 'Filter Entity By Property'}
+          </h2>
         </div>
       </div>
 
-      {currentStep === 0 && (
-        <div className='flex justify-center mt-8'>
-          <div className='max-w-5xl flex justify-center flex-wrap'>
-            {relevantEntities.map((entity) => (
-              <EntityButton
-                key={entity.name}
-                entity={entity}
-                isSelected={selectedEntities.includes(entity)}
-                onClick={handleEntityClick}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {currentStep === 0 && <EntitySelection />}
+
+      {currentStep === 1 && <PropertySelection />}
     </div>
   );
 }
