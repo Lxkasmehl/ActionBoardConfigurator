@@ -1,12 +1,15 @@
 import { useSelector, useDispatch } from 'react-redux';
 import Steps from './components/Steps';
-import EntitySelection from './components/EntitySelection';
-import PropertySelection from './components/PropertySelection.jsx';
+import {
+  toggleEntitySelection,
+  togglePropertySelection,
+} from './redux/entitiesSlice.js';
 import useFetchEntities from './hooks/useFetchEntities.js';
 import {
   setCurrentStep,
   resetSelectedEntities,
 } from './redux/entitiesSlice.js';
+import Selection from './components/Selection.jsx';
 
 const relevantEntityNames = new Set([
   'User',
@@ -42,6 +45,12 @@ const relevantEntityNames = new Set([
 export default function App() {
   const dispatch = useDispatch();
   const currentStep = useSelector((state) => state.entities.currentStep);
+  const filteredEntities = useSelector(
+    (state) => state.entities.filteredEntities,
+  );
+  const selectedProperties = useSelector(
+    (state) => state.entities.selectedProperties,
+  );
   const selectedEntities = useSelector(
     (state) => state.entities.selectedEntities,
   );
@@ -53,6 +62,15 @@ export default function App() {
     }
 
     dispatch(setCurrentStep(currentStep - 1));
+  };
+
+  const handleEntityClick = (entity) => {
+    dispatch(toggleEntitySelection(entity));
+    dispatch(setCurrentStep(currentStep + 1));
+  };
+
+  const handlePropertyClick = (property) => {
+    dispatch(togglePropertySelection(property));
   };
 
   if (loading) {
@@ -75,8 +93,22 @@ export default function App() {
         </div>
       </div>
 
-      {currentStep === 0 && <EntitySelection />}
-      {currentStep === 1 && <PropertySelection />}
+      {currentStep === 0 && (
+        <Selection
+          items={filteredEntities}
+          isSelectedSelector={(entity) => selectedEntities.includes(entity)}
+          onClick={handleEntityClick}
+        />
+      )}
+      {currentStep === 1 && selectedEntities.length > 0 && (
+        <Selection
+          items={selectedEntities[0].properties}
+          isSelectedSelector={(property) =>
+            selectedProperties.includes(property)
+          }
+          onClick={handlePropertyClick}
+        />
+      )}
 
       {currentStep > 0 && (
         <div className='flex justify-center'>
