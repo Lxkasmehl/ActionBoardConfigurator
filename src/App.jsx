@@ -84,7 +84,7 @@ export default function App() {
   }
 
   return (
-    <div className='flex flex-col w-screen h-screen justify-center items-center py-20 bg-gray-100'>
+    <div className='flex flex-col w-screen h-screen justify-center items-center py-20'>
       <div className='w-full'>
         <Steps currentStep={currentStep} totalSteps={3} />
         <div className='mt-8 text-center'>

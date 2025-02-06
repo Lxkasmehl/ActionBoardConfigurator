@@ -54,9 +54,14 @@ const useFetchEntities = (relevantEntityNames) => {
           });
 
           const filteredMetadata = entitySets
-            .filter((entity) =>
-              relevantEntityNames.has(entity.getAttribute('Name') || ''),
-            )
+            .filter((entity) => {
+              const name = entity.getAttribute('Name') || '';
+              return (
+                relevantEntityNames.has(name) ||
+                /^Goal_\d+$/.test(name) ||
+                /^DevGoal_\d+$/.test(name)
+              );
+            })
             .map((entity) => {
               const name = entity.getAttribute('Name');
               const attributes = {};

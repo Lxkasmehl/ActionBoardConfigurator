@@ -7,7 +7,7 @@ export default function Selection({ items, isSelectedSelector, onClick }) {
       <div className='max-w-5xl flex justify-center flex-wrap'>
         {items.map((item) => (
           <SelectionButton
-            key={item.name}
+            key={item['sap:label']}
             object={item}
             isSelected={isSelectedSelector(item)}
             onClick={() => onClick(item)}
