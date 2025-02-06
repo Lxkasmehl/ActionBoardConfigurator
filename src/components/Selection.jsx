@@ -1,14 +1,7 @@
 import SelectionButton from './SelectionButton';
-import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 
 export default function Selection({ items, isSelectedSelector, onClick }) {
-  const dispatch = useDispatch();
-
-  const handleItemClick = (item) => {
-    dispatch(onClick(item));
-  };
-
   return (
     <div className='flex justify-center mt-8'>
       <div className='max-w-5xl flex justify-center flex-wrap'>
@@ -17,7 +10,7 @@ export default function Selection({ items, isSelectedSelector, onClick }) {
             key={item.name}
             object={item}
             isSelected={isSelectedSelector(item)}
-            onClick={() => handleItemClick(item)}
+            onClick={() => onClick(item)}
           />
         ))}
       </div>

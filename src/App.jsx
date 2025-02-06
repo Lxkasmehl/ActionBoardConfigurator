@@ -1,6 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import Steps from './components/Steps';
 import {
+  resetSelectedProperties,
   toggleEntitySelection,
   togglePropertySelection,
 } from './redux/entitiesSlice.js';
@@ -59,6 +60,7 @@ export default function App() {
   const handlePrevious = () => {
     if (currentStep === 1) {
       dispatch(resetSelectedEntities());
+      dispatch(resetSelectedProperties());
     }
 
     dispatch(setCurrentStep(currentStep - 1));
