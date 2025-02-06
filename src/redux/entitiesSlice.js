@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  relevantEntities: [],
+  filteredEntities: [],
   selectedEntities: [],
   selectedProperties: [],
   currentStep: 0,
@@ -11,8 +11,8 @@ const entitiesSlice = createSlice({
   name: 'entities',
   initialState,
   reducers: {
-    setEntities(state, action) {
-      state.relevantEntities = action.payload;
+    setFilteredEntities(state, action) {
+      state.filteredEntities = action.payload;
     },
     toggleEntitySelection(state, action) {
       const entity = action.payload;
@@ -41,7 +41,7 @@ const entitiesSlice = createSlice({
 });
 
 export const {
-  setEntities,
+  setFilteredEntities,
   toggleEntitySelection,
   togglePropertySelection,
   setCurrentStep,

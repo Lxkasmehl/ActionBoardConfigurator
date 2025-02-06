@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   togglePropertySelection,
   setCurrentStep,
-} from '../../redux/entitiesSlice';
+} from '../redux/entitiesSlice';
 
 export default function PropertySelection() {
   const dispatch = useDispatch();

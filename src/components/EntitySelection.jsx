@@ -1,17 +1,14 @@
 import SelectionButton from './SelectionButton';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  toggleEntitySelection,
-  setCurrentStep,
-} from '../../redux/entitiesSlice';
+import { toggleEntitySelection, setCurrentStep } from '../redux/entitiesSlice';
 
 export default function EntitySelection() {
   const dispatch = useDispatch();
   const selectedEntities = useSelector(
     (state) => state.entities.selectedEntities,
   );
-  const relevantEntities = useSelector(
-    (state) => state.entities.relevantEntities,
+  const filteredEntities = useSelector(
+    (state) => state.entities.filteredEntities,
   );
   const currentStep = useSelector((state) => state.entities.currentStep);
 
@@ -23,7 +20,7 @@ export default function EntitySelection() {
   return (
     <div className='flex justify-center mt-8'>
       <div className='max-w-5xl flex justify-center flex-wrap'>
-        {relevantEntities.map((entity) => (
+        {filteredEntities.map((entity) => (
           <SelectionButton
             key={entity.name}
             object={entity}
