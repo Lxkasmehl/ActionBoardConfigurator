@@ -15,6 +15,8 @@ export default function PropertySelection() {
   );
   const currentStep = useSelector((state) => state.entities.currentStep);
 
+  console.log(selectedEntities);
+
   if (selectedEntities.length === 0) return null;
 
   const handlePropertyClick = (property) => {

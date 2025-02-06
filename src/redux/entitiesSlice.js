@@ -24,6 +24,9 @@ const entitiesSlice = createSlice({
         state.selectedEntities.push(entity);
       }
     },
+    resetSelectedEntities(state) {
+      state.selectedEntities = [];
+    },
     togglePropertySelection(state, action) {
       const property = action.payload;
       if (state.selectedProperties.includes(property)) {
@@ -43,6 +46,7 @@ const entitiesSlice = createSlice({
 export const {
   setFilteredEntities,
   toggleEntitySelection,
+  resetSelectedEntities,
   togglePropertySelection,
   setCurrentStep,
 } = entitiesSlice.actions;
