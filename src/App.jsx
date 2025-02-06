@@ -64,11 +64,11 @@ export default function App() {
   }
 
   return (
-    <div className='flex flex-col w-screen h-screen justify-center content-center py-20'>
+    <div className='flex flex-col w-screen h-screen justify-center items-center py-20 bg-gray-100'>
       <div className='w-full'>
         <Steps currentStep={currentStep} totalSteps={3} />
         <div className='mt-8 text-center'>
-          <h2 className='text-2xl font-semibold'>
+          <h2 className='text-3xl font-semibold text-gray-700'>
             {currentStep === 0 && 'Pick Entity'}
             {currentStep === 1 && `Properties of ${selectedEntities[0].name}`}
           </h2>
@@ -82,7 +82,7 @@ export default function App() {
         <div className='flex justify-center'>
           <button
             onClick={handlePrevious}
-            className='mt-4 px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400'
+            className='mt-6 px-6 py-3 bg-gray-600 text-white rounded-full shadow-md hover:bg-gray-500 transition duration-300'
           >
             Previous
           </button>

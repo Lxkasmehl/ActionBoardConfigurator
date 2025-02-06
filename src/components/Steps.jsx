@@ -8,7 +8,7 @@ export default function Steps({ currentStep, totalSteps }) {
       {steps.map((_, index) => (
         <div
           key={index}
-          className={`h-2 w-2 rounded-full ${index <= currentStep ? 'bg-blue-500' : 'bg-gray-300'}`}
+          className={`h-3 w-3 rounded-full ${index <= currentStep ? 'bg-gradient-to-r from-blue-400 to-green-400' : 'bg-gray-200'} transition-all duration-300`}
         />
       ))}
     </div>

@@ -13,7 +13,6 @@ export default function PropertySelection() {
   const selectedProperties = useSelector(
     (state) => state.entities.selectedProperties,
   );
-  const currentStep = useSelector((state) => state.entities.currentStep);
 
   console.log(selectedEntities);
 
@@ -21,7 +20,6 @@ export default function PropertySelection() {
 
   const handlePropertyClick = (property) => {
     dispatch(togglePropertySelection(property));
-    dispatch(setCurrentStep(currentStep + 1));
   };
 
   return (
