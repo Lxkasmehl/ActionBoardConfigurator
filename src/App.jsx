@@ -3,14 +3,12 @@ import Steps from './components/Steps';
 import {
   resetSelectedProperties,
   toggleEntitySelection,
-  togglePropertySelection,
+  resetSelectedEntities,
+  setCurrentStep,
 } from './redux/entitiesSlice.js';
 import useFetchEntities from './hooks/useFetchEntities.js';
-import {
-  setCurrentStep,
-  resetSelectedEntities,
-} from './redux/entitiesSlice.js';
 import Selection from './components/Selection.jsx';
+import { useState } from 'react';
 
 const relevantEntityNames = new Set([
   'User',
@@ -49,20 +47,17 @@ export default function App() {
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
   );
-  const selectedProperties = useSelector(
-    (state) => state.entities.selectedProperties,
-  );
   const selectedEntities = useSelector(
     (state) => state.entities.selectedEntities,
   );
   const loading = useFetchEntities(relevantEntityNames);
+  const [filters, setFilters] = useState({});
 
   const handlePrevious = () => {
     if (currentStep === 1) {
       dispatch(resetSelectedEntities());
       dispatch(resetSelectedProperties());
     }
-
     dispatch(setCurrentStep(currentStep - 1));
   };
 
@@ -71,8 +66,8 @@ export default function App() {
     dispatch(setCurrentStep(currentStep + 1));
   };
 
-  const handlePropertyClick = (property) => {
-    dispatch(togglePropertySelection(property));
+  const handleFilterChange = (propertyName, value) => {
+    setFilters((prev) => ({ ...prev, [propertyName]: value }));
   };
 
   if (loading) {
@@ -84,13 +79,13 @@ export default function App() {
   }
 
   return (
-    <div className='flex flex-col w-screen h-screen justify-center items-center py-20'>
+    <div className='flex flex-col w-screen h-full justify-center items-center py-20'>
       <div className='w-full'>
         <Steps currentStep={currentStep} totalSteps={3} />
         <div className='mt-8 text-center'>
           <h2 className='text-3xl font-semibold text-gray-700'>
             {currentStep === 0 && 'Pick Entity'}
-            {currentStep === 1 && `Properties of ${selectedEntities[0].name}`}
+            {currentStep === 1 && 'Select and Filter Properties'}
           </h2>
         </div>
       </div>
@@ -102,14 +97,35 @@ export default function App() {
           onClick={handleEntityClick}
         />
       )}
+
       {currentStep === 1 && selectedEntities.length > 0 && (
-        <Selection
-          items={selectedEntities[0].properties}
-          isSelectedSelector={(property) =>
-            selectedProperties.includes(property)
-          }
-          onClick={handlePropertyClick}
-        />
+        <div className='w-3/4 p-4 bg-gray-100 rounded-lg shadow-md'>
+          <h3 className='text-xl font-semibold mb-4'>Filter Properties</h3>
+          <div className='grid grid-cols-2 gap-4'>
+            {[
+              ...new Map(
+                selectedEntities[0].properties
+                  .filter((property) => property['sap:filterable'] === 'true')
+                  .map((property) => [property['sap:label'], property]),
+              ).values(),
+            ].map((property) => (
+              <div key={property['sap:label']} className='flex flex-col'>
+                <label className='font-medium text-gray-700'>
+                  {property['sap:label']}
+                </label>
+                <input
+                  type='text'
+                  value={filters[property.Name] || ''}
+                  onChange={(e) => {
+                    handleFilterChange(property.Name, e.target.value);
+                  }}
+                  className='p-2 border rounded-md shadow-sm focus:ring focus:ring-blue-300'
+                  placeholder='Enter filter value'
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {currentStep > 0 && (
