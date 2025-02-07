@@ -3,7 +3,6 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   filteredEntities: [],
   selectedEntities: [],
-  selectedProperties: [],
   currentStep: 0,
 };
 
@@ -27,19 +26,6 @@ const entitiesSlice = createSlice({
     resetSelectedEntities(state) {
       state.selectedEntities = [];
     },
-    togglePropertySelection(state, action) {
-      const property = action.payload;
-      if (state.selectedProperties.some((p) => p.Name === property.Name)) {
-        state.selectedProperties = state.selectedProperties.filter(
-          (p) => p.Name !== property.Name,
-        );
-      } else {
-        state.selectedProperties.push(property);
-      }
-    },
-    resetSelectedProperties(state) {
-      state.selectedProperties = [];
-    },
     setCurrentStep(state, action) {
       state.currentStep = action.payload;
     },
@@ -50,8 +36,6 @@ export const {
   setFilteredEntities,
   toggleEntitySelection,
   resetSelectedEntities,
-  togglePropertySelection,
-  resetSelectedProperties,
   setCurrentStep,
 } = entitiesSlice.actions;
 

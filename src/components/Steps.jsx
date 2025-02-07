@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 
-export default function Steps({ currentStep, totalSteps }) {
+export default function Steps({ totalSteps }) {
+  const currentStep = useSelector((state) => state.entities.currentStep);
+
   const steps = new Array(totalSteps).fill(null);
 
   return (
