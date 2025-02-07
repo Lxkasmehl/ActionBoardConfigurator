@@ -98,24 +98,22 @@ export default function App() {
       {currentStep === 1 && selectedEntities.length > 0 && <PropertiesFilter />}
 
       {currentStep > 0 && (
-        <div className='flex justify-center'>
+        <div className='flex justify-center gap-4 mt-6'>
           <button
             onClick={handlePrevious}
-            className='mt-6 px-6 py-3 bg-gray-600 text-white rounded-full shadow-md hover:bg-gray-500 transition duration-300'
+            className='px-6 py-3 bg-gray-600 text-white rounded-full shadow-md hover:bg-gray-500 transition duration-300'
           >
             Previous
           </button>
-        </div>
-      )}
 
-      {currentStep === 1 && (
-        <div className='flex justify-center'>
-          <button
-            onClick={handleNext}
-            className='mt-6 px-6 py-3 bg-gray-600 text-white rounded-full shadow-md hover:bg-gray-500 transition duration-300'
-          >
-            Next
-          </button>
+          {currentStep === 1 && (
+            <button
+              onClick={handleNext}
+              className='px-6 py-3 bg-gray-600 text-white rounded-full shadow-md hover:bg-gray-500 transition duration-300'
+            >
+              Next
+            </button>
+          )}
         </div>
       )}
     </div>
