@@ -5,6 +5,7 @@ const initialState = {
   selectedEntities: [],
   filters: {},
   currentStep: 0,
+  config: {},
 };
 
 const entitiesSlice = createSlice({
@@ -37,6 +38,10 @@ const entitiesSlice = createSlice({
     setCurrentStep(state, action) {
       state.currentStep = action.payload;
     },
+    addEntity(state, action) {
+      state.config = { ...state.config, [action.payload]: {} };
+      console.log(state.config);
+    },
   },
 });
 
@@ -46,6 +51,7 @@ export const {
   resetSelectedEntities,
   setFilters,
   setCurrentStep,
+  addEntity,
 } = entitiesSlice.actions;
 
 export default entitiesSlice.reducer;
