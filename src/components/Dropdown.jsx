@@ -11,13 +11,14 @@ export default function Dropdown({ id, options, defaultValue, onChange }) {
       id={id}
       className='bg-gray-600 text-white rounded px-2 py-1 w-40'
       onChange={handleChange}
+      defaultValue=''
     >
-      <option value='' disabled selected>
+      <option value='' disabled>
         {defaultValue}
       </option>
       {options.map((option) => (
-        <option key={option.name} value={option.name}>
-          {option['sap:label']}
+        <option key={option.value} value={option.value}>
+          {option.label}
         </option>
       ))}
     </select>
@@ -33,5 +34,5 @@ Dropdown.propTypes = {
     }),
   ).isRequired,
   defaultValue: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
+  onChange: PropTypes.func,
 };

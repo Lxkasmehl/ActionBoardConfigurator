@@ -1,15 +1,28 @@
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Dropdown from './Dropdown';
-import { addEntity } from '../redux/entitiesSlice';
+import { addEntity, deleteEntity } from '../redux/entitiesSlice';
 
 export default function EntitySection() {
   const dispatch = useDispatch();
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
   );
+  const [propertyOptions, setPropertyOptions] = useState([]);
+  const [selectedEntity, setSelectedEntity] = useState(null);
 
-  const handleDropdownChange = (selectedValue) => {
+  const handleEntityDropdownChange = (selectedValue) => {
+    if (selectedEntity) {
+      dispatch(deleteEntity(selectedEntity));
+    }
+
     dispatch(addEntity(selectedValue));
+    setSelectedEntity(selectedValue);
+
+    const entity = filteredEntities.find(
+      (entity) => entity.name === selectedValue,
+    );
+    setPropertyOptions(entity ? entity.properties : []);
   };
 
   return (
@@ -17,21 +30,23 @@ export default function EntitySection() {
       <div className='flex flex-col justify-center items-center'>
         <Dropdown
           id='dropdown-left'
-          options={filteredEntities}
+          options={filteredEntities.map((entity) => ({
+            value: entity.name,
+            label: entity['sap:label'] || entity.name,
+          }))}
           defaultValue='Select an entity'
-          onChange={handleDropdownChange}
+          onChange={handleEntityDropdownChange}
         />
       </div>
 
       <div className='flex flex-col justify-center items-center'>
         <Dropdown
           id='dropdown-center'
-          options={[
-            { value: '1', label: 'Option 1' },
-            { value: '2', label: 'Option 2' },
-            { value: '3', label: 'Option 3' },
-          ]}
-          defaultValue='Select an option'
+          options={propertyOptions.map((property) => ({
+            value: property.Name,
+            label: property['sap:label'] || property.Name,
+          }))}
+          defaultValue='Select a property'
         />
         <input
           type='text'
