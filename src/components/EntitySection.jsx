@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Dropdown from './Dropdown';
-import { addEntity, deleteEntity } from '../redux/entitiesSlice';
+import {
+  addEntity,
+  deleteEntity,
+  addProperty,
+  deleteProperty,
+} from '../redux/entitiesSlice';
 
 export default function EntitySection() {
   const dispatch = useDispatch();
@@ -10,6 +15,7 @@ export default function EntitySection() {
   );
   const [propertyOptions, setPropertyOptions] = useState([]);
   const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedProperty, setSelectedProperty] = useState(null);
 
   const handleEntityDropdownChange = (selectedValue) => {
     if (selectedEntity) {
@@ -39,6 +45,25 @@ export default function EntitySection() {
     }
   };
 
+  const handlePropertyDropdownChange = (selectedValue) => {
+    if (selectedProperty) {
+      dispatch(
+        deleteProperty({
+          entityName: selectedEntity,
+          propertyName: selectedProperty,
+        }),
+      );
+    }
+
+    dispatch(
+      addProperty({
+        entityName: selectedEntity,
+        propertyName: selectedValue,
+      }),
+    );
+    setSelectedProperty(selectedValue);
+  };
+
   return (
     <section className='flex items-center justify-around px-6 py-8 bg-gray-800 lg:w-[50em] lg:min-h-[4em] w-[90%] min-h-[4.5em] text-white rounded-lg shadow-lg'>
       <div className='flex flex-col justify-center items-center'>
@@ -61,6 +86,7 @@ export default function EntitySection() {
             label: property['sap:label'] || property.Name,
           }))}
           defaultValue='Select a property'
+          onChange={handlePropertyDropdownChange}
         />
         <input
           type='text'
