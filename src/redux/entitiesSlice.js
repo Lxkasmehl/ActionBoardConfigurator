@@ -21,16 +21,6 @@ const entitiesSlice = createSlice({
         delete state.config[action.payload];
       }
     },
-    addProperty(state, action) {
-      const { entityName, propertyName } = action.payload;
-      if (state.config[entityName]) {
-        state.config[entityName] = {
-          ...state.config[entityName],
-          [propertyName]: '',
-        };
-      }
-      console.log(state.config[entityName]);
-    },
     deleteProperty(state, action) {
       const { entityName, propertyName } = action.payload;
       if (entityName in state.config) {
@@ -38,7 +28,15 @@ const entitiesSlice = createSlice({
           delete state.config[entityName][propertyName];
         }
       }
-      console.log(state.config[entityName]);
+    },
+    addFilter(state, action) {
+      const { entityName, propertyName, filterValue } = action.payload;
+      if (state.config[entityName]) {
+        state.config[entityName] = {
+          ...state.config[entityName],
+          [propertyName]: filterValue,
+        };
+      }
     },
   },
 });
@@ -47,8 +45,8 @@ export const {
   setFilteredEntities,
   addEntity,
   deleteEntity,
-  addProperty,
   deleteProperty,
+  addFilter,
 } = entitiesSlice.actions;
 
 export default entitiesSlice.reducer;

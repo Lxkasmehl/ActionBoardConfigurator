@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Dropdown from './Dropdown';
 import {
   addEntity,
   deleteEntity,
-  addProperty,
   deleteProperty,
+  addFilter,
 } from '../redux/entitiesSlice';
 
 export default function EntitySection() {
@@ -13,9 +13,11 @@ export default function EntitySection() {
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
   );
+  const config = useSelector((state) => state.entities.config);
   const [propertyOptions, setPropertyOptions] = useState([]);
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const inputRef = useRef(null);
 
   const handleEntityDropdownChange = (selectedValue) => {
     if (selectedEntity) {
@@ -55,13 +57,23 @@ export default function EntitySection() {
       );
     }
 
+    setSelectedProperty(selectedValue);
+
+    inputRef.current.value = '';
+
+    console.log(config);
+  };
+
+  const handleFilterValueChange = (event) => {
     dispatch(
-      addProperty({
+      addFilter({
         entityName: selectedEntity,
-        propertyName: selectedValue,
+        propertyName: selectedProperty,
+        filterValue: event.target.value,
       }),
     );
-    setSelectedProperty(selectedValue);
+
+    console.log(config);
   };
 
   return (
@@ -92,6 +104,9 @@ export default function EntitySection() {
           type='text'
           placeholder='Enter filter value'
           className='bg-gray-600 text-white rounded px-2 py-1 mt-4'
+          onChange={handleFilterValueChange}
+          disabled={!selectedProperty}
+          ref={inputRef}
         />
       </div>
 
