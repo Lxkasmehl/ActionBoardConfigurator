@@ -22,7 +22,21 @@ export default function EntitySection() {
     const entity = filteredEntities.find(
       (entity) => entity.name === selectedValue,
     );
-    setPropertyOptions(entity ? entity.properties : []);
+
+    if (entity) {
+      const uniqueProperties = [];
+      const filterableProperties = entity.properties.filter(
+        (property) => property['sap:filterable'] === 'true',
+      );
+
+      filterableProperties.forEach((property) => {
+        if (!uniqueProperties.some((prop) => prop.Name === property.Name)) {
+          uniqueProperties.push(property);
+        }
+      });
+
+      setPropertyOptions(uniqueProperties);
+    }
   };
 
   return (
@@ -50,7 +64,7 @@ export default function EntitySection() {
         />
         <input
           type='text'
-          placeholder='Eingabe hier'
+          placeholder='Enter filter value'
           className='bg-gray-600 text-white rounded px-2 py-1 mt-4'
         />
       </div>
