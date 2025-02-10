@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import useFetchEntities from './hooks/useFetchEntities.js';
 import EntitySection from './components/EntitySection.jsx';
+import { deleteID } from './redux/entitiesSlice.js';
+import { useDispatch, useSelector } from 'react-redux';
 
 const relevantEntityNames = new Set([
   'User',
@@ -35,21 +37,21 @@ const relevantEntityNames = new Set([
 
 export default function App() {
   const loading = useFetchEntities(relevantEntityNames);
-  const [sections, setSections] = useState([
-    <div key={0}>
-      <EntitySection key={0} />
-      <div className='w-0 h-14 mx-auto border-3 border-solid border-[#eee]'></div>
-    </div>,
-  ]);
+  const [sections, setSections] = useState([{ id: 0 }]);
+  const dispatch = useDispatch();
+  const config = useSelector((state) => state.entities.config);
 
   const addSection = () => {
-    setSections((prev) => [
-      ...prev,
-      <div key={prev.length}>
-        <EntitySection key={prev.length} />
-        <div className='w-0 h-14 mx-auto border-3 border-solid border-[#eee]'></div>
-      </div>,
-    ]);
+    const newId = sections.length
+      ? Math.max(...sections.map((s) => s.id)) + 1
+      : 0;
+    setSections((prev) => [...prev, { id: newId }]);
+  };
+
+  const removeSection = (id) => {
+    setSections((prev) => prev.filter((section) => section.id !== id));
+    dispatch(deleteID(id));
+    console.log(config);
   };
 
   if (loading) {
@@ -63,7 +65,20 @@ export default function App() {
   return (
     <div className='flex flex-col w-screen h-full justify-center items-center py-20'>
       <div className='w-full flex flex-col items-center'>
-        {sections}
+        {sections.map((section, index) => (
+          <div key={section.id} className='relative flex flex-col items-center'>
+            <EntitySection key={section.id} id={section.id} />
+            {index > 0 && (
+              <button
+                onClick={() => removeSection(section.id)}
+                className='absolute left-[-60px] top-[calc(50%-40px)] w-8 h-8 flex items-center justify-center bg-white text-red-600 font-bold rounded-full shadow-md border-2 border-red-600 hover:bg-red-600 hover:text-white transition-all'
+              >
+                -
+              </button>
+            )}
+            <div className='w-0 h-14 mx-auto border-3 border-solid border-[#eee]'></div>
+          </div>
+        ))}
         <button
           onClick={addSection}
           className='w-10 h-10 flex items-center justify-center bg-gray-800 text-white rounded-full shadow-md hover:bg-[#eee] transition-all'

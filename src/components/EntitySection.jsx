@@ -9,8 +9,9 @@ import {
   addPropertySelection,
   deletePropertySelection,
 } from '../redux/entitiesSlice';
+import PropTypes from 'prop-types';
 
-export default function EntitySection() {
+export default function EntitySection({ id }) {
   const dispatch = useDispatch();
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
@@ -26,10 +27,10 @@ export default function EntitySection() {
 
   const handleEntityDropdownChange = (selectedValue) => {
     if (state.selectedEntity) {
-      dispatch(deleteEntity(state.selectedEntity));
+      dispatch(deleteEntity({ id, entityName: state.selectedEntity }));
     }
 
-    dispatch(addEntity(selectedValue));
+    dispatch(addEntity({ id, entityName: selectedValue }));
     setState((prev) => ({ ...prev, selectedEntity: selectedValue }));
 
     const entity = filteredEntities.find(
@@ -53,6 +54,7 @@ export default function EntitySection() {
         deletePropertyFilter({
           entityName: state.selectedEntity,
           propertyName: state.selectedPropertyFilter,
+          id,
         }),
       );
     }
@@ -67,6 +69,7 @@ export default function EntitySection() {
         entityName: state.selectedEntity,
         propertyName: state.selectedPropertyFilter,
         filterValue: event.target.value,
+        id,
       }),
     );
 
@@ -89,6 +92,7 @@ export default function EntitySection() {
       addPropertySelection({
         entityName: state.selectedEntity,
         propertyName: selectedValue,
+        id,
       }),
     );
 
@@ -145,3 +149,7 @@ export default function EntitySection() {
     </section>
   );
 }
+
+EntitySection.propTypes = {
+  id: PropTypes.number.isRequired,
+};
