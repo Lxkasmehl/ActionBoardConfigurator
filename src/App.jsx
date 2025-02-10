@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import useFetchEntities from './hooks/useFetchEntities.js';
 import EntitySection from './components/EntitySection.jsx';
 
@@ -34,6 +35,22 @@ const relevantEntityNames = new Set([
 
 export default function App() {
   const loading = useFetchEntities(relevantEntityNames);
+  const [sections, setSections] = useState([
+    <div key={0}>
+      <EntitySection key={0} />
+      <div className='w-0 h-14 mx-auto border-3 border-solid border-[#eee]'></div>
+    </div>,
+  ]);
+
+  const addSection = () => {
+    setSections((prev) => [
+      ...prev,
+      <div key={prev.length}>
+        <EntitySection key={prev.length} />
+        <div className='w-0 h-14 mx-auto border-3 border-solid border-[#eee]'></div>
+      </div>,
+    ]);
+  };
 
   if (loading) {
     return (
@@ -45,11 +62,14 @@ export default function App() {
 
   return (
     <div className='flex flex-col w-screen h-full justify-center items-center py-20'>
-      <div className='w-full'>
-        <div className='flex items-center flex-col'>
-          <EntitySection />
-          <div className='w-0 h-14 mx-auto border-3 border-solid border-[#eee]'></div>
-        </div>
+      <div className='w-full flex flex-col items-center'>
+        {sections}
+        <button
+          onClick={addSection}
+          className='w-10 h-10 flex items-center justify-center bg-gray-800 text-white rounded-full shadow-md hover:bg-[#eee] transition-all'
+        >
+          +
+        </button>
       </div>
     </div>
   );
