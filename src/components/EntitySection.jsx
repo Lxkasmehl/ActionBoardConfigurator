@@ -4,8 +4,10 @@ import Dropdown from './Dropdown';
 import {
   addEntity,
   deleteEntity,
-  deleteProperty,
+  deletePropertyFilter,
   addFilter,
+  addPropertySelection,
+  deletePropertySelection,
 } from '../redux/entitiesSlice';
 
 export default function EntitySection() {
@@ -16,6 +18,7 @@ export default function EntitySection() {
   const config = useSelector((state) => state.entities.config);
   const [propertyOptions, setPropertyOptions] = useState([]);
   const [selectedEntity, setSelectedEntity] = useState(null);
+  const [selectedPropertyFilter, setSelectedPropertyFilter] = useState(null);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const inputRef = useRef(null);
 
@@ -33,11 +36,7 @@ export default function EntitySection() {
 
     if (entity) {
       const uniqueProperties = [];
-      const filterableProperties = entity.properties.filter(
-        (property) => property['sap:filterable'] === 'true',
-      );
-
-      filterableProperties.forEach((property) => {
+      entity.properties.forEach((property) => {
         if (!uniqueProperties.some((prop) => prop.Name === property.Name)) {
           uniqueProperties.push(property);
         }
@@ -48,16 +47,16 @@ export default function EntitySection() {
   };
 
   const handlePropertyDropdownChange = (selectedValue) => {
-    if (selectedProperty) {
+    if (selectedPropertyFilter) {
       dispatch(
-        deleteProperty({
+        deletePropertyFilter({
           entityName: selectedEntity,
-          propertyName: selectedProperty,
+          propertyName: selectedPropertyFilter,
         }),
       );
     }
 
-    setSelectedProperty(selectedValue);
+    setSelectedPropertyFilter(selectedValue);
 
     inputRef.current.value = '';
 
@@ -68,8 +67,30 @@ export default function EntitySection() {
     dispatch(
       addFilter({
         entityName: selectedEntity,
-        propertyName: selectedProperty,
+        propertyName: selectedPropertyFilter,
         filterValue: event.target.value,
+      }),
+    );
+
+    console.log(config);
+  };
+
+  const handleSelectedPropertyFilterChange = (selectedValue) => {
+    if (selectedProperty) {
+      dispatch(
+        deletePropertySelection({
+          entityName: selectedEntity,
+          propertyName: selectedProperty,
+        }),
+      );
+    }
+
+    setSelectedProperty(selectedValue);
+
+    dispatch(
+      addPropertySelection({
+        entityName: selectedEntity,
+        propertyName: selectedValue,
       }),
     );
 
@@ -93,11 +114,13 @@ export default function EntitySection() {
       <div className='flex flex-col justify-center items-center'>
         <Dropdown
           id='dropdown-center'
-          options={propertyOptions.map((property) => ({
-            value: property.Name,
-            label: property['sap:label'] || property.Name,
-          }))}
-          defaultValue='Select a property'
+          options={propertyOptions
+            .filter((property) => property['sap:filterable'] === 'true')
+            .map((property) => ({
+              value: property.Name,
+              label: property['sap:label'] || property.Name,
+            }))}
+          defaultValue='Select a filter'
           onChange={handlePropertyDropdownChange}
         />
         <input
@@ -105,7 +128,7 @@ export default function EntitySection() {
           placeholder='Enter filter value'
           className='bg-gray-600 text-white rounded px-2 py-1 mt-4'
           onChange={handleFilterValueChange}
-          disabled={!selectedProperty}
+          disabled={!selectedPropertyFilter}
           ref={inputRef}
         />
       </div>
@@ -113,12 +136,12 @@ export default function EntitySection() {
       <div className='flex flex-col justify-center items-end'>
         <Dropdown
           id='dropdown-right'
-          options={[
-            { value: '1', label: 'Option 1' },
-            { value: '2', label: 'Option 2' },
-            { value: '3', label: 'Option 3' },
-          ]}
-          defaultValue='Select an option'
+          options={propertyOptions.map((property) => ({
+            value: property.Name,
+            label: property['sap:label'] || property.Name,
+          }))}
+          defaultValue='Select a property'
+          onChange={handleSelectedPropertyFilterChange}
         />
       </div>
     </section>

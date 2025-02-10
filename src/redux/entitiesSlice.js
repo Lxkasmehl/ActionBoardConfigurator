@@ -21,21 +21,43 @@ const entitiesSlice = createSlice({
         delete state.config[action.payload];
       }
     },
-    deleteProperty(state, action) {
+    deletePropertyFilter(state, action) {
       const { entityName, propertyName } = action.payload;
       if (entityName in state.config) {
-        if (propertyName in state.config[entityName]) {
-          delete state.config[entityName][propertyName];
+        if (propertyName in state.config[entityName].filter) {
+          delete state.config[entityName].filter[propertyName];
         }
       }
     },
     addFilter(state, action) {
       const { entityName, propertyName, filterValue } = action.payload;
+      if (!state.config[entityName]) {
+        state.config[entityName] = { filter: {} };
+      }
+      if (!state.config[entityName].filter) {
+        state.config[entityName].filter = {};
+      }
+      state.config[entityName].filter[propertyName] = filterValue;
+    },
+    addPropertySelection(state, action) {
+      const { entityName, propertyName } = action.payload;
+      state.config[entityName] = state.config[entityName] ?? {
+        selectedProperties: [],
+      };
+      state.config[entityName].selectedProperties = [
+        ...new Set([
+          ...(state.config[entityName].selectedProperties ?? []),
+          propertyName,
+        ]),
+      ];
+    },
+    deletePropertySelection(state, action) {
+      const { entityName, propertyName } = action.payload;
       if (state.config[entityName]) {
-        state.config[entityName] = {
-          ...state.config[entityName],
-          [propertyName]: filterValue,
-        };
+        state.config[entityName].selectedProperties =
+          state.config[entityName].selectedProperties?.filter(
+            (prop) => prop !== propertyName,
+          ) ?? [];
       }
     },
   },
@@ -45,8 +67,10 @@ export const {
   setFilteredEntities,
   addEntity,
   deleteEntity,
-  deleteProperty,
+  deletePropertyFilter,
   addFilter,
+  addPropertySelection,
+  deletePropertySelection,
 } = entitiesSlice.actions;
 
 export default entitiesSlice.reducer;
