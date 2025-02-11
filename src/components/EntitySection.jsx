@@ -10,6 +10,7 @@ import {
   deletePropertySelection,
 } from '../redux/entitiesSlice';
 import PropTypes from 'prop-types';
+import { Card, Input } from '@mui/joy';
 
 export default function EntitySection({ id }) {
   const dispatch = useDispatch();
@@ -95,7 +96,16 @@ export default function EntitySection({ id }) {
   };
 
   return (
-    <section className='flex items-center justify-around px-6 py-8 bg-gray-800 lg:w-[50em] w-[90%] text-white rounded-lg shadow-lg'>
+    // className='flex items-center justify-around px-6 py-8 bg-gray-800 lg:w-[50em] w-[90%] text-white rounded-lg shadow-lg'
+    <Card
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        width: '50em',
+      }}
+    >
       <Dropdown
         id='dropdown-left'
         options={filteredEntities.map((e) => ({
@@ -115,10 +125,12 @@ export default function EntitySection({ id }) {
           onChange={handlePropertyFilterChange}
           ref={centerDropdownRef}
         />
-        <input
+        <Input
+          variant='outlined'
           type='text'
           placeholder='Enter filter value'
-          className='bg-gray-600 text-white rounded px-2 py-1 mt-4'
+          // className='bg-gray-600 text-white rounded px-2 py-1 mt-4'
+          className='mt-4'
           value={filterValue}
           onChange={handleFilterValueChange}
           disabled={!selectedPropertyFilter}
@@ -134,7 +146,7 @@ export default function EntitySection({ id }) {
         onChange={handleSelectedPropertyChange}
         ref={rightDropdownRef}
       />
-    </section>
+    </Card>
   );
 }
 

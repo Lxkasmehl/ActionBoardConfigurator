@@ -1,5 +1,6 @@
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import PropTypes from 'prop-types';
+import { Select, Option } from '@mui/joy';
 
 const Dropdown = forwardRef(function Dropdown(
   { id, options, defaultValue, onChange },
@@ -7,8 +8,7 @@ const Dropdown = forwardRef(function Dropdown(
 ) {
   const [selectedValue, setSelectedValue] = useState('');
 
-  const handleChange = (event) => {
-    const value = event.target.value;
+  const handleChange = (event, value) => {
     setSelectedValue(value);
     onChange(value);
   };
@@ -21,21 +21,22 @@ const Dropdown = forwardRef(function Dropdown(
 
   return (
     <div>
-      <select
+      <Select
         id={id}
-        className='bg-gray-600 text-white rounded px-2 py-1 w-40'
+        // className='bg-gray-600 text-white rounded px-2 py-1 w-40'
+        className='w-48'
         value={selectedValue}
         onChange={handleChange}
       >
-        <option value='' disabled>
+        <Option value='' disabled>
           {defaultValue}
-        </option>
+        </Option>
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <Option key={option.value} value={option.value}>
             {option.label}
-          </option>
+          </Option>
         ))}
-      </select>
+      </Select>
     </div>
   );
 });

@@ -3,6 +3,9 @@ import useFetchEntities from './hooks/useFetchEntities.js';
 import EntitySection from './components/EntitySection.jsx';
 import { deleteID } from './redux/entitiesSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
+import { IconButton } from '@mui/joy';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 
 const relevantEntityNames = new Set([
   'User',
@@ -69,22 +72,31 @@ export default function App() {
           <div key={section.id} className='relative flex flex-col items-center'>
             <EntitySection key={section.id} id={section.id} />
             {index > 0 && (
-              <button
+              <IconButton
                 onClick={() => removeSection(section.id)}
-                className='absolute left-[-60px] top-[calc(50%-40px)] w-8 h-8 flex items-center justify-center bg-white text-red-600 font-bold rounded-full shadow-md border-2 border-red-600 hover:bg-red-600 hover:text-white transition-all'
+                variant='outlined'
+                color='danger'
+                sx={{
+                  position: 'absolute',
+                  left: '-60px',
+                  top: 'calc(50% - 42px)',
+                }}
+                //className='absolute left-[-60px] top-[calc(50%-40px)] w-8 h-8 flex items-center justify-center bg-white text-red-600 font-bold rounded-full shadow-md border-2 border-red-600 hover:bg-red-600 hover:text-white transition-all'
               >
-                -
-              </button>
+                <RemoveIcon />
+              </IconButton>
             )}
-            <div className='w-0 h-14 mx-auto border-3 border-solid border-[#eee]'></div>
+            <div className='w-0 h-14 mx-auto border-3 border-solid border-[#cdd7e1]'></div>
           </div>
         ))}
-        <button
+        <IconButton
           onClick={addSection}
-          className='w-10 h-10 flex items-center justify-center bg-gray-800 text-white rounded-full shadow-md hover:bg-[#eee] transition-all'
+          variant='outlined'
+          aria-label='Add new entity section'
+          // className='w-10 h-10 flex items-center justify-center bg-gray-800 text-white rounded-full shadow-md hover:bg-[#eee] transition-all'
         >
-          +
-        </button>
+          <AddIcon />
+        </IconButton>
       </div>
     </div>
   );
