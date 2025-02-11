@@ -1,29 +1,46 @@
+import { forwardRef, useImperativeHandle, useState } from 'react';
 import PropTypes from 'prop-types';
 
-export default function Dropdown({ id, options, defaultValue, onChange }) {
+const Dropdown = forwardRef(function Dropdown(
+  { id, options, defaultValue, onChange },
+  ref,
+) {
+  const [selectedValue, setSelectedValue] = useState('');
+
   const handleChange = (event) => {
-    const selectedValue = event.target.value;
-    onChange(selectedValue);
+    const value = event.target.value;
+    setSelectedValue(value);
+    onChange(value);
   };
 
+  useImperativeHandle(ref, () => ({
+    resetDropdown() {
+      setSelectedValue('');
+    },
+  }));
+
   return (
-    <select
-      id={id}
-      className='bg-gray-600 text-white rounded px-2 py-1 w-40'
-      onChange={handleChange}
-      defaultValue=''
-    >
-      <option value='' disabled>
-        {defaultValue}
-      </option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
+    <div>
+      <select
+        id={id}
+        className='bg-gray-600 text-white rounded px-2 py-1 w-40'
+        value={selectedValue}
+        onChange={handleChange}
+      >
+        <option value='' disabled>
+          {defaultValue}
         </option>
-      ))}
-    </select>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
-}
+});
+
+export default Dropdown;
 
 Dropdown.propTypes = {
   id: PropTypes.string.isRequired,

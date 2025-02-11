@@ -24,6 +24,8 @@ export default function EntitySection({ id }) {
     selectedProperty: null,
   });
   const inputRef = useRef(null);
+  const centerDropdownRef = useRef(null);
+  const rightDropdownRef = useRef(null);
 
   const handleEntityDropdownChange = (selectedValue) => {
     if (state.selectedEntity) {
@@ -44,6 +46,10 @@ export default function EntitySection({ id }) {
 
       setState((prev) => ({ ...prev, propertyOptions: uniqueProperties }));
     }
+
+    centerDropdownRef.current?.resetDropdown();
+    rightDropdownRef.current?.resetDropdown();
+    inputRef.current.value = '';
 
     console.log(config);
   };
@@ -124,6 +130,7 @@ export default function EntitySection({ id }) {
             }))}
           defaultValue='Select a filter'
           onChange={handlePropertyDropdownChange}
+          ref={centerDropdownRef}
         />
         <input
           type='text'
@@ -144,6 +151,7 @@ export default function EntitySection({ id }) {
           }))}
           defaultValue='Select a property'
           onChange={handleSelectedPropertyChange}
+          ref={rightDropdownRef}
         />
       </div>
     </section>
