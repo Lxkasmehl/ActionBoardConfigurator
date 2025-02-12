@@ -12,6 +12,22 @@ import {
 import PropTypes from 'prop-types';
 import { Card, Input, Tooltip } from '@mui/joy';
 
+const operatorOptions = [
+  { value: '=', label: '=' },
+  { value: '!=', label: '≠' },
+  { value: '<', label: '<' },
+  { value: '<=', label: '≤' },
+  { value: '>', label: '>' },
+  { value: '>=', label: '≥' },
+  { value: 'LIKE', label: 'LIKE' },
+  { value: 'NOT LIKE', label: 'NOT LIKE' },
+  { value: 'IN', label: 'IN' },
+  { value: 'NOT IN', label: 'NOT IN' },
+  { value: 'BETWEEN', label: 'BETWEEN' },
+  { value: 'IS NULL', label: 'IS NULL' },
+  { value: 'IS NOT NULL', label: 'IS NOT NULL' },
+];
+
 export default function EntitySection({ id }) {
   const dispatch = useDispatch();
   const filteredEntities = useSelector(
@@ -22,18 +38,19 @@ export default function EntitySection({ id }) {
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [propertyOptions, setPropertyOptions] = useState([]);
   const [selectedPropertyFilter, setSelectedPropertyFilter] = useState(null);
-  const [selectedProperties, setSelectedProperties] = useState([]);
   const [filterValue, setFilterValue] = useState('');
+  const [selectedProperties, setSelectedProperties] = useState([]);
 
   const centerDropdownRef = useRef(null);
   const rightDropdownRef = useRef(null);
+  const operatorDropdownRef = useRef(null);
 
   const handleEntityChange = (entityName) => {
     if (selectedEntity) {
       dispatch(deleteEntity({ id, entityName: selectedEntity }));
-      // setSelectedPropertyFilter(null);
-      // setSelectedProperties([]);
-      // setFilterValue('');
+      setSelectedPropertyFilter(null);
+      setSelectedProperties([]);
+      setFilterValue('');
     }
 
     dispatch(addEntity({ id, entityName }));
@@ -50,6 +67,7 @@ export default function EntitySection({ id }) {
 
     centerDropdownRef.current?.resetDropdown();
     rightDropdownRef.current?.resetDropdown();
+    operatorDropdownRef.current?.resetDropdown();
     setFilterValue('');
   };
 
@@ -105,6 +123,8 @@ export default function EntitySection({ id }) {
     console.log(config);
   };
 
+  const handleOperatorChange = () => {};
+
   return (
     // className='flex items-center justify-around px-6 py-8 bg-gray-800 lg:w-[50em] w-[90%] text-white rounded-lg shadow-lg'
     <Card
@@ -113,7 +133,7 @@ export default function EntitySection({ id }) {
         flexDirection: 'row',
         justifyContent: 'space-around',
         alignItems: 'center',
-        width: '50em',
+        width: '60em',
       }}
     >
       <Dropdown
@@ -125,27 +145,52 @@ export default function EntitySection({ id }) {
         defaultValue='Select an entity'
         onChange={handleEntityChange}
       />
-      <div className='flex flex-col items-center'>
+      <div className='flex items-center'>
         <Dropdown
           id='dropdown-center'
           options={propertyOptions
             .filter((p) => p['sap:filterable'] === 'true')
-            .map((p) => ({ value: p.Name, label: p['sap:label'] || p.Name }))}
+            .map((p) => ({
+              value: p.Name,
+              label: p['sap:label'] || p.Name,
+            }))}
           defaultValue='Select a filter'
           onChange={handlePropertyFilterChange}
           ref={centerDropdownRef}
+          sx={{
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
+            width: 150,
+          }}
+        />
+        <Dropdown
+          options={operatorOptions}
+          defaultValue='Operator'
+          onChange={handleOperatorChange}
+          ref={operatorDropdownRef}
+          disabled={!selectedPropertyFilter}
+          sx={{
+            borderRadius: 0,
+            width: 120,
+          }}
         />
         <Input
           variant='outlined'
           type='text'
           placeholder='Enter filter value'
-          // className='bg-gray-600 text-white rounded px-2 py-1 mt-4'
-          className='mt-4'
           value={filterValue}
           onChange={handleFilterValueChange}
           disabled={!selectedPropertyFilter}
+          sx={{
+            p: 0,
+            pl: 1,
+            width: 150,
+            borderTopLeftRadius: 0,
+            borderBottomLeftRadius: 0,
+          }}
         />
       </div>
+
       <Tooltip
         title='Select all properties you want to display'
         placement='top'

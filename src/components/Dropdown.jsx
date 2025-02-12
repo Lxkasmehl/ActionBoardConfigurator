@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Select, Option } from '@mui/joy';
 
 const Dropdown = forwardRef(function Dropdown(
-  { id, options, defaultValue, onChange, multiple = false },
+  { id, options, defaultValue, onChange, multiple = false, ...props },
   ref,
 ) {
   const [selectedValue, setSelectedValue] = useState(['']);
@@ -51,6 +51,7 @@ const Dropdown = forwardRef(function Dropdown(
         value={multiple ? selectedValue : selectedValue[0]}
         onChange={handleChange}
         multiple={multiple}
+        {...props}
       >
         <Option value='' disabled>
           {defaultValue}
@@ -68,7 +69,7 @@ const Dropdown = forwardRef(function Dropdown(
 export default Dropdown;
 
 Dropdown.propTypes = {
-  id: PropTypes.string.isRequired,
+  id: PropTypes.string,
   options: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
