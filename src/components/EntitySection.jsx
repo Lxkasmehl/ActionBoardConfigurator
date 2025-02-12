@@ -10,7 +10,7 @@ import {
   deletePropertySelection,
 } from '../redux/entitiesSlice';
 import PropTypes from 'prop-types';
-import { Card, Input } from '@mui/joy';
+import { Card, Input, Tooltip } from '@mui/joy';
 
 export default function EntitySection({ id }) {
   const dispatch = useDispatch();
@@ -146,17 +146,25 @@ export default function EntitySection({ id }) {
           disabled={!selectedPropertyFilter}
         />
       </div>
-      <Dropdown
-        id='dropdown-right'
-        options={propertyOptions.map((p) => ({
-          value: p.Name,
-          label: p['sap:label'] || p.Name,
-        }))}
-        defaultValue={'Select a property'}
-        onChange={handleSelectedPropertyChange}
-        ref={rightDropdownRef}
-        multiple={true}
-      />
+      <Tooltip
+        title='Select all properties you want to display'
+        placement='top'
+        variant='solid'
+      >
+        <span>
+          <Dropdown
+            id='dropdown-right'
+            options={propertyOptions.map((p) => ({
+              value: p.Name,
+              label: p['sap:label'] || p.Name,
+            }))}
+            defaultValue={'Select a property'}
+            onChange={handleSelectedPropertyChange}
+            ref={rightDropdownRef}
+            multiple={true}
+          />
+        </span>
+      </Tooltip>
     </Card>
   );
 }
