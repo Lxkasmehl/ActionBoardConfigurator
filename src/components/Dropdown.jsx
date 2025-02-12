@@ -3,19 +3,42 @@ import PropTypes from 'prop-types';
 import { Select, Option } from '@mui/joy';
 
 const Dropdown = forwardRef(function Dropdown(
-  { id, options, defaultValue, onChange },
+  { id, options, defaultValue, onChange, multiple = false },
   ref,
 ) {
-  const [selectedValue, setSelectedValue] = useState('');
+  const [selectedValue, setSelectedValue] = useState(['']);
 
   const handleChange = (event, value) => {
-    setSelectedValue(value);
-    onChange(value);
+    if (multiple) {
+      let updatedValue = [...selectedValue];
+      const addedValue = value.find((val) => !selectedValue.includes(val));
+      const removedValue = selectedValue.find((val) => !value.includes(val));
+
+      if (addedValue) {
+        updatedValue.push(addedValue);
+      }
+
+      if (removedValue) {
+        updatedValue = updatedValue.filter((val) => val !== removedValue);
+      }
+
+      if (updatedValue.length === 0) {
+        updatedValue = [''];
+        setSelectedValue(updatedValue);
+      } else {
+        setSelectedValue(updatedValue.filter((val) => val !== ''));
+      }
+
+      onChange(addedValue || removedValue);
+    } else {
+      setSelectedValue([value]);
+      onChange(value);
+    }
   };
 
   useImperativeHandle(ref, () => ({
     resetDropdown() {
-      setSelectedValue('');
+      setSelectedValue(['']);
     },
   }));
 
@@ -25,8 +48,9 @@ const Dropdown = forwardRef(function Dropdown(
         id={id}
         // className='bg-gray-600 text-white rounded px-2 py-1 w-40'
         className='w-48'
-        value={selectedValue}
+        value={multiple ? selectedValue : selectedValue[0]}
         onChange={handleChange}
+        multiple={multiple}
       >
         <Option value='' disabled>
           {defaultValue}
@@ -53,4 +77,5 @@ Dropdown.propTypes = {
   ).isRequired,
   defaultValue: PropTypes.string.isRequired,
   onChange: PropTypes.func,
+  multiple: PropTypes.bool,
 };

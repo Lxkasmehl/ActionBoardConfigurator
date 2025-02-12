@@ -22,15 +22,20 @@ export default function EntitySection({ id }) {
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [propertyOptions, setPropertyOptions] = useState([]);
   const [selectedPropertyFilter, setSelectedPropertyFilter] = useState(null);
-  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [selectedProperties, setSelectedProperties] = useState([]);
   const [filterValue, setFilterValue] = useState('');
 
   const centerDropdownRef = useRef(null);
   const rightDropdownRef = useRef(null);
 
   const handleEntityChange = (entityName) => {
-    if (selectedEntity)
+    if (selectedEntity) {
       dispatch(deleteEntity({ id, entityName: selectedEntity }));
+      // setSelectedPropertyFilter(null);
+      // setSelectedProperties([]);
+      // setFilterValue('');
+    }
+
     dispatch(addEntity({ id, entityName }));
     setSelectedEntity(entityName);
 
@@ -79,19 +84,24 @@ export default function EntitySection({ id }) {
   };
 
   const handleSelectedPropertyChange = (propertyName) => {
-    if (selectedProperty) {
+    console.log(selectedProperties);
+    if (selectedProperties.includes(propertyName)) {
+      setSelectedProperties(
+        selectedProperties.filter((p) => p !== propertyName),
+      );
       dispatch(
         deletePropertySelection({
           entityName: selectedEntity,
-          propertyName: selectedProperty,
+          propertyName,
+          id,
         }),
       );
+    } else {
+      setSelectedProperties([...selectedProperties, propertyName]);
+      dispatch(
+        addPropertySelection({ entityName: selectedEntity, propertyName, id }),
+      );
     }
-    setSelectedProperty(propertyName);
-    dispatch(
-      addPropertySelection({ entityName: selectedEntity, propertyName, id }),
-    );
-
     console.log(config);
   };
 
@@ -142,9 +152,10 @@ export default function EntitySection({ id }) {
           value: p.Name,
           label: p['sap:label'] || p.Name,
         }))}
-        defaultValue='Select a property'
+        defaultValue={'Select a property'}
         onChange={handleSelectedPropertyChange}
         ref={rightDropdownRef}
+        multiple={true}
       />
     </Card>
   );
