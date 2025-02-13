@@ -1,16 +1,8 @@
 import { useState } from 'react';
-import {
-  Modal,
-  ModalDialog,
-  ModalClose,
-  Typography,
-  Button,
-  Select,
-  Option,
-  IconButton,
-} from '@mui/joy';
+import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
-import DeleteIcon from '@mui/icons-material/Delete';
+import Condition from './Condition';
+import ConditionGroup from './ConditionGroup';
 import DropdownsAndInput from './DropdownsAndInput';
 
 export default function FilterModal({ open, onClose, entity, id }) {
@@ -22,6 +14,42 @@ export default function FilterModal({ open, onClose, entity, id }) {
 
   const removeCondition = (id) => {
     setConditions((prev) => prev.filter((condition) => condition.id !== id));
+  };
+
+  const addConditionGroup = () => {
+    setConditions((prev) => [...prev, { id: Date.now(), conditions: [] }]);
+  };
+
+  const removeConditionGroup = (groupId) => {
+    setConditions((prev) => prev.filter((group) => group.id !== groupId));
+  };
+
+  const addConditionInsideGroup = (condition) => {
+    setConditions((prev) =>
+      prev.map((group) =>
+        group.id === condition.id
+          ? {
+              ...group,
+              conditions: [...group.conditions, { id: Date.now() }],
+            }
+          : group,
+      ),
+    );
+  };
+
+  const removeConditionInsideGroup = (groupId, subConditionId) => {
+    setConditions((prev) =>
+      prev.map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              conditions: group.conditions.filter(
+                (c) => c.id !== subConditionId,
+              ),
+            }
+          : group,
+      ),
+    );
   };
 
   return (
@@ -37,28 +65,31 @@ export default function FilterModal({ open, onClose, entity, id }) {
               sx={{ borderTopLeftRadius: 1, borderBottomLeftRadius: 1 }}
             />
           </div>
-          {conditions.map((condition) => (
-            <div key={condition.id} className='flex flex-row items-center'>
-              <Select sx={{ width: 90, mr: 3 }} defaultValue='and'>
-                <Option value='and'>AND</Option>
-                <Option value='or'>OR</Option>
-              </Select>
-              <DropdownsAndInput id={id} />
-              <IconButton
-                variant='outlined'
-                sx={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-                onClick={() => removeCondition(condition.id)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </div>
-          ))}
+          {conditions.map((condition) =>
+            condition.conditions ? (
+              <ConditionGroup
+                key={condition.id}
+                conditionGroup={condition}
+                onAddCondition={addConditionInsideGroup}
+                onRemoveConditionInsideGroup={removeConditionInsideGroup}
+                onRemoveConditionGroup={removeConditionGroup}
+                id={id}
+              />
+            ) : (
+              <Condition
+                key={condition.id}
+                condition={condition}
+                onRemove={removeCondition}
+                id={id}
+              />
+            ),
+          )}
         </div>
         <div className='flex flex-row gap-2 mt-2'>
           <Button variant='plain' color='neutral' onClick={addCondition}>
             + Add condition
           </Button>
-          <Button variant='plain' color='neutral'>
+          <Button variant='plain' color='neutral' onClick={addConditionGroup}>
             + Add condition group
           </Button>
         </div>
