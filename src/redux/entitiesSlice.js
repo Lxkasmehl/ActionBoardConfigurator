@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   filteredEntities: [],
   config: {},
+  propertyOptions: {},
 };
 
 const entitiesSlice = createSlice({
@@ -27,6 +28,10 @@ const entitiesSlice = createSlice({
       if (state.config[id] && state.config[id][entityName]) {
         delete state.config[id][entityName];
       }
+    },
+    setPropertyOptions(state, action) {
+      const { id, properties } = action.payload;
+      state.propertyOptions[id] = properties;
     },
     deletePropertyFilter(state, action) {
       const { entityName, propertyName, id } = action.payload;
@@ -86,6 +91,7 @@ export const {
   setFilteredEntities,
   addEntity,
   deleteEntity,
+  setPropertyOptions,
   deletePropertyFilter,
   addFilter,
   addPropertySelection,
