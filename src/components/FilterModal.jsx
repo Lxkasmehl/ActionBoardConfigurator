@@ -50,17 +50,14 @@ const buildFilterObject = (obj) => {
 
   const rootConditions = [];
   const logicGroups = {};
-
   const conditions = buildConditions(obj);
 
   for (const [key, value] of Object.entries(obj)) {
     const match = key.match(/logic_(\d+)/);
     if (match) {
       const [, id] = match;
-      logicGroups[id] = {
-        logic: value.toUpperCase(),
-        conditions: [],
-      };
+      if (!logicGroups[id])
+        logicGroups[id] = { logic: value.toUpperCase(), conditions: [] };
     }
   }
 
@@ -72,16 +69,17 @@ const buildFilterObject = (obj) => {
     );
 
     if (groupId) {
-      logicGroups[
-        Math.min(...Object.keys(logicGroups).filter((id) => id > groupId))
-      ].conditions.push(condition);
+      if (!logicGroups[groupId].conditions) {
+        logicGroups[groupId].conditions = [];
+      }
+      logicGroups[groupId].conditions.push(condition);
     } else {
       rootConditions.push(condition);
     }
   }
 
   for (const group of Object.values(logicGroups)) {
-    if (group.conditions.length) {
+    if (group.conditions && group.conditions.length) {
       rootConditions.push({
         logic: group.logic,
         conditions: group.conditions,
