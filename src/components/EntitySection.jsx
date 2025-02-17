@@ -7,6 +7,7 @@ import {
   addPropertySelection,
   deletePropertySelection,
   setPropertyOptions,
+  deleteRawFormDataForId,
 } from '../redux/entitiesSlice';
 import PropTypes from 'prop-types';
 import { Button, Card, Tooltip } from '@mui/joy';
@@ -46,6 +47,7 @@ export default function EntitySection({ id }) {
       : [];
 
     dispatch(setPropertyOptions({ id, properties }));
+    dispatch(deleteRawFormDataForId({ id }));
 
     centerDropdownRef.current?.resetDropdown();
     rightDropdownRef.current?.resetDropdown();

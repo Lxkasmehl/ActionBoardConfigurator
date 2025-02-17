@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import useFetchEntities from './hooks/useFetchEntities.js';
 import EntitySection from './components/EntitySection.jsx';
-import { deleteID } from './redux/entitiesSlice.js';
+import { deleteID, deleteRawFormDataForId } from './redux/entitiesSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconButton } from '@mui/joy';
 import AddIcon from '@mui/icons-material/Add';
@@ -54,6 +54,7 @@ export default function App() {
   const removeSection = (id) => {
     setSections((prev) => prev.filter((section) => section.id !== id));
     dispatch(deleteID(id));
+    dispatch(deleteRawFormDataForId({ id }));
     console.log(config);
   };
 

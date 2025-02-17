@@ -3,20 +3,29 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Condition from './Condition';
 import PropTypes from 'prop-types';
 import DropdownsAndInput from './DropdownsAndInput';
+import { useSelector } from 'react-redux';
+import { useState } from 'react';
 
 export default function ConditionGroup({
   conditionGroup,
   onAddCondition,
   onRemoveConditionInsideGroup,
   onRemoveConditionGroup,
-  id
+  id,
 }) {
+  const rawFormData = useSelector((state) => state.entities.rawFormData);
+  const [logic, setLogic] = useState(
+    rawFormData[id]?.[`group_logic_${conditionGroup.id}`] ?? 'and',
+  );
+
   return (
     <div key={conditionGroup.id} className='flex flex-row'>
       <Select
         sx={{ width: 90, mr: 3, height: 'fit-content' }}
-        defaultValue='and'
-        name={`group_logic_${conditionGroup.id}`} // Name hinzufügen
+        value={logic}
+        onChange={(e, newValue) => setLogic(newValue)}
+        name={`group_logic_${conditionGroup.id}`}
+        required
       >
         <Option value='and'>AND</Option>
         <Option value='or'>OR</Option>
@@ -65,7 +74,6 @@ export default function ConditionGroup({
     </div>
   );
 }
-
 
 ConditionGroup.propTypes = {
   conditionGroup: PropTypes.shape({

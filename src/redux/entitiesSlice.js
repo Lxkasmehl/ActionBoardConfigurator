@@ -4,6 +4,7 @@ const initialState = {
   filteredEntities: [],
   config: {},
   propertyOptions: {},
+  rawFormData: {},
 };
 
 const entitiesSlice = createSlice({
@@ -82,6 +83,17 @@ const entitiesSlice = createSlice({
         delete state.config[action.payload];
       }
     },
+    setRawFormData(state, action) {
+      const { id, formObject } = action.payload;
+      state.rawFormData[id] = state.rawFormData[id] ?? {};
+      state.rawFormData[id] = { ...formObject };
+    },
+    deleteRawFormDataForId(state, action) {
+      const { id } = action.payload;
+      if (state.rawFormData[id]) {
+        delete state.rawFormData[id];
+      }
+    },
   },
 });
 
@@ -95,6 +107,8 @@ export const {
   addPropertySelection,
   deletePropertySelection,
   deleteID,
+  setRawFormData,
+  deleteRawFormDataForId,
 } = entitiesSlice.actions;
 
 export default entitiesSlice.reducer;
