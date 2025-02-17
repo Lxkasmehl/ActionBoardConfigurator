@@ -20,14 +20,15 @@ const operatorOptions = [
   { value: 'CONTAINS', label: 'CONTAINS' },
 ];
 
-export default function DropdownsAndInput({ id, ...props }) {
+export default function DropdownsAndInput({ propertyOptionsId, fieldIdentifierId, ...props }) {
   const propertyOptions = useSelector(
-    (state) => state.entities.propertyOptions[id] || [],
+    (state) => state.entities.propertyOptions[propertyOptionsId] || [],
   );
 
   return (
     <>
       <Dropdown
+        name={`property_${fieldIdentifierId}`} // Name hinzufügen
         options={propertyOptions.map((p) => ({
           value: p.Name,
           label: p['sap:label'] || p.Name,
@@ -40,6 +41,7 @@ export default function DropdownsAndInput({ id, ...props }) {
         }}
       />
       <Dropdown
+        name={`operator_${fieldIdentifierId}`} // Name hinzufügen
         options={operatorOptions}
         defaultValue='Operator'
         sx={{
@@ -48,6 +50,7 @@ export default function DropdownsAndInput({ id, ...props }) {
         }}
       />
       <Input
+        name={`value_${fieldIdentifierId}`} // Name hinzufügen
         placeholder='Enter a value'
         sx={{
           borderRadius: 0,
@@ -60,5 +63,6 @@ export default function DropdownsAndInput({ id, ...props }) {
 }
 
 DropdownsAndInput.propTypes = {
-  id: PropTypes.number.isRequired,
+  propertyOptionsId: PropTypes.number.isRequired,
+  fieldIdentifierId: PropTypes.string.isRequired,
 };

@@ -43,18 +43,16 @@ const entitiesSlice = createSlice({
         delete state.config[id][entityName].filter[propertyName];
       }
     },
-    addFilter(state, action) {
-      const { entityName, propertyName, filterValue, id } = action.payload;
-      if (!state.config[id]) {
-        state.config[id] = { [entityName]: { filter: {} } };
-      }
-      if (!state.config[id][entityName]) {
-        state.config[id][entityName] = { filter: {} };
-      }
-      if (!state.config[id][entityName].filter) {
-        state.config[id][entityName].filter = {};
-      }
-      state.config[id][entityName].filter[propertyName] = filterValue;
+    setFilter(state, action) {
+      const { entityName, id, filterObject } = action.payload;
+      state.config[id] = state.config[id] ?? {};
+      state.config[id][entityName] = state.config[id][entityName] ?? {
+        filter: {},
+        selectedProperties: [],
+      };
+      state.config[id][entityName].filter = {
+        ...filterObject,
+      };
     },
     addPropertySelection(state, action) {
       const { entityName, propertyName, id } = action.payload;
@@ -93,7 +91,7 @@ export const {
   deleteEntity,
   setPropertyOptions,
   deletePropertyFilter,
-  addFilter,
+  setFilter,
   addPropertySelection,
   deletePropertySelection,
   deleteID,

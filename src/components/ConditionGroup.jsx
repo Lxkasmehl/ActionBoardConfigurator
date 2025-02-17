@@ -9,13 +9,14 @@ export default function ConditionGroup({
   onAddCondition,
   onRemoveConditionInsideGroup,
   onRemoveConditionGroup,
-  id,
+  id
 }) {
   return (
     <div key={conditionGroup.id} className='flex flex-row'>
       <Select
         sx={{ width: 90, mr: 3, height: 'fit-content' }}
         defaultValue='and'
+        name={`group_logic_${conditionGroup.id}`} // Name hinzufügen
       >
         <Option value='and'>AND</Option>
         <Option value='or'>OR</Option>
@@ -34,7 +35,8 @@ export default function ConditionGroup({
         <div className='flex flex-row items-center'>
           <Typography sx={{ mr: 8.3 }}>Where</Typography>
           <DropdownsAndInput
-            id={id}
+            propertyOptionsId={id}
+            fieldIdentifierId={conditionGroup.id}
             sx={{ borderTopLeftRadius: 1, borderBottomLeftRadius: 1 }}
           />
         </div>
@@ -63,6 +65,7 @@ export default function ConditionGroup({
     </div>
   );
 }
+
 
 ConditionGroup.propTypes = {
   conditionGroup: PropTypes.shape({

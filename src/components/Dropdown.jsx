@@ -32,7 +32,9 @@ const Dropdown = forwardRef(function Dropdown(
       onChange(addedValue || removedValue);
     } else {
       setSelectedValue([value]);
-      onChange(value);
+      if (onChange) {
+        onChange(value);
+      }
     }
   };
 

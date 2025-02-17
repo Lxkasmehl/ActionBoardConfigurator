@@ -6,11 +6,18 @@ import PropTypes from 'prop-types';
 export default function Condition({ condition, onRemove, id }) {
   return (
     <div className='flex flex-row items-center'>
-      <Select sx={{ width: 90, mr: 3 }} defaultValue='and'>
+      <Select
+        sx={{ width: 90, mr: 3 }}
+        defaultValue='and'
+        name={`logic_${condition.id}`}
+      >
         <Option value='and'>AND</Option>
         <Option value='or'>OR</Option>
       </Select>
-      <DropdownsAndInput id={id} />
+      <DropdownsAndInput
+        propertyOptionsId={id}
+        fieldIdentifierId={condition.id}
+      />
       <IconButton
         variant='outlined'
         onClick={() => onRemove(condition.id)}
