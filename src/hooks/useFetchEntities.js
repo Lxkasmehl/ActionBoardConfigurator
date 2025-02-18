@@ -5,7 +5,38 @@ import { setFilteredEntities } from '../redux/entitiesSlice';
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
 
-const useFetchEntities = (relevantEntityNames) => {
+const relevantEntityNames = new Set([
+  'User',
+  'EmpEmployment',
+  'EmpJob',
+  'EmpCompensation',
+  'WorkSchedule',
+  'TimeAccount',
+  'EmployeeTime',
+  'JobRequisition',
+  'JobApplication',
+  'Candidate',
+  'JobOffer',
+  'InterviewOverallAssessment',
+  'OnboardingInfo',
+  'ONB2Process',
+  'ONB2ProcessTask',
+  'ONB2ProcessTrigger',
+  'Goal',
+  'GoalAchievements',
+  'FormReviewFeedback',
+  'ContinuousFeedback',
+  'TalentPool',
+  'Successor',
+  'MentoringProgram',
+  'DevGoal',
+  'FOCompany',
+  'FOBusinessUnit',
+  'FODepartment',
+  'FOCostCenter',
+]);
+
+const useFetchEntities = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
 
@@ -91,7 +122,7 @@ const useFetchEntities = (relevantEntityNames) => {
     };
 
     fetchData();
-  }, [dispatch, relevantEntityNames]);
+  }, [dispatch]);
 
   return loading;
 };

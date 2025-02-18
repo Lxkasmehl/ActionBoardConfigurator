@@ -1,54 +1,30 @@
 import { useState } from 'react';
-import useFetchEntities from './hooks/useFetchEntities.js';
-import EntitySection from './components/EntitySection.jsx';
-import { deleteID, deleteRawFormDataForId } from './redux/entitiesSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconButton } from '@mui/joy';
+import { closestCorners, DndContext, useDroppable } from '@dnd-kit/core';
+
+import { deleteID, deleteRawFormDataForId } from './redux/entitiesSlice.js';
+import useFetchEntities from './hooks/useFetchEntities.js';
+import EntitySection from './components/EntitySection.jsx';
+
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 
-const relevantEntityNames = new Set([
-  'User',
-  'EmpEmployment',
-  'EmpJob',
-  'EmpCompensation',
-  'WorkSchedule',
-  'TimeAccount',
-  'EmployeeTime',
-  'JobRequisition',
-  'JobApplication',
-  'Candidate',
-  'JobOffer',
-  'InterviewOverallAssessment',
-  'OnboardingInfo',
-  'ONB2Process',
-  'ONB2ProcessTask',
-  'ONB2ProcessTrigger',
-  'Goal',
-  'GoalAchievements',
-  'FormReviewFeedback',
-  'ContinuousFeedback',
-  'TalentPool',
-  'Successor',
-  'MentoringProgram',
-  'DevGoal',
-  'FOCompany',
-  'FOBusinessUnit',
-  'FODepartment',
-  'FOCostCenter',
-]);
-
 export default function App() {
-  const loading = useFetchEntities(relevantEntityNames);
-  const [sections, setSections] = useState([{ id: 0 }]);
+  const loading = useFetchEntities();
+  const [sections, setSections] = useState([
+    { id: 0, position: { x: 0, y: 0 } },
+  ]);
   const dispatch = useDispatch();
   const config = useSelector((state) => state.entities.config);
+
+  const { setNodeRef } = useDroppable({ id: 0 });
 
   const addSection = () => {
     const newId = sections.length
       ? Math.max(...sections.map((s) => s.id)) + 1
       : 0;
-    setSections((prev) => [...prev, { id: newId }]);
+    setSections((prev) => [...prev, { id: newId, position: { x: 0, y: 0 } }]);
   };
 
   const removeSection = (id) => {
@@ -56,6 +32,24 @@ export default function App() {
     dispatch(deleteID(id));
     dispatch(deleteRawFormDataForId({ id }));
     console.log(config);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active } = event;
+    console.log('Position', event.delta.x, event.delta.y);
+
+    const updatedSections = sections.map((section) =>
+      section.id === active.id
+        ? {
+            ...section,
+            position: {
+              x: section.position.x + event.delta.x,
+              y: section.position.y + event.delta.y,
+            },
+          }
+        : section,
+    );
+    setSections(updatedSections);
   };
 
   if (loading) {
@@ -67,38 +61,57 @@ export default function App() {
   }
 
   return (
-    <div className='flex flex-col w-screen h-full justify-center items-center py-20'>
-      <div className='w-full flex flex-col items-center'>
-        {sections.map((section, index) => (
-          <div key={section.id} className='relative flex flex-col items-center'>
-            <EntitySection key={section.id} id={section.id} />
-            {index > 0 && (
-              <IconButton
-                onClick={() => removeSection(section.id)}
-                variant='outlined'
-                color='danger'
-                sx={{
-                  position: 'absolute',
-                  left: '-60px',
-                  top: 'calc(50% - 42px)',
-                }}
-                //className='absolute left-[-60px] top-[calc(50%-40px)] w-8 h-8 flex items-center justify-center bg-white text-red-600 font-bold rounded-full shadow-md border-2 border-red-600 hover:bg-red-600 hover:text-white transition-all'
-              >
-                <RemoveIcon />
-              </IconButton>
-            )}
-            <div className='w-0 h-14 mx-auto border-3 border-solid border-[#cdd7e1]'></div>
-          </div>
-        ))}
+    <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
+      <div
+        ref={setNodeRef}
+        className='flex flex-col w-screen h-full justify-center items-center py-20 relative'
+      >
+        <div className='w-full flex flex-col items-center'>
+          {sections.map((section, index) => (
+            <div
+              key={section.id}
+              className='flex flex-col items-center mt-5'
+              style={{
+                position: 'absolute',
+                left: section.position.x,
+                top: section.position.y,
+              }}
+            >
+              <EntitySection key={section.id} id={section.id} />
+              {index > 0 && (
+                <IconButton
+                  onClick={() => removeSection(section.id)}
+                  variant='outlined'
+                  color='danger'
+                  sx={{
+                    position: 'absolute',
+                    left: '-60px',
+                    top: 'calc(50% - 18px)',
+                  }}
+                >
+                  <RemoveIcon />
+                </IconButton>
+              )}
+            </div>
+          ))}
+        </div>
+
         <IconButton
           onClick={addSection}
-          variant='outlined'
+          variant='solid'
           aria-label='Add new entity section'
-          // className='w-10 h-10 flex items-center justify-center bg-gray-800 text-white rounded-full shadow-md hover:bg-[#eee] transition-all'
+          sx={{
+            position: 'fixed',
+            bottom: '40px',
+            right: '40px',
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+          }}
         >
-          <AddIcon />
+          <AddIcon sx={{ fontSize: 32 }} />
         </IconButton>
       </div>
-    </div>
+    </DndContext>
   );
 }

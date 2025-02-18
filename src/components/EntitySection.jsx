@@ -13,6 +13,7 @@ import {
 import PropTypes from 'prop-types';
 import { Button, Card, Tooltip } from '@mui/joy';
 import FilterModal from './FilterModal';
+import { useDraggable } from '@dnd-kit/core';
 
 export default function EntitySection({ id }) {
   const dispatch = useDispatch();
@@ -38,6 +39,8 @@ export default function EntitySection({ id }) {
 
   const centerDropdownRef = useRef(null);
   const rightDropdownRef = useRef(null);
+
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({ id });
 
   const handleEntityChange = (entityName) => {
     if (selectedEntity) {
@@ -87,12 +90,18 @@ export default function EntitySection({ id }) {
     // className='flex items-center justify-around px-6 py-8 bg-gray-800 lg:w-[50em] w-[90%] text-white rounded-lg shadow-lg'
     <>
       <Card
+        ref={setNodeRef}
+        {...attributes}
+        {...listeners}
         sx={{
           display: 'flex',
           flexDirection: 'row',
           justifyContent: 'space-around',
           alignItems: 'center',
-          width: '50em',
+          width: '40em',
+          transform: transform
+            ? `translate(${transform.x}px, ${transform.y}px)`
+            : undefined,
         }}
       >
         <Dropdown
