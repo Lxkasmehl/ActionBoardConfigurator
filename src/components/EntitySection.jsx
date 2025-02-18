@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { createSelector } from '@reduxjs/toolkit';
 import Dropdown from './Dropdown';
 import {
   addEntity,
@@ -19,8 +20,16 @@ export default function EntitySection({ id }) {
     (state) => state.entities.filteredEntities,
   );
   const config = useSelector((state) => state.entities.config);
-  const propertyOptions = useSelector(
-    (state) => state.entities.propertyOptions[id] || [],
+  const rawFormData = useSelector((state) => state.entities.rawFormData);
+
+  const selectPropertyOptions = createSelector(
+    (state) => state.entities.propertyOptions,
+    (_, id) => id,
+    (propertyOptions, id) => propertyOptions[id] || [],
+  );
+
+  const propertyOptions = useSelector((state) =>
+    selectPropertyOptions(state, id),
   );
 
   const [selectedEntity, setSelectedEntity] = useState(null);
@@ -54,7 +63,6 @@ export default function EntitySection({ id }) {
   };
 
   const handleSelectedPropertyChange = (propertyName) => {
-    console.log(selectedProperties);
     if (selectedProperties.includes(propertyName)) {
       setSelectedProperties(
         selectedProperties.filter((p) => p !== propertyName),
@@ -103,7 +111,7 @@ export default function EntitySection({ id }) {
             onClick={() => setFilterModalOpen(true)}
             disabled={!selectedEntity}
           >
-            Add Filter
+            {!rawFormData[id] ? 'Add Filter' : 'Edit Filter'}
           </Button>
         </div>
 

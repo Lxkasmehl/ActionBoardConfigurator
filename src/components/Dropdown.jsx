@@ -48,7 +48,6 @@ const Dropdown = forwardRef(function Dropdown(
     <div>
       <Select
         id={id}
-        // className='bg-gray-600 text-white rounded px-2 py-1 w-40'
         className='w-48'
         value={multiple ? selectedValue : selectedValue[0]}
         onChange={handleChange}

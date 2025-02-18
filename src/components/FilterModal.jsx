@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Condition from './Condition';
 import ConditionGroup from './ConditionGroup';
 import DropdownsAndInput from './DropdownsAndInput';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { setFilter, setRawFormData } from '../redux/entitiesSlice';
 
 const buildConditions = (obj) => {
@@ -96,7 +96,6 @@ const buildFilterObject = (obj) => {
 export default function FilterModal({ open, onClose, entity, id }) {
   const [conditions, setConditions] = useState([]);
   const dispatch = useDispatch();
-  const rawFormData = useSelector((state) => state.entities.rawFormData);
 
   const addCondition = useCallback(() => {
     setConditions((prev) => [...prev, { id: Date.now() }]);
@@ -148,8 +147,6 @@ export default function FilterModal({ open, onClose, entity, id }) {
     dispatch(setFilter({ entityName: entity, id, filterObject }));
     onClose();
   };
-
-  console.log('Raw: ', rawFormData);
 
   return (
     <Modal open={open} onClose={onClose}>
