@@ -150,7 +150,14 @@ export default function EntitySection({ id, onRemove }) {
             {...attributes}
             {...listeners}
             ref={setNodeRef}
-            sx={{ ml: -4, mr: -2 }}
+            sx={{
+              ml: -4,
+              mr: -2,
+              cursor: ['-webkit-grab', '-moz-grab', 'grab'],
+              '&:active': {
+                cursor: ['-webkit-grabbing', '-moz-grabbing', 'grabbing'],
+              },
+            }}
           >
             <DragIndicatorIcon />
           </IconButton>
