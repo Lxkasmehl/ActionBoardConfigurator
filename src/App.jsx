@@ -1,30 +1,53 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconButton } from '@mui/joy';
-import { closestCorners, DndContext, useDroppable } from '@dnd-kit/core';
+import { closestCorners, DndContext } from '@dnd-kit/core';
 
 import { deleteID, deleteRawFormDataForId } from './redux/entitiesSlice.js';
 import useFetchEntities from './hooks/useFetchEntities.js';
 import EntitySection from './components/EntitySection.jsx';
 
 import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 
 export default function App() {
   const loading = useFetchEntities();
   const [sections, setSections] = useState([
-    { id: 0, position: { x: 0, y: 0 } },
+    {
+      id: 0,
+      position: {
+        x: window.innerWidth / 2 - 320,
+        y: window.innerHeight / 2 - 55,
+      },
+    },
   ]);
+
   const dispatch = useDispatch();
   const config = useSelector((state) => state.entities.config);
 
-  const { setNodeRef } = useDroppable({ id: 0 });
-
   const addSection = () => {
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    let newX = windowWidth / 2 - 320;
+    let newY = windowHeight / 2 - 55;
+
+    const occupiedPositions = sections.map((s) => s.position);
+    while (
+      occupiedPositions.some(
+        (pos) => Math.abs(pos.x - newX) < 700 && Math.abs(pos.y - newY) < 150,
+      )
+    ) {
+      newX += 20;
+      newY += 20;
+    }
+
     const newId = sections.length
       ? Math.max(...sections.map((s) => s.id)) + 1
       : 0;
-    setSections((prev) => [...prev, { id: newId, position: { x: 0, y: 0 } }]);
+    setSections((prev) => [
+      ...prev,
+      { id: newId, position: { x: newX, y: newY } },
+    ]);
   };
 
   const removeSection = (id) => {
@@ -35,21 +58,30 @@ export default function App() {
   };
 
   const handleDragEnd = (event) => {
-    const { active } = event;
-    console.log('Position', event.delta.x, event.delta.y);
+    const { active, delta } = event;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
 
-    const updatedSections = sections.map((section) =>
-      section.id === active.id
-        ? {
-            ...section,
-            position: {
-              x: section.position.x + event.delta.x,
-              y: section.position.y + event.delta.y,
-            },
-          }
-        : section,
+    setSections((prevSections) =>
+      prevSections.map((section) => {
+        if (section.id !== active.id) return section;
+
+        const newX = Math.min(
+          Math.max(section.position.x + delta.x, 0),
+          windowWidth - 700,
+        );
+
+        const newY = Math.min(
+          Math.max(section.position.y + delta.y, 0),
+          windowHeight - 150,
+        );
+
+        return {
+          ...section,
+          position: { x: newX, y: newY },
+        };
+      }),
     );
-    setSections(updatedSections);
   };
 
   if (loading) {
@@ -62,12 +94,9 @@ export default function App() {
 
   return (
     <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
-      <div
-        ref={setNodeRef}
-        className='flex flex-col w-screen h-full justify-center items-center py-20 relative'
-      >
+      <div>
         <div className='w-full flex flex-col items-center'>
-          {sections.map((section, index) => (
+          {sections.map((section) => (
             <div
               key={section.id}
               className='flex flex-col items-center mt-5'
@@ -77,21 +106,11 @@ export default function App() {
                 top: section.position.y,
               }}
             >
-              <EntitySection key={section.id} id={section.id} />
-              {index > 0 && (
-                <IconButton
-                  onClick={() => removeSection(section.id)}
-                  variant='outlined'
-                  color='danger'
-                  sx={{
-                    position: 'absolute',
-                    left: '-60px',
-                    top: 'calc(50% - 18px)',
-                  }}
-                >
-                  <RemoveIcon />
-                </IconButton>
-              )}
+              <EntitySection
+                key={section.id}
+                id={section.id}
+                onRemove={() => removeSection(section.id)}
+              />
             </div>
           ))}
         </div>

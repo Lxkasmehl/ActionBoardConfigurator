@@ -11,11 +11,13 @@ import {
   deleteRawFormDataForId,
 } from '../redux/entitiesSlice';
 import PropTypes from 'prop-types';
-import { Button, Card, Tooltip } from '@mui/joy';
+import { Button, Card, IconButton, Tooltip } from '@mui/joy';
 import FilterModal from './FilterModal';
 import { useDraggable } from '@dnd-kit/core';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import RemoveIcon from '@mui/icons-material/Remove';
 
-export default function EntitySection({ id }) {
+export default function EntitySection({ id, onRemove }) {
   const dispatch = useDispatch();
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
@@ -41,6 +43,12 @@ export default function EntitySection({ id }) {
   const rightDropdownRef = useRef(null);
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable({ id });
+
+  const style = transform
+    ? {
+        transform: `translate(${transform.x}px, ${transform.y}px)`,
+      }
+    : undefined;
 
   const handleEntityChange = (entityName) => {
     if (selectedEntity) {
@@ -89,61 +97,77 @@ export default function EntitySection({ id }) {
   return (
     // className='flex items-center justify-around px-6 py-8 bg-gray-800 lg:w-[50em] w-[90%] text-white rounded-lg shadow-lg'
     <>
-      <Card
-        ref={setNodeRef}
-        {...attributes}
-        {...listeners}
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          width: '40em',
-          transform: transform
-            ? `translate(${transform.x}px, ${transform.y}px)`
-            : undefined,
-        }}
-      >
-        <Dropdown
-          id='dropdown-left'
-          options={filteredEntities.map((e) => ({
-            value: e.name,
-            label: e['sap:label'] || e.name,
-          }))}
-          defaultValue='Select an entity'
-          onChange={handleEntityChange}
-        />
-        <div className='flex items-center'>
-          <Button
-            color='neutral'
-            variant='outlined'
-            onClick={() => setFilterModalOpen(true)}
-            disabled={!selectedEntity}
-          >
-            {!rawFormData[id] ? 'Add Filter' : 'Edit Filter'}
-          </Button>
-        </div>
-
-        <Tooltip
-          title='Select all properties you want to display'
-          placement='top'
-          variant='solid'
+      <div style={style}>
+        <Card
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            width: '40em',
+          }}
         >
-          <span>
-            <Dropdown
-              id='dropdown-right'
-              options={propertyOptions.map((p) => ({
-                value: p.Name,
-                label: p['sap:label'] || p.Name,
-              }))}
-              defaultValue={'Select a property'}
-              onChange={handleSelectedPropertyChange}
-              ref={rightDropdownRef}
-              multiple={true}
-            />
-          </span>
-        </Tooltip>
-      </Card>
+          <Dropdown
+            id='dropdown-left'
+            options={filteredEntities.map((e) => ({
+              value: e.name,
+              label: e['sap:label'] || e.name,
+            }))}
+            defaultValue='Select an entity'
+            onChange={handleEntityChange}
+          />
+          <div className='flex items-center'>
+            <Button
+              color='neutral'
+              variant='outlined'
+              onClick={() => setFilterModalOpen(true)}
+              disabled={!selectedEntity}
+            >
+              {!rawFormData[id] ? 'Add Filter' : 'Edit Filter'}
+            </Button>
+          </div>
+
+          <Tooltip
+            title='Select all properties you want to display'
+            placement='top'
+            variant='solid'
+          >
+            <span>
+              <Dropdown
+                id='dropdown-right'
+                options={propertyOptions.map((p) => ({
+                  value: p.Name,
+                  label: p['sap:label'] || p.Name,
+                }))}
+                defaultValue={'Select a property'}
+                onChange={handleSelectedPropertyChange}
+                ref={rightDropdownRef}
+                multiple={true}
+              />
+            </span>
+          </Tooltip>
+          <IconButton
+            {...attributes}
+            {...listeners}
+            ref={setNodeRef}
+            sx={{ ml: -4, mr: -2 }}
+          >
+            <DragIndicatorIcon />
+          </IconButton>
+        </Card>
+        <IconButton
+          onClick={onRemove}
+          variant='outlined'
+          color='danger'
+          sx={{
+            position: 'absolute',
+            left: '-60px',
+            top: 'calc(50% - 18px)',
+          }}
+        >
+          <RemoveIcon />
+        </IconButton>
+      </div>
       <FilterModal
         open={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
@@ -154,4 +178,7 @@ export default function EntitySection({ id }) {
   );
 }
 
-EntitySection.propTypes = { id: PropTypes.number.isRequired };
+EntitySection.propTypes = {
+  id: PropTypes.number.isRequired,
+  onRemove: PropTypes.func.isRequired,
+};
