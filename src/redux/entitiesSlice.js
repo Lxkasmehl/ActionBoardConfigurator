@@ -5,6 +5,8 @@ const initialState = {
   config: {},
   propertyOptions: {},
   rawFormData: {},
+  logic: {},
+  groupLogic: {},
 };
 
 const entitiesSlice = createSlice({
@@ -81,6 +83,31 @@ const entitiesSlice = createSlice({
         delete state.rawFormData[id];
       }
     },
+    setLogic(state, action) {
+      const { id, logic } = action.payload;
+      state.logic[id] = logic;
+    },
+    removeLogic(state, action) {
+      const { id } = action.payload;
+      if (state.logic[id]) {
+        delete state.logic[id];
+      }
+    },
+    setSubLogic(state, action) {
+      const { id, logic, groupIndex } = action.payload;
+
+      if (!state.groupLogic[id]) {
+        state.groupLogic[id] = {};
+      }
+
+      state.groupLogic[id][groupIndex] = logic;
+    },
+    removeSubLogic(state, action) {
+      const { id, groupIndex } = action.payload;
+      if (state.groupLogic[id] && state.groupLogic[id][groupIndex]) {
+        delete state.groupLogic[id][groupIndex];
+      }
+    },
   },
 });
 
@@ -95,6 +122,10 @@ export const {
   deleteID,
   setRawFormData,
   deleteRawFormDataForId,
+  setLogic,
+  removeLogic,
+  setSubLogic,
+  removeSubLogic,
 } = entitiesSlice.actions;
 
 export default entitiesSlice.reducer;

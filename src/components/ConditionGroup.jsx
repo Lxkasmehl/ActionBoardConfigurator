@@ -2,9 +2,7 @@ import { Button, Card, Typography, Select, Option, IconButton } from '@mui/joy';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Condition from './Condition';
 import PropTypes from 'prop-types';
-import DropdownsAndInput from './DropdownsAndInput';
-import { useSelector } from 'react-redux';
-import { useState } from 'react';
+import { useLogic } from '../hooks/useLogic';
 
 export default function ConditionGroup({
   conditionGroup,
@@ -12,24 +10,27 @@ export default function ConditionGroup({
   onRemoveConditionInsideGroup,
   onRemoveConditionGroup,
   id,
+  groupIndex,
 }) {
-  const rawFormData = useSelector((state) => state.entities.rawFormData);
-  const [logic, setLogic] = useState(
-    rawFormData[id]?.[`group_logic_${conditionGroup.id}`] ?? 'and',
-  );
+  const { selectedLogic, handleLogicChange } = useLogic(id, groupIndex);
 
   return (
     <div key={conditionGroup.id} className='flex flex-row'>
-      <Select
-        sx={{ width: 90, mr: 3, height: 'fit-content' }}
-        value={logic}
-        onChange={(e, newValue) => setLogic(newValue)}
-        name={`group_logic_${conditionGroup.id}`}
-        required
-      >
-        <Option value='and'>AND</Option>
-        <Option value='or'>OR</Option>
-      </Select>
+      {groupIndex === 0 ? (
+        <Typography sx={{ mr: 8.3 }}>Where</Typography>
+      ) : (
+        <Select
+          sx={{ width: 90, mr: 3, height: 'fit-content' }}
+          value={selectedLogic}
+          onChange={handleLogicChange}
+          name={groupIndex === 1 ? 'logic' : ''}
+          required
+          disabled={groupIndex > 1}
+        >
+          <Option value='and'>AND</Option>
+          <Option value='or'>OR</Option>
+        </Select>
+      )}
       <Card>
         <div className='flex flex-row items-center justify-between'>
           <Typography>Any of the following are true...</Typography>
@@ -40,16 +41,7 @@ export default function ConditionGroup({
             <DeleteIcon />
           </IconButton>
         </div>
-
-        <div className='flex flex-row items-center'>
-          <Typography sx={{ mr: 8.3 }}>Where</Typography>
-          <DropdownsAndInput
-            propertyOptionsId={id}
-            fieldIdentifierId={conditionGroup.id}
-            sx={{ borderTopLeftRadius: 1, borderBottomLeftRadius: 1 }}
-          />
-        </div>
-        {conditionGroup.conditions.map((subCondition) => (
+        {conditionGroup.conditions.map((subCondition, index) => (
           <Condition
             key={subCondition.id}
             condition={subCondition}
@@ -57,6 +49,9 @@ export default function ConditionGroup({
               onRemoveConditionInsideGroup(conditionGroup.id, subCondition.id)
             }
             id={id}
+            index={index}
+            isSubCondition
+            groupIndex={groupIndex}
           />
         ))}
 
@@ -88,4 +83,5 @@ ConditionGroup.propTypes = {
   onAddCondition: PropTypes.func.isRequired,
   onRemoveConditionGroup: PropTypes.func.isRequired,
   id: PropTypes.number.isRequired,
+  groupIndex: PropTypes.number.isRequired,
 };

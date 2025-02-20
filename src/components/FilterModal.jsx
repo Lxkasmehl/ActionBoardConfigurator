@@ -3,9 +3,12 @@ import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
 import Condition from './Condition';
 import ConditionGroup from './ConditionGroup';
-import DropdownsAndInput from './DropdownsAndInput';
 import { useDispatch } from 'react-redux';
-import { setFilter, setRawFormData } from '../redux/entitiesSlice';
+import {
+  setFilter,
+  setRawFormData,
+  removeSubLogic,
+} from '../redux/entitiesSlice';
 
 const buildConditions = (obj) => {
   const conditions = [];
@@ -34,19 +37,7 @@ const buildConditions = (obj) => {
 };
 
 const buildFilterObject = (obj) => {
-  const rootLogicId = Math.min(
-    ...Object.keys(obj)
-      .filter(
-        (key) =>
-          key.match(/logic_(\d+)/) && parseInt(key.match(/logic_(\d+)/)[1]) > 0,
-      )
-      .map((key) => parseInt(key.match(/logic_(\d+)/)[1])),
-  );
-  const rootLogic = rootLogicId
-    ? (
-        obj[`logic_${rootLogicId}`] || obj[`group_logic_${rootLogicId}`]
-      )?.toUpperCase()
-    : 'AND';
+  const rootLogic = obj['logic']?.toUpperCase() ?? 'AND';
 
   const rootConditions = [];
   const logicGroups = {};
@@ -109,9 +100,13 @@ export default function FilterModal({ open, onClose, entity, id }) {
     setConditions((prev) => [...prev, { id: Date.now(), conditions: [] }]);
   }, []);
 
-  const removeConditionGroup = useCallback((groupId) => {
-    setConditions((prev) => prev.filter((group) => group.id !== groupId));
-  }, []);
+  const removeConditionGroup = useCallback(
+    (groupId, index) => {
+      setConditions((prev) => prev.filter((group) => group.id !== groupId));
+      dispatch(removeSubLogic({ id, groupIndex: index }));
+    },
+    [dispatch, id],
+  );
 
   const addConditionInsideGroup = useCallback((condition) => {
     setConditions((prev) =>
@@ -145,6 +140,7 @@ export default function FilterModal({ open, onClose, entity, id }) {
     dispatch(setRawFormData({ id, formObject }));
     const filterObject = buildFilterObject(formObject);
     dispatch(setFilter({ entityName: entity, id, filterObject }));
+    console.log(formObject);
     onClose();
   };
 
@@ -153,26 +149,20 @@ export default function FilterModal({ open, onClose, entity, id }) {
       <form onSubmit={saveAndClose}>
         <ModalDialog variant='plain'>
           <ModalClose />
-
           <Typography level='h4'>Build your filter for {entity}</Typography>
           <div className='flex flex-col gap-4'>
-            <div className='flex flex-row items-center'>
-              <Typography sx={{ mr: 8.3 }}>Where</Typography>
-              <DropdownsAndInput
-                propertyOptionsId={id}
-                fieldIdentifierId={id}
-                sx={{ borderTopLeftRadius: 1, borderBottomLeftRadius: 1 }}
-              />
-            </div>
-            {conditions.map((condition) =>
+            {conditions.map((condition, index) =>
               condition.conditions ? (
                 <ConditionGroup
                   key={condition.id}
                   conditionGroup={condition}
                   onAddCondition={addConditionInsideGroup}
                   onRemoveConditionInsideGroup={removeConditionInsideGroup}
-                  onRemoveConditionGroup={removeConditionGroup}
+                  onRemoveConditionGroup={() =>
+                    removeConditionGroup(condition.id, index)
+                  }
                   id={id}
+                  groupIndex={index}
                 />
               ) : (
                 <Condition
@@ -180,6 +170,8 @@ export default function FilterModal({ open, onClose, entity, id }) {
                   condition={condition}
                   onRemove={removeCondition}
                   id={id}
+                  index={index}
+                  isSubCondition={false}
                 />
               ),
             )}
