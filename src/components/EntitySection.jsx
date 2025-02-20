@@ -15,7 +15,8 @@ import PropTypes from 'prop-types';
 import { Button, Card, IconButton, Tooltip } from '@mui/joy';
 import FilterModal from './FilterModal';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { useReactFlow } from '@xyflow/react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
 export default function EntitySection({ id }) {
   const dispatch = useDispatch();
@@ -146,6 +147,12 @@ export default function EntitySection({ id }) {
             />
           </span>
         </Tooltip>
+        <Handle type='source' position={Position.Right} className='!w-3 !h-3' />
+        <Handle
+          type='target'
+          position={Position.Top}
+          className='!w-3 !h-3 border !border-black !bg-white'
+        />
       </Card>
       <IconButton
         onClick={handleRemove}

@@ -25,12 +25,11 @@ export default function App() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState([
     {
-      id: '0',
+      id: crypto.randomUUID(),
       position: {
         x: window.innerWidth / 2 - 350,
         y: window.innerHeight / 2 - 55,
       },
-      data: {},
       type: 'EntitySection',
     },
   ]);
@@ -38,10 +37,10 @@ export default function App() {
 
   const onConnect = useCallback(
     (connection) => {
-      const edge = { ...connection, id: `${edges.length} + 1` };
+      const edge = { ...connection, id: crypto.randomUUID() };
       setEdges((prevEdges) => addEdge(edge, prevEdges));
     },
-    [edges.length, setEdges],
+    [setEdges],
   );
 
   const addSection = () => {
@@ -61,21 +60,17 @@ export default function App() {
       newY += 20;
     }
 
-    const newId = (
-      nodes.length ? Math.max(...nodes.map((s) => Number(s.id))) + 1 : 0
-    ).toString();
-
     setNodes((prev) => [
       ...prev,
       {
-        id: newId,
+        id: crypto.randomUUID(),
         position: { x: newX, y: newY },
-        data: {},
         type: 'EntitySection',
       },
     ]);
 
     console.log(config);
+    console.log(edges);
   };
 
   if (loading) {
