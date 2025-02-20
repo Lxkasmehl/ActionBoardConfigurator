@@ -1,8 +1,9 @@
-import { Select, Option, IconButton, Typography } from '@mui/joy';
+import { IconButton } from '@mui/joy';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DropdownsAndInput from './DropdownsAndInput';
 import PropTypes from 'prop-types';
 import { useLogic } from '../hooks/useLogic';
+import LogicSelector from './LogicSelector';
 
 export default function Condition({
   condition,
@@ -21,27 +22,19 @@ export default function Condition({
 
   return (
     <div className='flex flex-row items-center'>
-      {index === 0 ? (
-        <Typography sx={{ mr: 8.3 }}>Where</Typography>
-      ) : (
-        <Select
-          sx={{ width: 90, mr: 3 }}
-          value={isSubCondition ? selectedSubLogic : selectedLogic}
-          onChange={isSubCondition ? handleSubLogicChange : handleLogicChange}
-          required
-          disabled={index > 1}
-          name={
-            index === 1
-              ? isSubCondition
-                ? `subLogic_${groupIndex}`
-                : 'logic'
-              : ''
-          }
-        >
-          <Option value='and'>AND</Option>
-          <Option value='or'>OR</Option>
-        </Select>
-      )}
+      <LogicSelector
+        value={isSubCondition ? selectedSubLogic : selectedLogic}
+        onChange={isSubCondition ? handleSubLogicChange : handleLogicChange}
+        disabled={index > 1}
+        name={
+          index === 1
+            ? isSubCondition
+              ? `subLogic_${groupIndex}`
+              : 'logic'
+            : ''
+        }
+        showWhere={index === 0}
+      />
       <DropdownsAndInput
         propertyOptionsId={id}
         fieldIdentifierId={condition.id}

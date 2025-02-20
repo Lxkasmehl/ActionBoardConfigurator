@@ -1,8 +1,9 @@
-import { Button, Card, Typography, Select, Option, IconButton } from '@mui/joy';
+import { Button, Card, Typography, IconButton } from '@mui/joy';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Condition from './Condition';
 import PropTypes from 'prop-types';
 import { useLogic } from '../hooks/useLogic';
+import LogicSelector from './LogicSelector';
 
 export default function ConditionGroup({
   conditionGroup,
@@ -16,21 +17,14 @@ export default function ConditionGroup({
 
   return (
     <div key={conditionGroup.id} className='flex flex-row'>
-      {groupIndex === 0 ? (
-        <Typography sx={{ mr: 8.3 }}>Where</Typography>
-      ) : (
-        <Select
-          sx={{ width: 90, mr: 3, height: 'fit-content' }}
-          value={selectedLogic}
-          onChange={handleLogicChange}
-          name={groupIndex === 1 ? 'logic' : ''}
-          required
-          disabled={groupIndex > 1}
-        >
-          <Option value='and'>AND</Option>
-          <Option value='or'>OR</Option>
-        </Select>
-      )}
+      <LogicSelector
+        value={selectedLogic}
+        onChange={handleLogicChange}
+        disabled={groupIndex > 1}
+        name={groupIndex === 1 ? 'logic' : ''}
+        showWhere={groupIndex === 0}
+      />
+
       <Card>
         <div className='flex flex-row items-center justify-between'>
           <Typography>Any of the following are true...</Typography>
