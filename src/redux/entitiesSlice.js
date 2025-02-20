@@ -55,28 +55,15 @@ const entitiesSlice = createSlice({
         ...filterObject,
       };
     },
-    addPropertySelection(state, action) {
-      const { entityName, propertyName, id } = action.payload;
+    setPropertySelection(state, action) {
+      const { entityName, propertyNames, id } = action.payload;
       if (!state.config[id]) {
         state.config[id] = {};
       }
       if (!state.config[id][entityName]) {
         state.config[id][entityName] = { filter: {}, selectedProperties: [] };
       }
-      state.config[id][entityName].selectedProperties = [
-        ...new Set([
-          ...(state.config[id][entityName].selectedProperties ?? []),
-          propertyName,
-        ]),
-      ];
-    },
-    deletePropertySelection(state, action) {
-      const { entityName, propertyName, id } = action.payload;
-      if (state.config[id]?.[entityName]?.selectedProperties) {
-        state.config[id][entityName].selectedProperties = state.config[id][
-          entityName
-        ].selectedProperties.filter((prop) => prop !== propertyName);
-      }
+      state.config[id][entityName].selectedProperties = propertyNames;
     },
     deleteID(state, action) {
       if (state.config[action.payload]) {
@@ -104,8 +91,7 @@ export const {
   setPropertyOptions,
   deletePropertyFilter,
   setFilter,
-  addPropertySelection,
-  deletePropertySelection,
+  setPropertySelection,
   deleteID,
   setRawFormData,
   deleteRawFormDataForId,

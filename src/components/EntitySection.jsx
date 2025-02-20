@@ -1,18 +1,16 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createSelector } from '@reduxjs/toolkit';
-import Dropdown from './Dropdown';
 import {
   addEntity,
   deleteEntity,
-  addPropertySelection,
-  deletePropertySelection,
+  setPropertySelection,
   setPropertyOptions,
   deleteRawFormDataForId,
   deleteID,
 } from '../redux/entitiesSlice';
 import PropTypes from 'prop-types';
-import { Button, Card, IconButton, Tooltip } from '@mui/joy';
+import { Autocomplete, Button, Card, IconButton, Tooltip } from '@mui/joy';
 import FilterModal from './FilterModal';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
@@ -20,6 +18,7 @@ import '@xyflow/react/dist/style.css';
 
 export default function EntitySection({ id }) {
   const dispatch = useDispatch();
+
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
   );
@@ -37,22 +36,34 @@ export default function EntitySection({ id }) {
   );
 
   const [selectedEntity, setSelectedEntity] = useState(null);
-  const [selectedProperties, setSelectedProperties] = useState([]);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
-
-  const centerDropdownRef = useRef(null);
-  const rightDropdownRef = useRef(null);
+  const [resetKey, setResetKey] = useState(0);
 
   const { setNodes } = useReactFlow();
 
-  const handleEntityChange = (entityName) => {
+  const sortedEntities = [...filteredEntities].sort((a, b) => {
+    const labelA = (a['sap:label'] || a.name || '').toLowerCase();
+    const labelB = (b['sap:label'] || b.name || '').toLowerCase();
+    return labelA.localeCompare(labelB);
+  });
+
+  const sortedPropertyOptions = [...propertyOptions].sort((a, b) => {
+    const labelA = (a['sap:label'] || a.name || '').toLowerCase();
+    const labelB = (b['sap:label'] || b.name || '').toLowerCase();
+    return labelA.localeCompare(labelB);
+  });
+
+  const handleEntityChange = (_, newValue) => {
+    if (!newValue) return;
+
+    const entityName = newValue.name;
+    setSelectedEntity(entityName);
+
     if (selectedEntity) {
       dispatch(deleteEntity({ id, entityName: selectedEntity }));
-      setSelectedProperties([]);
     }
 
     dispatch(addEntity({ id, entityName }));
-    setSelectedEntity(entityName);
 
     const entity = filteredEntities.find((e) => e.name === entityName);
     const properties = entity
@@ -64,28 +75,18 @@ export default function EntitySection({ id }) {
     dispatch(setPropertyOptions({ id, properties }));
     dispatch(deleteRawFormDataForId({ id }));
 
-    centerDropdownRef.current?.resetDropdown();
-    rightDropdownRef.current?.resetDropdown();
+    setResetKey((prev) => prev + 1);
   };
 
-  const handleSelectedPropertyChange = (propertyName) => {
-    if (selectedProperties.includes(propertyName)) {
-      setSelectedProperties(
-        selectedProperties.filter((p) => p !== propertyName),
-      );
-      dispatch(
-        deletePropertySelection({
-          entityName: selectedEntity,
-          propertyName,
-          id,
-        }),
-      );
-    } else {
-      setSelectedProperties([...selectedProperties, propertyName]);
-      dispatch(
-        addPropertySelection({ entityName: selectedEntity, propertyName, id }),
-      );
-    }
+  const handleSelectedPropertyChange = (_, newValue) => {
+    if (!newValue) return;
+
+    const propertyNames = newValue.map((item) => item.name);
+
+    dispatch(
+      setPropertySelection({ entityName: selectedEntity, propertyNames, id }),
+    );
+    console.log(propertyNames);
     console.log(config);
   };
 
@@ -108,14 +109,16 @@ export default function EntitySection({ id }) {
           width: '40em',
         }}
       >
-        <Dropdown
-          id='dropdown-left'
-          options={filteredEntities.map((e) => ({
-            value: e.name,
-            label: e['sap:label'] || e.name,
-          }))}
-          defaultValue='Select an entity'
-          onChange={handleEntityChange}
+        <Autocomplete
+          options={sortedEntities}
+          groupBy={(option) =>
+            (option['sap:label'] || option.name || '').charAt(0).toUpperCase()
+          }
+          getOptionLabel={(option) => option['sap:label'] || option.name}
+          placeholder='Select an entity'
+          onChange={(event, newValue) => handleEntityChange(event, newValue)}
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          sx={{ width: '14rem' }}
         />
         <div className='flex items-center'>
           <Button
@@ -134,16 +137,26 @@ export default function EntitySection({ id }) {
           variant='solid'
         >
           <span>
-            <Dropdown
-              id='dropdown-right'
-              options={propertyOptions.map((p) => ({
-                value: p.Name,
-                label: p['sap:label'] || p.Name,
-              }))}
-              defaultValue={'Select a property'}
-              onChange={handleSelectedPropertyChange}
-              ref={rightDropdownRef}
-              multiple={true}
+            <Autocomplete
+              options={sortedPropertyOptions}
+              groupBy={(option) =>
+                (option['sap:label'] || option.name || '')
+                  .charAt(0)
+                  .toUpperCase()
+              }
+              getOptionLabel={(option) => option['sap:label'] || option.name}
+              placeholder='Select a property'
+              onChange={(event, newValue) =>
+                handleSelectedPropertyChange(event, newValue)
+              }
+              key={resetKey}
+              multiple
+              isOptionEqualToValue={(option, value) =>
+                option.value === value?.value
+              }
+              sx={{
+                width: '14rem',
+              }}
             />
           </span>
         </Tooltip>
