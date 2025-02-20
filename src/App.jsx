@@ -3,6 +3,9 @@ import { useSelector } from 'react-redux';
 import { IconButton } from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
 import EntitySection from './components/EntitySection.jsx';
+import FlowStart from './components/FlowStart.jsx';
+
+import { INITIAL_NODES } from './app.constants.js';
 
 import AddIcon from '@mui/icons-material/Add';
 import {
@@ -17,22 +20,14 @@ import '@xyflow/react/dist/style.css';
 
 const nodeTypes = {
   EntitySection: EntitySection,
+  FlowStart: FlowStart,
 };
 
 export default function App() {
   const loading = useFetchEntities();
   const config = useSelector((state) => state.entities.config);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([
-    {
-      id: crypto.randomUUID(),
-      position: {
-        x: window.innerWidth / 2 - 350,
-        y: window.innerHeight / 2 - 55,
-      },
-      type: 'EntitySection',
-    },
-  ]);
+  const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const onConnect = useCallback(
