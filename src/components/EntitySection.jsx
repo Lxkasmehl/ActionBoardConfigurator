@@ -107,6 +107,7 @@ export default function EntitySection({ id }) {
           justifyContent: 'space-around',
           alignItems: 'center',
           width: '40em',
+          padding: 3,
         }}
       >
         <Autocomplete
@@ -160,12 +161,38 @@ export default function EntitySection({ id }) {
             />
           </span>
         </Tooltip>
-        <Handle type='source' position={Position.Right} className='!w-3 !h-3' />
+        <Handle
+          type='source'
+          position={Position.Right}
+          style={{
+            width: '30px',
+            height: '30px',
+            color: 'white',
+            fontSize: '12px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          OK
+        </Handle>
         <Handle
           type='target'
           position={Position.Top}
-          className='!w-3 !h-3 border !border-black !bg-white'
-        />
+          style={{
+            width: '30px',
+            height: '30px',
+            color: 'black',
+            backgroundColor: 'white',
+            border: '1px solid black',
+            fontSize: '12px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          IN
+        </Handle>
       </Card>
       <IconButton
         onClick={handleRemove}
