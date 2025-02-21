@@ -15,10 +15,7 @@ export default function DropdownsAndInput({
     (state) => state.entities.propertyOptions[propertyOptionsId] || [],
   );
   const sortedPropertyOptions = useMemo(
-    () =>
-      [...propertyOptions].sort((a, b) =>
-        (a['sap:label'] || a.Name).localeCompare(b['sap:label'] || b.Name),
-      ),
+    () => [...propertyOptions].sort((a, b) => a.Name.localeCompare(b.Name)),
     [propertyOptions],
   );
 
@@ -62,7 +59,7 @@ export default function DropdownsAndInput({
           (propertyName) =>
             sourcePropertyOptions.find(
               (prop) => prop.Name === propertyName,
-            ) || { name: propertyName, 'sap:label': propertyName },
+            ) || { name: propertyName },
         ),
     ),
   );
@@ -73,7 +70,7 @@ export default function DropdownsAndInput({
 
   const groupedAvailableProperties = sortedPropertyOptions.reduce(
     (acc, prop) => {
-      const label = prop['sap:label'] || prop.Name;
+      const label = prop.Name;
       const firstLetter = label[0].toUpperCase();
       if (!acc[firstLetter]) acc[firstLetter] = [];
       acc[firstLetter].push(prop);
@@ -124,9 +121,7 @@ export default function DropdownsAndInput({
           })),
         )}
         groupBy={(option) => option.group}
-        getOptionLabel={(option) =>
-          option ? option['sap:label'] || option.Name || '' : ''
-        }
+        getOptionLabel={(option) => (option ? option.Name || '' : '')}
         value={property || null}
         onChange={(e, newValue) => setProperty(newValue)}
         placeholder='Property'
