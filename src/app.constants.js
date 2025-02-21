@@ -1,3 +1,7 @@
+import EntitySection from './components/EntitySection.jsx';
+import FlowStart from './components/FlowStart.jsx';
+// import DropdownEdge from './components/DropdownEdge.jsx';
+
 export const INITIAL_NODES = [
   {
     id: '0',
@@ -17,3 +21,12 @@ export const INITIAL_NODES = [
     type: 'EntitySection',
   },
 ];
+
+export const NODE_TYPES = {
+  EntitySection: EntitySection,
+  FlowStart: FlowStart,
+};
+
+// export const EDGE_TYPES = {
+//   DropdownEdge: DropdownEdge,
+// };

@@ -1,25 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Dropdown from './Dropdown';
-import { Input } from '@mui/joy';
+import { Autocomplete, Input } from '@mui/joy';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-
-const operatorOptions = [
-  { value: '=', label: '=' },
-  { value: '!=', label: '≠' },
-  { value: '<', label: '<' },
-  { value: '<=', label: '≤' },
-  { value: '>', label: '>' },
-  { value: '>=', label: '≥' },
-  { value: 'LIKE', label: 'LIKE' },
-  { value: 'NOT LIKE', label: 'NOT LIKE' },
-  { value: 'IN', label: 'IN' },
-  { value: 'NOT IN', label: 'NOT IN' },
-  { value: 'BETWEEN', label: 'BETWEEN' },
-  { value: 'IS NULL', label: 'IS NULL' },
-  { value: 'IS NOT NULL', label: 'IS NOT NULL' },
-  { value: 'CONTAINS', label: 'CONTAINS' },
-];
+import { useReactFlow } from '@xyflow/react';
+import { OPERATOR_OPTIONS } from './dropdownsAndInput.constants';
 
 export default function DropdownsAndInput({
   propertyOptionsId,
@@ -29,6 +14,14 @@ export default function DropdownsAndInput({
   const propertyOptions = useSelector(
     (state) => state.entities.propertyOptions[propertyOptionsId] || [],
   );
+  const sortedPropertyOptions = useMemo(
+    () =>
+      [...propertyOptions].sort((a, b) =>
+        (a['sap:label'] || a.Name).localeCompare(b['sap:label'] || b.Name),
+      ),
+    [propertyOptions],
+  );
+
   const rawFormData = useSelector((state) => state.entities.rawFormData);
 
   const [property, setProperty] = useState(
@@ -41,27 +34,113 @@ export default function DropdownsAndInput({
     rawFormData[propertyOptionsId]?.[`value_${fieldIdentifierId}`] ?? '',
   );
 
+  const config = useSelector((state) => state.entities.config);
+
+  const { getEdges } = useReactFlow();
+  const edges = getEdges();
+
+  const relatedSourceIds = edges
+    .filter((edge) => edge.target === propertyOptionsId)
+    .map((edge) => edge.source);
+
+  const propertyOptionsState = useSelector(
+    (state) => state.entities.propertyOptions,
+  );
+
+  const sourcePropertyOptions = useMemo(
+    () =>
+      relatedSourceIds.flatMap(
+        (sourceId) => propertyOptionsState[sourceId] || [],
+      ),
+    [propertyOptionsState, relatedSourceIds],
+  );
+
+  const relatedSourceSelectedProperties = relatedSourceIds.flatMap((sourceId) =>
+    (config[sourceId] ? Object.values(config[sourceId]) : []).flatMap(
+      (entity) =>
+        (entity.selectedProperties || []).map(
+          (propertyName) =>
+            sourcePropertyOptions.find(
+              (prop) => prop.Name === propertyName,
+            ) || { name: propertyName, 'sap:label': propertyName },
+        ),
+    ),
+  );
+
+  const relatedSourceEntities = relatedSourceIds.flatMap((sourceId) =>
+    config[sourceId] ? Object.keys(config[sourceId]) : [],
+  );
+
+  const groupedAvailableProperties = sortedPropertyOptions.reduce(
+    (acc, prop) => {
+      const label = prop['sap:label'] || prop.Name;
+      const firstLetter = label[0].toUpperCase();
+      if (!acc[firstLetter]) acc[firstLetter] = [];
+      acc[firstLetter].push(prop);
+      return acc;
+    },
+    {},
+  );
+
+  const combinedOptions = [
+    ...relatedSourceEntities.map((entity) => {
+      const relevantProperties = relatedSourceSelectedProperties.filter(
+        (prop) =>
+          relatedSourceIds.some(
+            (sourceId) =>
+              config[sourceId] &&
+              Object.keys(config[sourceId]).some(
+                (entityConfig) =>
+                  entityConfig === entity &&
+                  config[sourceId][entityConfig]?.selectedProperties?.includes(
+                    prop.Name,
+                  ),
+              ),
+          ),
+      );
+
+      return {
+        group: `Selected Props of ${entity}`,
+        options: relevantProperties,
+      };
+    }),
+    ...Object.keys(groupedAvailableProperties)
+      .sort()
+      .map((letter) => ({
+        group: letter,
+        options: groupedAvailableProperties[letter],
+      })),
+  ];
+
   return (
     <>
-      <Dropdown
+      <Autocomplete
         name={`property_${fieldIdentifierId}`}
-        options={propertyOptions.map((p) => ({
-          value: p.Name,
-          label: p['sap:label'] || p.Name,
-        }))}
-        value={property}
+        options={combinedOptions.flatMap(({ group, options }) =>
+          options.map((option) => ({
+            ...option,
+            group,
+            key: `${group}-${option.Name}`,
+          })),
+        )}
+        groupBy={(option) => option.group}
+        getOptionLabel={(option) =>
+          option ? option['sap:label'] || option.Name || '' : ''
+        }
+        value={property || null}
         onChange={(e, newValue) => setProperty(newValue)}
-        defaultValue='Property'
+        placeholder='Property'
         required
+        isOptionEqualToValue={(option, value) => option.Name === value?.Name}
         sx={{
           borderTopRightRadius: 0,
           borderBottomRightRadius: 0,
-          width: 120,
+          width: 200,
         }}
       />
       <Dropdown
         name={`operator_${fieldIdentifierId}`}
-        options={operatorOptions}
+        options={OPERATOR_OPTIONS}
         value={operator}
         onChange={(e, newValue) => setOperator(newValue)}
         defaultValue='Operator'

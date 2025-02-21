@@ -140,7 +140,6 @@ export default function FilterModal({ open, onClose, entity, id }) {
     dispatch(setRawFormData({ id, formObject }));
     const filterObject = buildFilterObject(formObject);
     dispatch(setFilter({ entityName: entity, id, filterObject }));
-    console.log(formObject);
     onClose();
   };
 

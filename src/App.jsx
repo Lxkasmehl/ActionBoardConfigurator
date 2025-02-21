@@ -2,10 +2,8 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { IconButton } from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
-import EntitySection from './components/EntitySection.jsx';
-import FlowStart from './components/FlowStart.jsx';
 
-import { INITIAL_NODES } from './app.constants.js';
+import { INITIAL_NODES, NODE_TYPES } from './app.constants.js';
 
 import AddIcon from '@mui/icons-material/Add';
 import {
@@ -18,11 +16,6 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-const nodeTypes = {
-  EntitySection: EntitySection,
-  FlowStart: FlowStart,
-};
-
 export default function App() {
   const loading = useFetchEntities();
   const config = useSelector((state) => state.entities.config);
@@ -33,6 +26,11 @@ export default function App() {
   const onConnect = useCallback(
     (connection) => {
       const edge = { ...connection, id: crypto.randomUUID() };
+      // const edge = {
+      //   ...connection,
+      //   id: crypto.randomUUID(),
+      //   type: connection.source !== '0' ? 'DropdownEdge' : 'default',
+      // };
       setEdges((prevEdges) => addEdge(edge, prevEdges));
     },
     [setEdges],
@@ -65,7 +63,6 @@ export default function App() {
     ]);
 
     console.log(config);
-    console.log(edges);
   };
 
   if (loading) {
@@ -84,7 +81,7 @@ export default function App() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        nodeTypes={nodeTypes}
+        nodeTypes={NODE_TYPES}
         proOptions={{ hideAttribution: true }}
       >
         <Background />

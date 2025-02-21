@@ -42,16 +42,21 @@ export default function EntitySection({ id }) {
   const { setNodes } = useReactFlow();
 
   const sortedEntities = [...filteredEntities].sort((a, b) => {
-    const labelA = (a['sap:label'] || a.name || '').toLowerCase();
-    const labelB = (b['sap:label'] || b.name || '').toLowerCase();
+    const labelA = (a['sap:label'] || a.Name || '').toLowerCase();
+    const labelB = (b['sap:label'] || b.Name || '').toLowerCase();
     return labelA.localeCompare(labelB);
   });
 
   const sortedPropertyOptions = [...propertyOptions].sort((a, b) => {
-    const labelA = (a['sap:label'] || a.name || '').toLowerCase();
-    const labelB = (b['sap:label'] || b.name || '').toLowerCase();
+    const labelA = (a['sap:label'] || a.Name || '').toLowerCase();
+    const labelB = (b['sap:label'] || b.Name || '').toLowerCase();
     return labelA.localeCompare(labelB);
   });
+
+  const uniqueSortedPropertyOptions = sortedPropertyOptions.filter(
+    (value, index, self) =>
+      index === self.findIndex((t) => t['sap:label'] === value['sap:label']),
+  );
 
   const handleEntityChange = (_, newValue) => {
     if (!newValue) return;
@@ -67,8 +72,8 @@ export default function EntitySection({ id }) {
 
     const entity = filteredEntities.find((e) => e.name === entityName);
     const properties = entity
-      ? Array.from(new Set(entity.properties.map((p) => p.Name))).map((name) =>
-          entity.properties.find((p) => p.Name === name),
+      ? Array.from(new Set(entity.properties.map((p) => p.Name))).map((Name) =>
+          entity.properties.find((p) => p.Name === Name),
         )
       : [];
 
@@ -81,12 +86,11 @@ export default function EntitySection({ id }) {
   const handleSelectedPropertyChange = (_, newValue) => {
     if (!newValue) return;
 
-    const propertyNames = newValue.map((item) => item.name);
+    const propertyNames = newValue.map((item) => item.Name);
 
     dispatch(
       setPropertySelection({ entityName: selectedEntity, propertyNames, id }),
     );
-    console.log(propertyNames);
     console.log(config);
   };
 
@@ -118,7 +122,7 @@ export default function EntitySection({ id }) {
           getOptionLabel={(option) => option['sap:label'] || option.name}
           placeholder='Select an entity'
           onChange={(event, newValue) => handleEntityChange(event, newValue)}
-          isOptionEqualToValue={(option, value) => option.value === value.value}
+          isOptionEqualToValue={(option, value) => option.name === value.name}
           sx={{ width: '14rem' }}
         />
         <div className='flex items-center'>
@@ -139,21 +143,17 @@ export default function EntitySection({ id }) {
         >
           <span>
             <Autocomplete
-              options={sortedPropertyOptions}
-              groupBy={(option) =>
-                (option['sap:label'] || option.name || '')
-                  .charAt(0)
-                  .toUpperCase()
-              }
-              getOptionLabel={(option) => option['sap:label'] || option.name}
+              options={uniqueSortedPropertyOptions}
+              groupBy={(option) => option['sap:label'].charAt(0).toUpperCase()}
+              getOptionLabel={(option) => option['sap:label'] || option.Name}
               placeholder='Select a property'
               onChange={(event, newValue) =>
                 handleSelectedPropertyChange(event, newValue)
               }
               key={resetKey}
-              multiple
+              multiple={true}
               isOptionEqualToValue={(option, value) =>
-                option.value === value?.value
+                option.Name === value?.Name
               }
               sx={{
                 width: '14rem',
