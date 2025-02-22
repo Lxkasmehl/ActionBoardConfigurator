@@ -5,10 +5,10 @@ import Condition from './Condition';
 import ConditionGroup from './ConditionGroup';
 import { useDispatch } from 'react-redux';
 import {
-  setFilter,
-  setRawFormData,
-  removeSubLogic,
-  setUnofficialFilter,
+  setEntityFilter,
+  setFormData,
+  removeGroupedEntityLogic,
+  setCustomFilter,
 } from '../redux/entitiesSlice';
 import { useReactFlow } from '@xyflow/react';
 
@@ -39,7 +39,7 @@ const buildConditions = (obj) => {
 };
 
 const buildFilterObject = (obj) => {
-  const rootLogic = obj['logic']?.toUpperCase() ?? 'AND';
+  const rootLogic = obj['entityLogic']?.toUpperCase() ?? 'AND';
 
   const rootConditions = [];
   const logicGroups = {};
@@ -50,7 +50,7 @@ const buildFilterObject = (obj) => {
     if (match) {
       const [, id] = match;
       if (!logicGroups[id])
-        logicGroups[id] = { logic: value.toUpperCase(), conditions: [] };
+        logicGroups[id] = { entityLogic: value.toUpperCase(), conditions: [] };
     }
   }
 
@@ -74,14 +74,14 @@ const buildFilterObject = (obj) => {
   for (const group of Object.values(logicGroups)) {
     if (group.conditions && group.conditions.length) {
       rootConditions.push({
-        logic: group.logic,
+        entityLogic: group.entityLogic,
         conditions: group.conditions,
       });
     }
   }
 
   return {
-    logic: rootLogic,
+    entityLogic: rootLogic,
     conditions: rootConditions,
   };
 };
@@ -105,7 +105,7 @@ export default function FilterModal({ open, onClose, entity, id }) {
   const removeConditionGroup = useCallback(
     (groupId, index) => {
       setConditions((prev) => prev.filter((group) => group.id !== groupId));
-      dispatch(removeSubLogic({ id, groupIndex: index }));
+      dispatch(removeGroupedEntityLogic({ id, groupIndex: index }));
     },
     [dispatch, id],
   );
@@ -146,12 +146,12 @@ export default function FilterModal({ open, onClose, entity, id }) {
     const formObject = Object.fromEntries(fd.entries());
     const filterObject = buildFilterObject(formObject);
 
-    dispatch(setRawFormData({ id, formObject }));
+    dispatch(setFormData({ id, formObject }));
 
     if (isTargetOfEdge) {
-      dispatch(setFilter({ entityName: entity, id, filterObject }));
+      dispatch(setEntityFilter({ entityName: entity, id, filterObject }));
     } else {
-      dispatch(setUnofficialFilter({ id, filterObject }));
+      dispatch(setCustomFilter({ id, filterObject }));
     }
 
     onClose();

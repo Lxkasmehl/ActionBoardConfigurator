@@ -18,21 +18,21 @@ export default function DropdownsAndInput({
     [propertyOptions],
   );
 
-  const rawFormData = useSelector((state) => state.entities.rawFormData);
+  const formData = useSelector((state) => state.entities.formData);
 
   const [property, setProperty] = useState(() => {
     const storedPropertyName =
-      rawFormData[propertyOptionsId]?.[`property_${fieldIdentifierId}`];
+      formData[propertyOptionsId]?.[`property_${fieldIdentifierId}`];
     return storedPropertyName
       ? propertyOptions.find((prop) => prop.Name === storedPropertyName) || null
       : null;
   });
 
   const [operator, setOperator] = useState(
-    rawFormData[propertyOptionsId]?.[`operator_${fieldIdentifierId}`] ?? '',
+    formData[propertyOptionsId]?.[`operator_${fieldIdentifierId}`] ?? '',
   );
   const [value, setValue] = useState(
-    rawFormData[propertyOptionsId]?.[`value_${fieldIdentifierId}`] ?? '',
+    formData[propertyOptionsId]?.[`value_${fieldIdentifierId}`] ?? '',
   );
 
   const config = useSelector((state) => state.entities.config);

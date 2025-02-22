@@ -7,7 +7,7 @@ import { INITIAL_NODES, NODE_TYPES } from './app.constants.js';
 import {
   addEntity,
   setPropertySelection,
-  setFilter,
+  setEntityFilter,
 } from './redux/entitiesSlice.js';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -35,9 +35,7 @@ export default function App() {
   const selectedProperties = useSelector(
     (state) => state.entities.selectedProperties,
   );
-  const unofficialFilter = useSelector(
-    (state) => state.entities.unofficialFilter,
-  );
+  const customFilters = useSelector((state) => state.entities.customFilters);
 
   const onConnect = useCallback(
     (connection) => {
@@ -83,26 +81,28 @@ export default function App() {
 
         const targetNode = nodes.find((node) => node.id === targetNodeId);
         if (targetNode && targetNode.type === 'EntitySection') {
-          dispatch(
-            addEntity({
-              id: targetNodeId,
-              entityName: selectedEntities[targetNodeId],
-            }),
-          );
-          dispatch(
-            setPropertySelection({
-              entityName: selectedEntities[targetNodeId],
-              id: targetNodeId,
-              propertyNames: selectedProperties[targetNodeId],
-            }),
-          );
-          dispatch(
-            setFilter({
-              id: targetNodeId,
-              entityName: selectedEntities[targetNodeId],
-              filterObject: unofficialFilter[targetNodeId],
-            }),
-          );
+          if (selectedEntities[targetNodeId]) {
+            dispatch(
+              addEntity({
+                id: targetNodeId,
+                entityName: selectedEntities[targetNodeId],
+              }),
+            );
+            dispatch(
+              setPropertySelection({
+                entityName: selectedEntities[targetNodeId],
+                id: targetNodeId,
+                propertyNames: selectedProperties[targetNodeId],
+              }),
+            );
+            dispatch(
+              setEntityFilter({
+                id: targetNodeId,
+                entityName: selectedEntities[targetNodeId],
+                filterObject: customFilters[targetNodeId],
+              }),
+            );
+          }
         }
       }
     },
@@ -112,7 +112,7 @@ export default function App() {
       dispatch,
       selectedEntities,
       selectedProperties,
-      unofficialFilter,
+      customFilters,
     ],
   );
 

@@ -1,26 +1,32 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { setLogic, setSubLogic } from '../redux/entitiesSlice';
+import { setEntityLogic, setGroupedEntityLogic } from '../redux/entitiesSlice';
 import { useCallback } from 'react';
 
 export const useLogic = (id, groupIndex) => {
   const dispatch = useDispatch();
-  const rawFormData = useSelector((state) => state.entities.rawFormData);
-  const logic = useSelector((state) => state.entities.logic);
-  const groupLogic = useSelector((state) => state.entities.groupLogic);
+  const formData = useSelector((state) => state.entities.formData);
+  const entityLogic = useSelector((state) => state.entities.entityLogic);
+  const groupedEntityLogic = useSelector(
+    (state) => state.entities.groupedEntityLogic,
+  );
 
-  const selectedLogic = logic[id] ?? rawFormData[id]?.['logic'] ?? 'and';
+  const selectedLogic =
+    entityLogic[id] ?? formData[id]?.['entityLogic'] ?? 'and';
   const selectedSubLogic =
-    groupLogic[id]?.[groupIndex] ??
-    rawFormData[id]?.[`subLogic_${groupIndex}`] ??
+    groupedEntityLogic[id]?.[groupIndex] ??
+    formData[id]?.[`subLogic_${groupIndex}`] ??
     'and';
 
   const handleLogicChange = useCallback(
-    (_, newValue) => dispatch(setLogic({ id, logic: newValue })),
+    (_, newValue) => dispatch(setEntityLogic({ id, entityLogic: newValue })),
     [dispatch, id],
   );
 
   const handleSubLogicChange = useCallback(
-    (_, newValue) => dispatch(setSubLogic({ id, logic: newValue, groupIndex })),
+    (_, newValue) =>
+      dispatch(
+        setGroupedEntityLogic({ id, entityLogic: newValue, groupIndex }),
+      ),
     [dispatch, id, groupIndex],
   );
 

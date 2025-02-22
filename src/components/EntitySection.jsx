@@ -3,12 +3,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createSelector } from '@reduxjs/toolkit';
 import {
   addEntity,
-  deleteEntity,
+  removeEntity,
   setPropertySelection,
   setPropertyOptions,
-  deleteRawFormDataForId,
-  deleteID,
-  setSelectedEntities,
+  removeFormData,
+  removeEntityConfig,
+  setSelectedEntity,
   setSelectedProperties,
 } from '../redux/entitiesSlice';
 import PropTypes from 'prop-types';
@@ -21,11 +21,9 @@ import '@xyflow/react/dist/style.css';
 export default function EntitySection({ id }) {
   const dispatch = useDispatch();
 
-  const filteredEntities = useSelector(
-    (state) => state.entities.filteredEntities,
-  );
+  const entities = useSelector((state) => state.entities.entities);
   const config = useSelector((state) => state.entities.config);
-  const rawFormData = useSelector((state) => state.entities.rawFormData);
+  const formData = useSelector((state) => state.entities.formData);
   const selectedEntities = useSelector(
     (state) => state.entities.selectedEntities,
   );
@@ -48,7 +46,7 @@ export default function EntitySection({ id }) {
 
   const ref = useRef();
 
-  const sortedEntities = [...filteredEntities].sort((a, b) => {
+  const sortedEntities = [...entities].sort((a, b) => {
     const labelA = (a['sap:label'] || a.Name || '').toLowerCase();
     const labelB = (b['sap:label'] || b.Name || '').toLowerCase();
     return labelA.localeCompare(labelB);
@@ -70,7 +68,7 @@ export default function EntitySection({ id }) {
 
     const entityName = newValue.name;
 
-    const entity = filteredEntities.find((e) => e.name === entityName);
+    const entity = entities.find((e) => e.name === entityName);
     const properties = entity
       ? Array.from(new Set(entity.properties.map((p) => p.Name))).map((Name) =>
           entity.properties.find((p) => p.Name === Name),
@@ -82,14 +80,14 @@ export default function EntitySection({ id }) {
 
     if (isTargetOfEdge) {
       if (selectedEntity) {
-        dispatch(deleteEntity({ id, entityName: selectedEntity }));
+        dispatch(removeEntity({ id, entityName: selectedEntity }));
       }
       dispatch(addEntity({ id, entityName }));
-      dispatch(deleteRawFormDataForId({ id }));
+      dispatch(removeFormData({ id }));
     }
 
     dispatch(setPropertyOptions({ id, properties }));
-    dispatch(setSelectedEntities({ id, entityName }));
+    dispatch(setSelectedEntity({ id, entityName }));
 
     setResetKey((prev) => prev + 1);
 
@@ -115,8 +113,8 @@ export default function EntitySection({ id }) {
 
   const handleRemove = () => {
     setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
-    dispatch(deleteID(id));
-    dispatch(deleteRawFormDataForId({ id }));
+    dispatch(removeEntityConfig(id));
+    dispatch(removeFormData({ id }));
     console.log(config);
   };
 
@@ -162,7 +160,7 @@ export default function EntitySection({ id }) {
             onClick={() => setFilterModalOpen(true)}
             disabled={!selectedEntity}
           >
-            {!rawFormData[id] ? 'Add Filter' : 'Edit Filter'}
+            {!formData[id] ? 'Add Filter' : 'Edit Filter'}
           </Button>
         </div>
 

@@ -21,7 +21,7 @@ export default function ConditionGroup({
         value={selectedLogic}
         onChange={handleLogicChange}
         disabled={groupIndex > 1}
-        name={groupIndex === 1 ? 'logic' : ''}
+        name={groupIndex === 1 ? 'entityLogic' : ''}
         showWhere={groupIndex === 0}
       />
 

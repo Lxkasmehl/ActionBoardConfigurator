@@ -20,7 +20,7 @@ export default function Condition({
           index === 1
             ? isSubCondition
               ? `subLogic_${groupIndex}`
-              : 'logic'
+              : 'entityLogic'
             : ''
         }
         showWhere={index === 0}
