@@ -118,18 +118,6 @@ export default function EntitySection({ id }) {
     console.log(config);
   };
 
-  // useImperativeHandle(ref, () => ({
-  //   addEntity: () => dispatch(addEntity({ id, entityName: selectedEntity })),
-  //   setPropertySelection: () =>
-  //     dispatch(
-  //       setPropertySelection({
-  //         entityName: selectedEntity,
-  //         propertyNames: selectedProperties,
-  //         id,
-  //       }),
-  //     ),
-  // }));
-
   return (
     <div ref={ref}>
       <Card

@@ -13,12 +13,16 @@ export default function DropdownsAndInput({
   const propertyOptions = useSelector(
     (state) => state.entities.propertyOptions[propertyOptionsId] || [],
   );
+  const formData = useSelector((state) => state.entities.formData);
+  const config = useSelector((state) => state.entities.config);
+  const propertyOptionsState = useSelector(
+    (state) => state.entities.propertyOptions,
+  );
+
   const sortedPropertyOptions = useMemo(
     () => [...propertyOptions].sort((a, b) => a.Name.localeCompare(b.Name)),
     [propertyOptions],
   );
-
-  const formData = useSelector((state) => state.entities.formData);
 
   const [property, setProperty] = useState(() => {
     const storedPropertyName =
@@ -35,18 +39,12 @@ export default function DropdownsAndInput({
     formData[propertyOptionsId]?.[`value_${fieldIdentifierId}`] ?? '',
   );
 
-  const config = useSelector((state) => state.entities.config);
-
   const { getEdges } = useReactFlow();
   const edges = getEdges();
 
   const relatedSourceIds = edges
     .filter((edge) => edge.target === propertyOptionsId)
     .map((edge) => edge.source);
-
-  const propertyOptionsState = useSelector(
-    (state) => state.entities.propertyOptions,
-  );
 
   const sourcePropertyOptions = useMemo(
     () =>
@@ -112,8 +110,6 @@ export default function DropdownsAndInput({
         options: groupedAvailableProperties[letter],
       })),
   ];
-
-  console.log(property);
 
   return (
     <>

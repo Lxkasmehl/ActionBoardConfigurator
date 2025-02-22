@@ -23,29 +23,25 @@ import '@xyflow/react/dist/style.css';
 
 export default function App() {
   const loading = useFetchEntities();
-  const config = useSelector((state) => state.entities.config);
   const dispatch = useDispatch();
+
+  const { config, selectedEntities, selectedProperties, customFilters } =
+    useSelector((state) => state.entities);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const selectedEntities = useSelector(
-    (state) => state.entities.selectedEntities,
-  );
-  const selectedProperties = useSelector(
-    (state) => state.entities.selectedProperties,
-  );
-  const customFilters = useSelector((state) => state.entities.customFilters);
+  const createNodeId = useCallback(() => crypto.randomUUID(), []);
 
   const onConnect = useCallback(
     (connection) => {
-      const edge = { ...connection, id: crypto.randomUUID() };
+      const edge = { ...connection, id: createNodeId() };
       setEdges((prevEdges) => addEdge(edge, prevEdges));
     },
-    [setEdges],
+    [createNodeId, setEdges],
   );
 
-  const addSection = () => {
+  const addSection = useCallback(() => {
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
 
@@ -63,14 +59,13 @@ export default function App() {
     }
 
     const newNode = {
-      id: crypto.randomUUID(),
+      id: createNodeId(),
       position: { x: newX, y: newY },
       type: 'EntitySection',
     };
     setNodes((prev) => [...prev, newNode]);
-
     console.log(config);
-  };
+  }, [createNodeId, config, nodes, setNodes]);
 
   const onConnectWithEntityRender = useCallback(
     (connection) => {
@@ -78,19 +73,17 @@ export default function App() {
 
       if (connection.target) {
         const targetNodeId = connection.target;
-
         const targetNode = nodes.find((node) => node.id === targetNodeId);
+
         if (targetNode && targetNode.type === 'EntitySection') {
-          if (selectedEntities[targetNodeId]) {
+          const selectedEntity = selectedEntities[targetNodeId];
+          if (selectedEntity) {
             dispatch(
-              addEntity({
-                id: targetNodeId,
-                entityName: selectedEntities[targetNodeId],
-              }),
+              addEntity({ id: targetNodeId, entityName: selectedEntity }),
             );
             dispatch(
               setPropertySelection({
-                entityName: selectedEntities[targetNodeId],
+                entityName: selectedEntity,
                 id: targetNodeId,
                 propertyNames: selectedProperties[targetNodeId],
               }),
@@ -98,7 +91,7 @@ export default function App() {
             dispatch(
               setEntityFilter({
                 id: targetNodeId,
-                entityName: selectedEntities[targetNodeId],
+                entityName: selectedEntity,
                 filterObject: customFilters[targetNodeId],
               }),
             );
