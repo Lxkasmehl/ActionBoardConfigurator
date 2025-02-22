@@ -1,13 +1,22 @@
 import { Select, Option, Typography, Tooltip } from '@mui/joy';
 import PropTypes from 'prop-types';
+import { useLogic } from '../hooks/useLogic';
 
 export default function LogicSelector({
-  value,
-  onChange,
   disabled,
   name,
   showWhere,
+  isSubCondition,
+  id, 
+  groupIndex
 }) {
+  const {
+    selectedLogic,
+    selectedSubLogic,
+    handleLogicChange,
+    handleSubLogicChange,
+  } = useLogic(id, groupIndex);
+
   return showWhere ? (
     <Typography sx={{ mr: 8.3 }}>Where</Typography>
   ) : (
@@ -22,8 +31,8 @@ export default function LogicSelector({
       <div className='h-fit'>
         <Select
           sx={{ width: 90, mr: 3, height: 'fit-content' }}
-          value={value}
-          onChange={onChange}
+          value={isSubCondition ? selectedSubLogic : selectedLogic}
+          onChange={isSubCondition ? handleSubLogicChange : handleLogicChange}
           required
           disabled={disabled}
           name={name}
@@ -37,9 +46,10 @@ export default function LogicSelector({
 }
 
 LogicSelector.propTypes = {
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
   name: PropTypes.string,
   showWhere: PropTypes.bool.isRequired,
+  isSubCondition: PropTypes.bool.isRequired,
+  id: PropTypes.number.isRequired,
+  groupIndex: PropTypes.number,
 };

@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import Dropdown from './Dropdown';
-import { Autocomplete, Input } from '@mui/joy';
+import { Autocomplete, Input, Select, Option } from '@mui/joy';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useReactFlow } from '@xyflow/react';
@@ -21,9 +20,14 @@ export default function DropdownsAndInput({
 
   const rawFormData = useSelector((state) => state.entities.rawFormData);
 
-  const [property, setProperty] = useState(
-    rawFormData[propertyOptionsId]?.[`property_${fieldIdentifierId}`] ?? '',
-  );
+  const [property, setProperty] = useState(() => {
+    const storedPropertyName =
+      rawFormData[propertyOptionsId]?.[`property_${fieldIdentifierId}`];
+    return storedPropertyName
+      ? propertyOptions.find((prop) => prop.Name === storedPropertyName) || null
+      : null;
+  });
+
   const [operator, setOperator] = useState(
     rawFormData[propertyOptionsId]?.[`operator_${fieldIdentifierId}`] ?? '',
   );
@@ -109,6 +113,8 @@ export default function DropdownsAndInput({
       })),
   ];
 
+  console.log(property);
+
   return (
     <>
       <Autocomplete
@@ -133,18 +139,25 @@ export default function DropdownsAndInput({
           width: 200,
         }}
       />
-      <Dropdown
+      <Select
         name={`operator_${fieldIdentifierId}`}
-        options={OPERATOR_OPTIONS}
-        value={operator}
+        value={operator || ''}
         onChange={(e, newValue) => setOperator(newValue)}
-        defaultValue='Operator'
         required
         sx={{
           borderRadius: 0,
           width: 120,
         }}
-      />
+      >
+        <Option value='' disabled>
+          Operator
+        </Option>
+        {OPERATOR_OPTIONS.map((option) => (
+          <Option key={option.value} value={option.value}>
+            {option.label}
+          </Option>
+        ))}
+      </Select>
       <Input
         name={`value_${fieldIdentifierId}`}
         value={value}

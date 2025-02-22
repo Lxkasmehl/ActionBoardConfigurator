@@ -2,7 +2,6 @@ import { IconButton } from '@mui/joy';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DropdownsAndInput from './DropdownsAndInput';
 import PropTypes from 'prop-types';
-import { useLogic } from '../hooks/useLogic';
 import LogicSelector from './LogicSelector';
 
 export default function Condition({
@@ -13,18 +12,9 @@ export default function Condition({
   isSubCondition,
   groupIndex,
 }) {
-  const {
-    selectedLogic,
-    selectedSubLogic,
-    handleLogicChange,
-    handleSubLogicChange,
-  } = useLogic(id, groupIndex);
-
   return (
     <div className='flex flex-row items-center'>
       <LogicSelector
-        value={isSubCondition ? selectedSubLogic : selectedLogic}
-        onChange={isSubCondition ? handleSubLogicChange : handleLogicChange}
         disabled={index > 1}
         name={
           index === 1
@@ -34,6 +24,9 @@ export default function Condition({
             : ''
         }
         showWhere={index === 0}
+        isSubCondition={isSubCondition}
+        id={id}
+        groupIndex={groupIndex}
       />
       <DropdownsAndInput
         propertyOptionsId={id}
