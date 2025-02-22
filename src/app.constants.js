@@ -19,6 +19,7 @@ export const INITIAL_NODES = [
       y: window.innerHeight / 2 - 55,
     },
     type: 'EntitySection',
+    
   },
 ];
 

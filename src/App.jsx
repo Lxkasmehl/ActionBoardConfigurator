@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { IconButton } from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
 
 import { INITIAL_NODES, NODE_TYPES } from './app.constants.js';
+import { addEntity, setPropertySelection } from './redux/entitiesSlice.js';
 
 import AddIcon from '@mui/icons-material/Add';
 import {
@@ -19,9 +20,17 @@ import '@xyflow/react/dist/style.css';
 export default function App() {
   const loading = useFetchEntities();
   const config = useSelector((state) => state.entities.config);
+  const dispatch = useDispatch();
 
   const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  const selectedEntities = useSelector(
+    (state) => state.entities.selectedEntities,
+  );
+  const selectedProperties = useSelector(
+    (state) => state.entities.selectedProperties,
+  );
 
   const onConnect = useCallback(
     (connection) => {
@@ -53,17 +62,44 @@ export default function App() {
       newY += 20;
     }
 
-    setNodes((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        position: { x: newX, y: newY },
-        type: 'EntitySection',
-      },
-    ]);
+    const newNode = {
+      id: crypto.randomUUID(),
+      position: { x: newX, y: newY },
+      type: 'EntitySection',
+    };
+    setNodes((prev) => [...prev, newNode]);
 
     console.log(config);
   };
+
+  const onConnectWithEntityRender = useCallback(
+    (connection) => {
+      onConnect(connection);
+
+      if (connection.target) {
+        const targetNodeId = connection.target;
+
+        const targetNode = nodes.find((node) => node.id === targetNodeId);
+        if (targetNode && targetNode.type === 'EntitySection') {
+          dispatch(
+            addEntity({
+              id: targetNodeId,
+              entityName: selectedEntities[targetNodeId],
+            }),
+          );
+          console.log(selectedProperties[targetNodeId]);
+          dispatch(
+            setPropertySelection({
+              entityName: selectedEntities[targetNodeId],
+              id: targetNodeId,
+              propertyNames: selectedProperties[targetNodeId],
+            }),
+          );
+        }
+      }
+    },
+    [onConnect, nodes, dispatch, selectedEntities, selectedProperties],
+  );
 
   if (loading) {
     return (
@@ -80,7 +116,7 @@ export default function App() {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
+        onConnect={onConnectWithEntityRender}
         nodeTypes={NODE_TYPES}
         proOptions={{ hideAttribution: true }}
       >

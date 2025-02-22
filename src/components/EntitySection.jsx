@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createSelector } from '@reduxjs/toolkit';
 import {
@@ -8,6 +8,8 @@ import {
   setPropertyOptions,
   deleteRawFormDataForId,
   deleteID,
+  setSelectedEntities,
+  setSelectedProperties,
 } from '../redux/entitiesSlice';
 import PropTypes from 'prop-types';
 import { Autocomplete, Button, Card, IconButton, Tooltip } from '@mui/joy';
@@ -24,6 +26,10 @@ export default function EntitySection({ id }) {
   );
   const config = useSelector((state) => state.entities.config);
   const rawFormData = useSelector((state) => state.entities.rawFormData);
+  const selectedEntities = useSelector(
+    (state) => state.entities.selectedEntities,
+  );
+  const selectedEntity = selectedEntities[id];
 
   const selectPropertyOptions = createSelector(
     (state) => state.entities.propertyOptions,
@@ -35,11 +41,12 @@ export default function EntitySection({ id }) {
     selectPropertyOptions(state, id),
   );
 
-  const [selectedEntity, setSelectedEntity] = useState(null);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [resetKey, setResetKey] = useState(0);
 
-  const { setNodes } = useReactFlow();
+  const { setNodes, getEdges } = useReactFlow();
+
+  const ref = useRef();
 
   const sortedEntities = [...filteredEntities].sort((a, b) => {
     const labelA = (a['sap:label'] || a.Name || '').toLowerCase();
@@ -62,13 +69,6 @@ export default function EntitySection({ id }) {
     if (!newValue) return;
 
     const entityName = newValue.name;
-    setSelectedEntity(entityName);
-
-    if (selectedEntity) {
-      dispatch(deleteEntity({ id, entityName: selectedEntity }));
-    }
-
-    dispatch(addEntity({ id, entityName }));
 
     const entity = filteredEntities.find((e) => e.name === entityName);
     const properties = entity
@@ -77,20 +77,39 @@ export default function EntitySection({ id }) {
         )
       : [];
 
+    const edges = getEdges();
+    const isTargetOfEdge = edges.some((edge) => edge.target === id);
+
+    if (isTargetOfEdge) {
+      if (selectedEntity) {
+        dispatch(deleteEntity({ id, entityName: selectedEntity }));
+      }
+      dispatch(addEntity({ id, entityName }));
+      dispatch(deleteRawFormDataForId({ id }));
+    }
+
     dispatch(setPropertyOptions({ id, properties }));
-    dispatch(deleteRawFormDataForId({ id }));
+    dispatch(setSelectedEntities({ id, entityName }));
 
     setResetKey((prev) => prev + 1);
+
+    console.log(config);
   };
 
   const handleSelectedPropertyChange = (_, newValue) => {
-    if (!newValue) return;
+    const edges = getEdges();
+    const isTargetOfEdge = edges.some((edge) => edge.target === id);
 
     const propertyNames = newValue.map((item) => item.Name);
 
-    dispatch(
-      setPropertySelection({ entityName: selectedEntity, propertyNames, id }),
-    );
+    if (!newValue || !isTargetOfEdge) {
+      dispatch(setSelectedProperties({ id, propertyNames }));
+    } else {
+      dispatch(
+        setPropertySelection({ entityName: selectedEntity, propertyNames, id }),
+      );
+    }
+
     console.log(config);
   };
 
@@ -101,9 +120,20 @@ export default function EntitySection({ id }) {
     console.log(config);
   };
 
+  // useImperativeHandle(ref, () => ({
+  //   addEntity: () => dispatch(addEntity({ id, entityName: selectedEntity })),
+  //   setPropertySelection: () =>
+  //     dispatch(
+  //       setPropertySelection({
+  //         entityName: selectedEntity,
+  //         propertyNames: selectedProperties,
+  //         id,
+  //       }),
+  //     ),
+  // }));
+
   return (
-    // className='flex items-center justify-around px-6 py-8 bg-gray-800 lg:w-[50em] w-[90%] text-white rounded-lg shadow-lg'
-    <>
+    <div ref={ref}>
       <Card
         sx={{
           display: 'flex',
@@ -212,7 +242,7 @@ export default function EntitySection({ id }) {
         entity={selectedEntity}
         id={id}
       />
-    </>
+    </div>
   );
 }
 
