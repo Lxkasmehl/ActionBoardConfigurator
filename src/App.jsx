@@ -4,7 +4,11 @@ import { IconButton } from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
 
 import { INITIAL_NODES, NODE_TYPES } from './app.constants.js';
-import { addEntity, setPropertySelection } from './redux/entitiesSlice.js';
+import {
+  addEntity,
+  setPropertySelection,
+  setFilter,
+} from './redux/entitiesSlice.js';
 
 import AddIcon from '@mui/icons-material/Add';
 import {
@@ -31,15 +35,13 @@ export default function App() {
   const selectedProperties = useSelector(
     (state) => state.entities.selectedProperties,
   );
+  const unofficialFilter = useSelector(
+    (state) => state.entities.unofficialFilter,
+  );
 
   const onConnect = useCallback(
     (connection) => {
       const edge = { ...connection, id: crypto.randomUUID() };
-      // const edge = {
-      //   ...connection,
-      //   id: crypto.randomUUID(),
-      //   type: connection.source !== '0' ? 'DropdownEdge' : 'default',
-      // };
       setEdges((prevEdges) => addEdge(edge, prevEdges));
     },
     [setEdges],
@@ -87,7 +89,6 @@ export default function App() {
               entityName: selectedEntities[targetNodeId],
             }),
           );
-          console.log(selectedProperties[targetNodeId]);
           dispatch(
             setPropertySelection({
               entityName: selectedEntities[targetNodeId],
@@ -95,10 +96,24 @@ export default function App() {
               propertyNames: selectedProperties[targetNodeId],
             }),
           );
+          dispatch(
+            setFilter({
+              id: targetNodeId,
+              entityName: selectedEntities[targetNodeId],
+              filterObject: unofficialFilter[targetNodeId],
+            }),
+          );
         }
       }
     },
-    [onConnect, nodes, dispatch, selectedEntities, selectedProperties],
+    [
+      onConnect,
+      nodes,
+      dispatch,
+      selectedEntities,
+      selectedProperties,
+      unofficialFilter,
+    ],
   );
 
   if (loading) {

@@ -9,6 +9,7 @@ const initialState = {
   groupLogic: {},
   selectedEntities: {},
   selectedProperties: {},
+  unofficialFilter: {},
 };
 
 const entitiesSlice = createSlice({
@@ -118,6 +119,12 @@ const entitiesSlice = createSlice({
       const { id, propertyNames } = action.payload;
       state.selectedProperties[id] = propertyNames;
     },
+    setUnofficialFilter(state, action) {
+      const { id, filterObject } = action.payload;
+      state.unofficialFilter[id] = {
+        ...filterObject,
+      };
+    },
   },
 });
 
@@ -138,6 +145,7 @@ export const {
   removeSubLogic,
   setSelectedEntities,
   setSelectedProperties,
+  setUnofficialFilter,
 } = entitiesSlice.actions;
 
 export default entitiesSlice.reducer;

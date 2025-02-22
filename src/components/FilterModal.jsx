@@ -8,7 +8,9 @@ import {
   setFilter,
   setRawFormData,
   removeSubLogic,
+  setUnofficialFilter,
 } from '../redux/entitiesSlice';
+import { useReactFlow } from '@xyflow/react';
 
 const buildConditions = (obj) => {
   const conditions = [];
@@ -133,13 +135,25 @@ export default function FilterModal({ open, onClose, entity, id }) {
     );
   }, []);
 
+  const { getEdges } = useReactFlow();
+  const edges = getEdges();
+  const isTargetOfEdge = edges.some((edge) => edge.target === id);
+
   const saveAndClose = (event) => {
     event.preventDefault();
+
     const fd = new FormData(event.target);
     const formObject = Object.fromEntries(fd.entries());
-    dispatch(setRawFormData({ id, formObject }));
     const filterObject = buildFilterObject(formObject);
-    dispatch(setFilter({ entityName: entity, id, filterObject }));
+
+    dispatch(setRawFormData({ id, formObject }));
+
+    if (isTargetOfEdge) {
+      dispatch(setFilter({ entityName: entity, id, filterObject }));
+    } else {
+      dispatch(setUnofficialFilter({ id, filterObject }));
+    }
+
     onClose();
   };
 
