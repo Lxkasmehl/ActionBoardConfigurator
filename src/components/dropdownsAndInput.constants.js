@@ -1,0 +1,16 @@
+export const OPERATOR_OPTIONS = [
+  { value: '=', label: '=' },
+  { value: '!=', label: '≠' },
+  { value: '<', label: '<' },
+  { value: '<=', label: '≤' },
+  { value: '>', label: '>' },
+  { value: '>=', label: '≥' },
+  { value: 'LIKE', label: 'LIKE' },
+  { value: 'NOT LIKE', label: 'NOT LIKE' },
+  { value: 'IN', label: 'IN' },
+  { value: 'NOT IN', label: 'NOT IN' },
+  { value: 'BETWEEN', label: 'BETWEEN' },
+  { value: 'IS NULL', label: 'IS NULL' },
+  { value: 'IS NOT NULL', label: 'IS NOT NULL' },
+  { value: 'CONTAINS', label: 'CONTAINS' },
+];

@@ -3,9 +3,14 @@ import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
 import Condition from './Condition';
 import ConditionGroup from './ConditionGroup';
-import DropdownsAndInput from './DropdownsAndInput';
 import { useDispatch } from 'react-redux';
-import { setFilter, setRawFormData } from '../redux/entitiesSlice';
+import {
+  setEntityFilter,
+  setFormData,
+  removeGroupedEntityLogic,
+  setCustomFilter,
+} from '../redux/entitiesSlice';
+import { useReactFlow } from '@xyflow/react';
 
 const buildConditions = (obj) => {
   const conditions = [];
@@ -34,19 +39,7 @@ const buildConditions = (obj) => {
 };
 
 const buildFilterObject = (obj) => {
-  const rootLogicId = Math.min(
-    ...Object.keys(obj)
-      .filter(
-        (key) =>
-          key.match(/logic_(\d+)/) && parseInt(key.match(/logic_(\d+)/)[1]) > 0,
-      )
-      .map((key) => parseInt(key.match(/logic_(\d+)/)[1])),
-  );
-  const rootLogic = rootLogicId
-    ? (
-        obj[`logic_${rootLogicId}`] || obj[`group_logic_${rootLogicId}`]
-      )?.toUpperCase()
-    : 'AND';
+  const rootLogic = obj['entityLogic']?.toUpperCase() ?? 'AND';
 
   const rootConditions = [];
   const logicGroups = {};
@@ -57,7 +50,7 @@ const buildFilterObject = (obj) => {
     if (match) {
       const [, id] = match;
       if (!logicGroups[id])
-        logicGroups[id] = { logic: value.toUpperCase(), conditions: [] };
+        logicGroups[id] = { entityLogic: value.toUpperCase(), conditions: [] };
     }
   }
 
@@ -81,14 +74,14 @@ const buildFilterObject = (obj) => {
   for (const group of Object.values(logicGroups)) {
     if (group.conditions && group.conditions.length) {
       rootConditions.push({
-        logic: group.logic,
+        entityLogic: group.entityLogic,
         conditions: group.conditions,
       });
     }
   }
 
   return {
-    logic: rootLogic,
+    entityLogic: rootLogic,
     conditions: rootConditions,
   };
 };
@@ -109,9 +102,13 @@ export default function FilterModal({ open, onClose, entity, id }) {
     setConditions((prev) => [...prev, { id: Date.now(), conditions: [] }]);
   }, []);
 
-  const removeConditionGroup = useCallback((groupId) => {
-    setConditions((prev) => prev.filter((group) => group.id !== groupId));
-  }, []);
+  const removeConditionGroup = useCallback(
+    (groupId, index) => {
+      setConditions((prev) => prev.filter((group) => group.id !== groupId));
+      dispatch(removeGroupedEntityLogic({ id, groupIndex: index }));
+    },
+    [dispatch, id],
+  );
 
   const addConditionInsideGroup = useCallback((condition) => {
     setConditions((prev) =>
@@ -138,13 +135,25 @@ export default function FilterModal({ open, onClose, entity, id }) {
     );
   }, []);
 
+  const { getEdges } = useReactFlow();
+  const edges = getEdges();
+  const isTargetOfEdge = edges.some((edge) => edge.target === id);
+
   const saveAndClose = (event) => {
     event.preventDefault();
+
     const fd = new FormData(event.target);
     const formObject = Object.fromEntries(fd.entries());
-    dispatch(setRawFormData({ id, formObject }));
     const filterObject = buildFilterObject(formObject);
-    dispatch(setFilter({ entityName: entity, id, filterObject }));
+
+    dispatch(setFormData({ id, formObject }));
+
+    if (isTargetOfEdge) {
+      dispatch(setEntityFilter({ entityName: entity, id, filterObject }));
+    } else {
+      dispatch(setCustomFilter({ id, filterObject }));
+    }
+
     onClose();
   };
 
@@ -153,26 +162,20 @@ export default function FilterModal({ open, onClose, entity, id }) {
       <form onSubmit={saveAndClose}>
         <ModalDialog variant='plain'>
           <ModalClose />
-
           <Typography level='h4'>Build your filter for {entity}</Typography>
           <div className='flex flex-col gap-4'>
-            <div className='flex flex-row items-center'>
-              <Typography sx={{ mr: 8.3 }}>Where</Typography>
-              <DropdownsAndInput
-                propertyOptionsId={id}
-                fieldIdentifierId={id}
-                sx={{ borderTopLeftRadius: 1, borderBottomLeftRadius: 1 }}
-              />
-            </div>
-            {conditions.map((condition) =>
+            {conditions.map((condition, index) =>
               condition.conditions ? (
                 <ConditionGroup
                   key={condition.id}
                   conditionGroup={condition}
                   onAddCondition={addConditionInsideGroup}
                   onRemoveConditionInsideGroup={removeConditionInsideGroup}
-                  onRemoveConditionGroup={removeConditionGroup}
+                  onRemoveConditionGroup={() =>
+                    removeConditionGroup(condition.id, index)
+                  }
                   id={id}
+                  groupIndex={index}
                 />
               ) : (
                 <Condition
@@ -180,6 +183,8 @@ export default function FilterModal({ open, onClose, entity, id }) {
                   condition={condition}
                   onRemove={removeCondition}
                   id={id}
+                  index={index}
+                  isSubCondition={false}
                 />
               ),
             )}

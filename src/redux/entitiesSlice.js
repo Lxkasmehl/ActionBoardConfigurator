@@ -1,10 +1,27 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  filteredEntities: [],
+  entities: [],
   config: {},
   propertyOptions: {},
-  rawFormData: {},
+  formData: {},
+  entityLogic: {},
+  groupedEntityLogic: {},
+  selectedEntities: {},
+  selectedProperties: {},
+  customFilters: {},
+};
+
+const initializeEntityConfig = (state, id, entityName) => {
+  if (!state.config[id]) {
+    state.config[id] = {};
+  }
+  if (!state.config[id][entityName]) {
+    state.config[id][entityName] = {
+      filter: {},
+      selectedProperties: [],
+    };
+  }
 };
 
 const entitiesSlice = createSlice({
@@ -12,87 +29,88 @@ const entitiesSlice = createSlice({
   initialState,
   reducers: {
     setFilteredEntities(state, action) {
-      state.filteredEntities = action.payload;
+      state.entities = action.payload;
     },
+
     addEntity(state, action) {
       const { id, entityName } = action.payload;
-      state.config = {
-        ...state.config,
-        [id]: {
-          ...state.config[id],
-          [entityName]: { filter: {}, selectedProperties: [] },
-        },
-      };
+      initializeEntityConfig(state, id, entityName);
     },
-    deleteEntity(state, action) {
+
+    removeEntity(state, action) {
       const { id, entityName } = action.payload;
       if (state.config[id] && state.config[id][entityName]) {
         delete state.config[id][entityName];
       }
     },
+
     setPropertyOptions(state, action) {
       const { id, properties } = action.payload;
       state.propertyOptions[id] = properties;
     },
-    deletePropertyFilter(state, action) {
-      const { entityName, propertyName, id } = action.payload;
-      if (
-        state.config[id] &&
-        state.config[id][entityName] &&
-        state.config[id][entityName].filter
-      ) {
-        delete state.config[id][entityName].filter[propertyName];
-      }
+
+    setEntityFilter(state, action) {
+      const { id, entityName, filterObject } = action.payload;
+      initializeEntityConfig(state, id, entityName);
+      state.config[id][entityName].filter = { ...filterObject };
     },
-    setFilter(state, action) {
-      const { entityName, id, filterObject } = action.payload;
-      state.config[id] = state.config[id] ?? {};
-      state.config[id][entityName] = state.config[id][entityName] ?? {
-        filter: {},
-        selectedProperties: [],
-      };
-      state.config[id][entityName].filter = {
-        ...filterObject,
-      };
+
+    setPropertySelection(state, action) {
+      const { id, entityName, propertyNames } = action.payload;
+      initializeEntityConfig(state, id, entityName);
+      state.config[id][entityName].selectedProperties = propertyNames;
     },
-    addPropertySelection(state, action) {
-      const { entityName, propertyName, id } = action.payload;
-      if (!state.config[id]) {
-        state.config[id] = {};
-      }
-      if (!state.config[id][entityName]) {
-        state.config[id][entityName] = { filter: {}, selectedProperties: [] };
-      }
-      state.config[id][entityName].selectedProperties = [
-        ...new Set([
-          ...(state.config[id][entityName].selectedProperties ?? []),
-          propertyName,
-        ]),
-      ];
-    },
-    deletePropertySelection(state, action) {
-      const { entityName, propertyName, id } = action.payload;
-      if (state.config[id]?.[entityName]?.selectedProperties) {
-        state.config[id][entityName].selectedProperties = state.config[id][
-          entityName
-        ].selectedProperties.filter((prop) => prop !== propertyName);
-      }
-    },
-    deleteID(state, action) {
-      if (state.config[action.payload]) {
-        delete state.config[action.payload];
-      }
-    },
-    setRawFormData(state, action) {
-      const { id, formObject } = action.payload;
-      state.rawFormData[id] = state.rawFormData[id] ?? {};
-      state.rawFormData[id] = { ...formObject };
-    },
-    deleteRawFormDataForId(state, action) {
+
+    removeEntityConfig(state, action) {
       const { id } = action.payload;
-      if (state.rawFormData[id]) {
-        delete state.rawFormData[id];
+      if (state.config[id]) {
+        delete state.config[id];
       }
+    },
+
+    setFormData(state, action) {
+      const { id, formObject } = action.payload;
+      state.formData[id] = { ...formObject };
+    },
+
+    removeFormData(state, action) {
+      const { id } = action.payload;
+      delete state.formData[id];
+    },
+
+    setEntityLogic(state, action) {
+      const { id, entityLogic } = action.payload;
+      state.entityLogic[id] = entityLogic;
+    },
+
+    setGroupedEntityLogic(state, action) {
+      const { id, entityLogic, groupIndex } = action.payload;
+      if (!state.groupedEntityLogic[id]) {
+        state.groupedEntityLogic[id] = {};
+      }
+      state.groupedEntityLogic[id][groupIndex] = entityLogic;
+    },
+
+    removeGroupedEntityLogic(state, action) {
+      const { id, groupIndex } = action.payload;
+      if (state.groupedEntityLogic[id]) {
+        delete state.groupedEntityLogic[id][groupIndex];
+      }
+    },
+
+    setSelectedEntity(state, action) {
+      const { id, entityName } = action.payload;
+      state.selectedEntities[id] = entityName;
+    },
+
+    setSelectedProperties(state, action) {
+      const { id, propertyNames } = action.payload;
+      state.selectedProperties[id] = propertyNames;
+    },
+
+    setCustomFilter(state, action) {
+      const { id, filterObject } = action.payload;
+      state.customFilters[id] = { ...filterObject };
     },
   },
 });
@@ -100,15 +118,19 @@ const entitiesSlice = createSlice({
 export const {
   setFilteredEntities,
   addEntity,
-  deleteEntity,
+  removeEntity,
   setPropertyOptions,
-  deletePropertyFilter,
-  setFilter,
-  addPropertySelection,
-  deletePropertySelection,
-  deleteID,
-  setRawFormData,
-  deleteRawFormDataForId,
+  setEntityFilter,
+  setPropertySelection,
+  removeEntityConfig,
+  setFormData,
+  removeFormData,
+  setEntityLogic,
+  setGroupedEntityLogic,
+  removeGroupedEntityLogic,
+  setSelectedEntity,
+  setSelectedProperties,
+  setCustomFilter,
 } = entitiesSlice.actions;
 
 export default entitiesSlice.reducer;
