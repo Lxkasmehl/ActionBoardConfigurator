@@ -1,104 +1,209 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { IconButton, CircularProgress } from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
-import EntitySection from './components/EntitySection.jsx';
-import { deleteID, deleteRawFormDataForId } from './redux/entitiesSlice.js';
-import { useDispatch, useSelector } from 'react-redux';
-import { IconButton } from '@mui/joy';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 
-const relevantEntityNames = new Set([
-  'User',
-  'EmpEmployment',
-  'EmpJob',
-  'EmpCompensation',
-  'WorkSchedule',
-  'TimeAccount',
-  'EmployeeTime',
-  'JobRequisition',
-  'JobApplication',
-  'Candidate',
-  'JobOffer',
-  'InterviewOverallAssessment',
-  'OnboardingInfo',
-  'ONB2Process',
-  'ONB2ProcessTask',
-  'ONB2ProcessTrigger',
-  'Goal',
-  'GoalAchievements',
-  'FormReviewFeedback',
-  'ContinuousFeedback',
-  'TalentPool',
-  'Successor',
-  'MentoringProgram',
-  'DevGoal',
-  'FOCompany',
-  'FOBusinessUnit',
-  'FODepartment',
-  'FOCostCenter',
-]);
+import { INITIAL_NODES, NODE_TYPES, EDGE_TYPES } from './app.constants.js';
+import {
+  addEntity,
+  setPropertySelection,
+  setEntityFilter,
+  removeEntityConfig,
+  removeFormData,
+  setSelectedProperties,
+  setCustomFilter,
+} from './redux/entitiesSlice.js';
+
+import AddIcon from '@mui/icons-material/Add';
+import {
+  Background,
+  Controls,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+  addEdge,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
 export default function App() {
-  const loading = useFetchEntities(relevantEntityNames);
-  const [sections, setSections] = useState([{ id: 0 }]);
+  const loading = useFetchEntities();
   const dispatch = useDispatch();
-  const config = useSelector((state) => state.entities.config);
 
-  const addSection = () => {
-    const newId = sections.length
-      ? Math.max(...sections.map((s) => s.id)) + 1
-      : 0;
-    setSections((prev) => [...prev, { id: newId }]);
-  };
+  const { config, selectedEntities, selectedProperties, customFilters } =
+    useSelector((state) => state.entities);
 
-  const removeSection = (id) => {
-    setSections((prev) => prev.filter((section) => section.id !== id));
-    dispatch(deleteID(id));
-    dispatch(deleteRawFormDataForId({ id }));
+  const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [renderKey, setRenderKey] = useState(0);
+
+  const createNodeId = useCallback(() => crypto.randomUUID(), []);
+
+  const forceRerenderEntitySection = useCallback(() => {
+    setRenderKey((prevKey) => prevKey + 1);
+  }, []);
+
+  const onConnect = useCallback(
+    (connection) => {
+      const edge = { ...connection, id: createNodeId(), type: 'ButtonEdge' };
+      setEdges((prevEdges) => addEdge(edge, prevEdges));
+
+      if (connection.target) {
+        const targetNodeId = connection.target;
+        const targetNode = nodes.find((node) => node.id === targetNodeId);
+
+        if (targetNode && targetNode.type === 'EntitySection') {
+          forceRerenderEntitySection();
+          const selectedEntity = selectedEntities[targetNodeId];
+          if (selectedEntity) {
+            dispatch(
+              addEntity({ id: targetNodeId, entityName: selectedEntity }),
+            );
+            dispatch(
+              setPropertySelection({
+                entityName: selectedEntity,
+                id: targetNodeId,
+                propertyNames: selectedProperties[targetNodeId],
+              }),
+            );
+            dispatch(
+              setEntityFilter({
+                id: targetNodeId,
+                entityName: selectedEntity,
+                filterObject: customFilters[targetNodeId],
+              }),
+            );
+          }
+        }
+      }
+    },
+    [
+      createNodeId,
+      setEdges,
+      nodes,
+      dispatch,
+      selectedEntities,
+      selectedProperties,
+      customFilters,
+      forceRerenderEntitySection,
+    ],
+  );
+
+  const customOnEdgesChange = useCallback(
+    (changes) => {
+      const change = changes[0];
+      if (change.type === 'remove') {
+        const edgeToRemove = edges.find((edge) => edge.id === change.id);
+        if (edgeToRemove) {
+          forceRerenderEntitySection();
+          const targetNodeId = edgeToRemove.target;
+
+          if (
+            config[targetNodeId] &&
+            selectedEntities[targetNodeId] &&
+            config[targetNodeId][selectedEntities[targetNodeId]]
+          ) {
+            const properties =
+              config[targetNodeId][selectedEntities[targetNodeId]]
+                .selectedProperties;
+            const filterObject =
+              config[targetNodeId][selectedEntities[targetNodeId]].filter;
+
+            dispatch(removeEntityConfig({ id: targetNodeId }));
+            dispatch(removeFormData({ id: targetNodeId }));
+            dispatch(
+              setSelectedProperties({
+                id: targetNodeId,
+                propertyNames: properties,
+              }),
+            );
+            dispatch(setCustomFilter({ id: targetNodeId, filterObject }));
+          }
+        }
+      }
+
+      onEdgesChange(changes);
+    },
+    [
+      onEdgesChange,
+      edges,
+      dispatch,
+      config,
+      selectedEntities,
+      forceRerenderEntitySection,
+    ],
+  );
+
+  const addSection = useCallback(() => {
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    let newX = windowWidth / 2 - 320;
+    let newY = windowHeight / 2 - 55;
+
+    const occupiedPositions = nodes.map((s) => s.position);
+    while (
+      occupiedPositions.some(
+        (pos) => Math.abs(pos.x - newX) < 700 && Math.abs(pos.y - newY) < 150,
+      )
+    ) {
+      newX += 20;
+      newY += 20;
+    }
+
+    const newNode = {
+      id: createNodeId(),
+      position: { x: newX, y: newY },
+      type: 'EntitySection',
+    };
+    setNodes((prev) => [...prev, newNode]);
     console.log(config);
-  };
+  }, [createNodeId, config, nodes, setNodes]);
 
   if (loading) {
     return (
       <div className='flex justify-center items-center w-screen h-screen'>
-        <div className='animate-spin rounded-full h-24 w-24 border-t-4 border-blue-500'></div>
+        <CircularProgress size='lg' />
       </div>
     );
   }
 
   return (
-    <div className='flex flex-col w-screen h-full justify-center items-center py-20'>
-      <div className='w-full flex flex-col items-center'>
-        {sections.map((section, index) => (
-          <div key={section.id} className='relative flex flex-col items-center'>
-            <EntitySection key={section.id} id={section.id} />
-            {index > 0 && (
-              <IconButton
-                onClick={() => removeSection(section.id)}
-                variant='outlined'
-                color='danger'
-                sx={{
-                  position: 'absolute',
-                  left: '-60px',
-                  top: 'calc(50% - 42px)',
-                }}
-                //className='absolute left-[-60px] top-[calc(50%-40px)] w-8 h-8 flex items-center justify-center bg-white text-red-600 font-bold rounded-full shadow-md border-2 border-red-600 hover:bg-red-600 hover:text-white transition-all'
-              >
-                <RemoveIcon />
-              </IconButton>
-            )}
-            <div className='w-0 h-14 mx-auto border-3 border-solid border-[#cdd7e1]'></div>
-          </div>
-        ))}
-        <IconButton
-          onClick={addSection}
-          variant='outlined'
-          aria-label='Add new entity section'
-          // className='w-10 h-10 flex items-center justify-center bg-gray-800 text-white rounded-full shadow-md hover:bg-[#eee] transition-all'
-        >
-          <AddIcon />
-        </IconButton>
-      </div>
+    <div className='w-full h-screen'>
+      <ReactFlow
+        nodes={nodes.map((node) => ({
+          ...node,
+          data: {
+            ...node.data,
+            key: renderKey,
+          },
+        }))}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={customOnEdgesChange}
+        onConnect={onConnect}
+        nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
+        proOptions={{ hideAttribution: true }}
+      >
+        <Background />
+        <Controls />
+      </ReactFlow>
+
+      <IconButton
+        onClick={addSection}
+        variant='solid'
+        aria-label='Add new entity section'
+        sx={{
+          position: 'fixed',
+          bottom: '40px',
+          right: '40px',
+          width: '64px',
+          height: '64px',
+          borderRadius: '50%',
+        }}
+      >
+        <AddIcon sx={{ fontSize: 32 }} />
+      </IconButton>
     </div>
   );
 }
