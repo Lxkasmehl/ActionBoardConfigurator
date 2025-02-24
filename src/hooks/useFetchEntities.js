@@ -1,40 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setFilteredEntities } from '../redux/entitiesSlice';
+import { RELEVANT_ENTITY_NAMES } from './useFetchEntities.constants';
 
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
-
-const relevantEntityNames = new Set([
-  'User',
-  'EmpEmployment',
-  'EmpJob',
-  'EmpCompensation',
-  'WorkSchedule',
-  'TimeAccount',
-  'EmployeeTime',
-  'JobRequisition',
-  'JobApplication',
-  'Candidate',
-  'JobOffer',
-  'InterviewOverallAssessment',
-  'OnboardingInfo',
-  'ONB2Process',
-  'ONB2ProcessTask',
-  'ONB2ProcessTrigger',
-  'Goal',
-  'GoalAchievements',
-  'FormReviewFeedback',
-  'ContinuousFeedback',
-  'TalentPool',
-  'Successor',
-  'MentoringProgram',
-  'DevGoal',
-  'FOCompany',
-  'FOBusinessUnit',
-  'FODepartment',
-  'FOCostCenter',
-]);
 
 const useFetchEntities = () => {
   const dispatch = useDispatch();
@@ -88,7 +58,7 @@ const useFetchEntities = () => {
             .filter((entity) => {
               const name = entity.getAttribute('Name') || '';
               return (
-                relevantEntityNames.has(name) ||
+                RELEVANT_ENTITY_NAMES.has(name) ||
                 /^Goal_\d+$/.test(name) ||
                 /^DevGoal_\d+$/.test(name)
               );

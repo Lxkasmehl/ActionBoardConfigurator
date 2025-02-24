@@ -63,6 +63,9 @@ export default function EntitySection({ id }) {
       index === self.findIndex((t) => t['sap:label'] === value['sap:label']),
   );
 
+  const edges = getEdges();
+  const isTargetOfEdge = edges.some((edge) => edge.target === id);
+
   const handleEntityChange = (_, newValue) => {
     if (!newValue) return;
 
@@ -74,9 +77,6 @@ export default function EntitySection({ id }) {
           entity.properties.find((p) => p.Name === Name),
         )
       : [];
-
-    const edges = getEdges();
-    const isTargetOfEdge = edges.some((edge) => edge.target === id);
 
     if (isTargetOfEdge) {
       if (selectedEntity) {
@@ -95,9 +95,6 @@ export default function EntitySection({ id }) {
   };
 
   const handleSelectedPropertyChange = (_, newValue) => {
-    const edges = getEdges();
-    const isTargetOfEdge = edges.some((edge) => edge.target === id);
-
     const propertyNames = newValue.map((item) => item.Name);
 
     if (!newValue || !isTargetOfEdge) {
@@ -121,6 +118,7 @@ export default function EntitySection({ id }) {
   return (
     <div ref={ref}>
       <Card
+        color={isTargetOfEdge ? 'primary' : 'neutral'}
         sx={{
           display: 'flex',
           flexDirection: 'row',

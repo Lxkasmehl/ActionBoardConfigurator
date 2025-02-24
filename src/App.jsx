@@ -1,13 +1,17 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { IconButton } from '@mui/joy';
+import { IconButton, CircularProgress } from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
 
-import { INITIAL_NODES, NODE_TYPES } from './app.constants.js';
+import { INITIAL_NODES, NODE_TYPES, EDGE_TYPES } from './app.constants.js';
 import {
   addEntity,
   setPropertySelection,
   setEntityFilter,
+  removeEntityConfig,
+  removeFormData,
+  setSelectedProperties,
+  setCustomFilter,
 } from './redux/entitiesSlice.js';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -30,15 +34,103 @@ export default function App() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [renderKey, setRenderKey] = useState(0);
 
   const createNodeId = useCallback(() => crypto.randomUUID(), []);
 
+  const forceRerenderEntitySection = useCallback(() => {
+    setRenderKey((prevKey) => prevKey + 1);
+  }, []);
+
   const onConnect = useCallback(
     (connection) => {
-      const edge = { ...connection, id: createNodeId() };
+      const edge = { ...connection, id: createNodeId(), type: 'ButtonEdge' };
       setEdges((prevEdges) => addEdge(edge, prevEdges));
+
+      if (connection.target) {
+        const targetNodeId = connection.target;
+        const targetNode = nodes.find((node) => node.id === targetNodeId);
+
+        if (targetNode && targetNode.type === 'EntitySection') {
+          forceRerenderEntitySection();
+          const selectedEntity = selectedEntities[targetNodeId];
+          if (selectedEntity) {
+            dispatch(
+              addEntity({ id: targetNodeId, entityName: selectedEntity }),
+            );
+            dispatch(
+              setPropertySelection({
+                entityName: selectedEntity,
+                id: targetNodeId,
+                propertyNames: selectedProperties[targetNodeId],
+              }),
+            );
+            dispatch(
+              setEntityFilter({
+                id: targetNodeId,
+                entityName: selectedEntity,
+                filterObject: customFilters[targetNodeId],
+              }),
+            );
+          }
+        }
+      }
     },
-    [createNodeId, setEdges],
+    [
+      createNodeId,
+      setEdges,
+      nodes,
+      dispatch,
+      selectedEntities,
+      selectedProperties,
+      customFilters,
+      forceRerenderEntitySection,
+    ],
+  );
+
+  const customOnEdgesChange = useCallback(
+    (changes) => {
+      const change = changes[0];
+      if (change.type === 'remove') {
+        const edgeToRemove = edges.find((edge) => edge.id === change.id);
+        if (edgeToRemove) {
+          forceRerenderEntitySection();
+          const targetNodeId = edgeToRemove.target;
+
+          if (
+            config[targetNodeId] &&
+            selectedEntities[targetNodeId] &&
+            config[targetNodeId][selectedEntities[targetNodeId]]
+          ) {
+            const properties =
+              config[targetNodeId][selectedEntities[targetNodeId]]
+                .selectedProperties;
+            const filterObject =
+              config[targetNodeId][selectedEntities[targetNodeId]].filter;
+
+            dispatch(removeEntityConfig({ id: targetNodeId }));
+            dispatch(removeFormData({ id: targetNodeId }));
+            dispatch(
+              setSelectedProperties({
+                id: targetNodeId,
+                propertyNames: properties,
+              }),
+            );
+            dispatch(setCustomFilter({ id: targetNodeId, filterObject }));
+          }
+        }
+      }
+
+      onEdgesChange(changes);
+    },
+    [
+      onEdgesChange,
+      edges,
+      dispatch,
+      config,
+      selectedEntities,
+      forceRerenderEntitySection,
+    ],
   );
 
   const addSection = useCallback(() => {
@@ -67,52 +159,10 @@ export default function App() {
     console.log(config);
   }, [createNodeId, config, nodes, setNodes]);
 
-  const onConnectWithEntityRender = useCallback(
-    (connection) => {
-      onConnect(connection);
-
-      if (connection.target) {
-        const targetNodeId = connection.target;
-        const targetNode = nodes.find((node) => node.id === targetNodeId);
-
-        if (targetNode && targetNode.type === 'EntitySection') {
-          const selectedEntity = selectedEntities[targetNodeId];
-          if (selectedEntity) {
-            dispatch(
-              addEntity({ id: targetNodeId, entityName: selectedEntity }),
-            );
-            dispatch(
-              setPropertySelection({
-                entityName: selectedEntity,
-                id: targetNodeId,
-                propertyNames: selectedProperties[targetNodeId],
-              }),
-            );
-            dispatch(
-              setEntityFilter({
-                id: targetNodeId,
-                entityName: selectedEntity,
-                filterObject: customFilters[targetNodeId],
-              }),
-            );
-          }
-        }
-      }
-    },
-    [
-      onConnect,
-      nodes,
-      dispatch,
-      selectedEntities,
-      selectedProperties,
-      customFilters,
-    ],
-  );
-
   if (loading) {
     return (
       <div className='flex justify-center items-center w-screen h-screen'>
-        <div className='animate-spin rounded-full h-24 w-24 border-t-4 border-blue-500'></div>
+        <CircularProgress size='lg' />
       </div>
     );
   }
@@ -120,12 +170,19 @@ export default function App() {
   return (
     <div className='w-full h-screen'>
       <ReactFlow
-        nodes={nodes}
+        nodes={nodes.map((node) => ({
+          ...node,
+          data: {
+            ...node.data,
+            key: renderKey,
+          },
+        }))}
         edges={edges}
         onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnectWithEntityRender}
+        onEdgesChange={customOnEdgesChange}
+        onConnect={onConnect}
         nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
         proOptions={{ hideAttribution: true }}
       >
         <Background />

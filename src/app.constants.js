@@ -1,6 +1,6 @@
 import EntitySection from './components/EntitySection.jsx';
 import FlowStart from './components/FlowStart.jsx';
-// import DropdownEdge from './components/DropdownEdge.jsx';
+import ButtonEdge from './components/ButtonEdge.jsx';
 
 export const INITIAL_NODES = [
   {
@@ -15,11 +15,10 @@ export const INITIAL_NODES = [
   {
     id: crypto.randomUUID(),
     position: {
-      x: window.innerWidth / 2 - 350,
+      x: window.innerWidth / 2 - 320,
       y: window.innerHeight / 2 - 55,
     },
     type: 'EntitySection',
-    
   },
 ];
 
@@ -28,6 +27,6 @@ export const NODE_TYPES = {
   FlowStart: FlowStart,
 };
 
-// export const EDGE_TYPES = {
-//   DropdownEdge: DropdownEdge,
-// };
+export const EDGE_TYPES = {
+  ButtonEdge: ButtonEdge,
+};

@@ -1,8 +1,15 @@
-import { Autocomplete } from '@mui/joy';
-import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react';
+import { IconButton } from '@mui/joy';
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
+  useReactFlow,
+} from '@xyflow/react';
 import PropTypes from 'prop-types';
+import ClearIcon from '@mui/icons-material/Clear';
 
 export default function DropdownEdge({
+  id,
   sourceX,
   sourceY,
   targetX,
@@ -12,6 +19,7 @@ export default function DropdownEdge({
   style = {},
   markerEnd,
 }) {
+  const { setEdges } = useReactFlow();
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
@@ -20,6 +28,10 @@ export default function DropdownEdge({
     targetY,
     targetPosition,
   });
+
+  const onEdgeClick = () => {
+    setEdges((edges) => edges.filter((edge) => edge.id !== id));
+  };
 
   return (
     <>
@@ -33,7 +45,17 @@ export default function DropdownEdge({
             transformOrigin: 'center',
           }}
         >
-          <Autocomplete options={['Option 1', 'Option 2', 'Option 3']} />
+          <IconButton
+            onClick={onEdgeClick}
+            variant='plain'
+            color='danger'
+            sx={{
+              borderRadius: '50%',
+              background: 'white',
+            }}
+          >
+            <ClearIcon />
+          </IconButton>
         </div>
       </EdgeLabelRenderer>
     </>
