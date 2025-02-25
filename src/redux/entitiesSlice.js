@@ -1,7 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  entities: [],
+  filteredEntities: [],
+  allEntities: [],
   config: {},
   propertyOptions: {},
   formData: {},
@@ -24,12 +25,18 @@ const initializeEntityConfig = (state, id, entityName) => {
   }
 };
 
+//TODO: different slices
+
 const entitiesSlice = createSlice({
   name: 'entities',
   initialState,
   reducers: {
     setFilteredEntities(state, action) {
-      state.entities = action.payload;
+      state.filteredEntities = action.payload;
+    },
+
+    setAllEntities(state, action) {
+      state.allEntities = action.payload;
     },
 
     addEntity(state, action) {
@@ -117,6 +124,7 @@ const entitiesSlice = createSlice({
 
 export const {
   setFilteredEntities,
+  setAllEntities,
   addEntity,
   removeEntity,
   setPropertyOptions,
