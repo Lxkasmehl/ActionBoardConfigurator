@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setFilteredEntities } from '../redux/entitiesSlice';
+import { setFilteredEntities, setAllEntities } from '../redux/entitiesSlice';
 import { RELEVANT_ENTITY_NAMES } from './useFetchEntities.constants';
 
 const API_USER = import.meta.env.VITE_API_USER;
@@ -20,6 +20,7 @@ const useFetchEntities = () => {
       headers.set('X-SF-Correlation-Id', crypto.randomUUID());
       headers.set('successfactors-sourcetype', 'Application');
 
+      let allFilteredData = [];
       let allData = [];
       let url = '/api/odata/v2/$metadata';
 
@@ -51,39 +52,50 @@ const useFetchEntities = () => {
               });
               return attributes;
             });
-            entityTypesMap.set(name, properties);
-          });
-
-          const filteredMetadata = entitySets
-            .filter((entity) => {
-              const name = entity.getAttribute('Name') || '';
-              return (
-                RELEVANT_ENTITY_NAMES.has(name) ||
-                /^Goal_\d+$/.test(name) ||
-                /^DevGoal_\d+$/.test(name)
-              );
-            })
-            .map((entity) => {
-              const name = entity.getAttribute('Name');
+            const navigationProperties = Array.from(
+              entityType.getElementsByTagName('NavigationProperty'),
+            ).map((navProp) => {
               const attributes = {};
-              Array.from(entity.attributes).forEach((attr) => {
-                attributes[attr.name.toLowerCase()] = attr.value;
+              Array.from(navProp.attributes).forEach((attr) => {
+                attributes[attr.name] = attr.value;
               });
-
-              if (entityTypesMap.has(name)) {
-                attributes.properties = entityTypesMap.get(name);
-              }
-
               return attributes;
             });
+            entityTypesMap.set(name, { properties, navigationProperties });
+          });
 
-          allData = [...allData, ...filteredMetadata];
+          const metadata = entitySets.map((entity) => {
+            const name = entity.getAttribute('Name');
+            const attributes = {};
+            Array.from(entity.attributes).forEach((attr) => {
+              attributes[attr.name.toLowerCase()] = attr.value;
+            });
+
+            if (entityTypesMap.has(name)) {
+              attributes.properties = entityTypesMap.get(name);
+            }
+
+            return attributes;
+          });
+
+          const filteredMetadata = metadata.filter((entity) => {
+            const name = entity.name || '';
+            return (
+              RELEVANT_ENTITY_NAMES.has(name) ||
+              /^Goal_\d+$/.test(name) ||
+              /^DevGoal_\d+$/.test(name)
+            );
+          });
+
+          allData = [...allData, ...metadata];
+          allFilteredData = [...allFilteredData, ...filteredMetadata];
 
           const nextLink = response.headers.get('OData-NextLink');
           url = nextLink ? nextLink : null;
         }
 
-        dispatch(setFilteredEntities(allData));
+        dispatch(setFilteredEntities(allFilteredData));
+        dispatch(setAllEntities(allData));
       } catch (error) {
         console.error('API Error:', error);
       } finally {

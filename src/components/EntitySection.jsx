@@ -21,7 +21,10 @@ import '@xyflow/react/dist/style.css';
 export default function EntitySection({ id }) {
   const dispatch = useDispatch();
 
-  const entities = useSelector((state) => state.entities.entities);
+  const filteredEntities = useSelector(
+    (state) => state.entities.filteredEntities,
+  );
+  const allEntities = useSelector((state) => state.entities.allEntities);
   const config = useSelector((state) => state.entities.config);
   const formData = useSelector((state) => state.entities.formData);
   const selectedEntities = useSelector(
@@ -46,7 +49,7 @@ export default function EntitySection({ id }) {
 
   const ref = useRef();
 
-  const sortedEntities = [...entities].sort((a, b) => {
+  const sortedEntities = [...filteredEntities].sort((a, b) => {
     const labelA = (a['sap:label'] || a.Name || '').toLowerCase();
     const labelB = (b['sap:label'] || b.Name || '').toLowerCase();
     return labelA.localeCompare(labelB);
@@ -71,12 +74,31 @@ export default function EntitySection({ id }) {
 
     const entityName = newValue.name;
 
-    const entity = entities.find((e) => e.name === entityName);
+    const entity = filteredEntities.find((e) => e.name === entityName);
     const properties = entity
-      ? Array.from(new Set(entity.properties.map((p) => p.Name))).map((Name) =>
-          entity.properties.find((p) => p.Name === Name),
+      ? Array.from(
+          new Set(entity.properties.properties.map((p) => p.Name)),
+        ).map((Name) =>
+          entity.properties.properties.find((p) => p.Name === Name),
         )
       : [];
+
+    const navigationProperties = entity
+      ? Array.from(
+          new Set(entity.properties.navigationProperties.map((p) => p.Name)),
+        ).map((Name) =>
+          entity.properties.navigationProperties.find((p) => p.Name === Name),
+        )
+      : [];
+
+    console.log('navigationProperties', navigationProperties);
+
+    const combinedProperties = [...properties, ...navigationProperties];
+
+    // const toRoleSet = new Set(navigationProperties.map((prop) => prop.ToRole));
+    // const matchingEntities = allEntities.filter((entity) =>
+    //   toRoleSet.has(entity.name),
+    // );
 
     if (isTargetOfEdge) {
       if (selectedEntity) {
@@ -86,7 +108,7 @@ export default function EntitySection({ id }) {
       dispatch(removeFormData({ id }));
     }
 
-    dispatch(setPropertyOptions({ id, properties }));
+    dispatch(setPropertyOptions({ id, properties: combinedProperties }));
     dispatch(setSelectedEntity({ id, entityName }));
 
     setResetKey((prev) => prev + 1);
@@ -104,6 +126,40 @@ export default function EntitySection({ id }) {
         setPropertySelection({ entityName: selectedEntity, propertyNames, id }),
       );
     }
+
+    const entity = filteredEntities.find((e) => e.name === selectedEntity);
+    const navigationProperties = entity
+      ? Array.from(
+          new Set(entity.properties.navigationProperties.map((p) => p.Name)),
+        ).map((Name) =>
+          entity.properties.navigationProperties.find((p) => p.Name === Name),
+        )
+      : [];
+
+    newValue.forEach((property) => {
+      const propertyName = property.Name;
+      const matchingProperty = navigationProperties.find((np) => {
+        if (np.Name.endsWith('Nav')) {
+          return np.Name.slice(0, -3) === propertyName;
+        }
+        return np.Name === propertyName;
+      });
+
+      if (matchingProperty) {
+        let matchingPropertyName = matchingProperty.Name;
+        if (matchingProperty.Name.endsWith('Nav')) {
+          matchingPropertyName = matchingProperty.Name.slice(0, -3);
+        }
+
+        const matchingEntities = allEntities.filter((entity) =>
+          entity.properties.properties.some(
+            (prop) =>
+              prop.Name.toLowerCase() === matchingPropertyName.toLowerCase(),
+          ),
+        );
+        console.log('matchingEntities', matchingEntities);
+      }
+    });
 
     console.log(config);
   };
