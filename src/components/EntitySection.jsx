@@ -12,7 +12,18 @@ import {
   setSelectedProperties,
 } from '../redux/entitiesSlice';
 import PropTypes from 'prop-types';
-import { Autocomplete, Button, Card, IconButton, Tooltip } from '@mui/joy';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  AccordionGroup,
+  accordionClasses,
+  Autocomplete,
+  Button,
+  Card,
+  IconButton,
+  Tooltip,
+} from '@mui/joy';
 import FilterModal from './FilterModal';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
@@ -44,6 +55,8 @@ export default function EntitySection({ id }) {
 
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [resetKey, setResetKey] = useState(0);
+  const [matchingEntitiesState, setMatchingEntitiesState] = useState([]);
+  const [selectedPropertiesState, setSelectedPropertiesState] = useState({});
 
   const { setNodes, getEdges } = useReactFlow();
 
@@ -56,8 +69,8 @@ export default function EntitySection({ id }) {
   });
 
   const sortedPropertyOptions = [...propertyOptions].sort((a, b) => {
-    const labelA = (a['sap:label'] || a.Name || '').toLowerCase();
-    const labelB = (b['sap:label'] || b.Name || '').toLowerCase();
+    const labelA = (a.Name || '').toLowerCase();
+    const labelB = (b.Name || '').toLowerCase();
     return labelA.localeCompare(labelB);
   });
 
@@ -91,8 +104,6 @@ export default function EntitySection({ id }) {
         )
       : [];
 
-    console.log('navigationProperties', navigationProperties);
-
     const combinedProperties = [...properties, ...navigationProperties];
 
     // const toRoleSet = new Set(navigationProperties.map((prop) => prop.ToRole));
@@ -116,14 +127,28 @@ export default function EntitySection({ id }) {
     console.log(config);
   };
 
-  const handleSelectedPropertyChange = (_, newValue) => {
-    const propertyNames = newValue.map((item) => item.Name);
+  const handleSelectedPropertyChange = (autocompleteId, _, newValue) => {
+    const newSelectedProperties = {
+      ...selectedPropertiesState,
+      [autocompleteId]: newValue.map((item) => item.Name),
+    };
+    setSelectedPropertiesState(newSelectedProperties);
+
+    const allSelectedPropertyNames = Object.values(
+      newSelectedProperties,
+    ).flat();
 
     if (!newValue || !isTargetOfEdge) {
-      dispatch(setSelectedProperties({ id, propertyNames }));
+      dispatch(
+        setSelectedProperties({ id, propertyNames: allSelectedPropertyNames }),
+      );
     } else {
       dispatch(
-        setPropertySelection({ entityName: selectedEntity, propertyNames, id }),
+        setPropertySelection({
+          entityName: selectedEntity,
+          propertyNames: allSelectedPropertyNames,
+          id,
+        }),
       );
     }
 
@@ -151,13 +176,21 @@ export default function EntitySection({ id }) {
           matchingPropertyName = matchingProperty.Name.slice(0, -3);
         }
 
-        const matchingEntities = allEntities.filter((entity) =>
-          entity.properties.properties.some(
-            (prop) =>
-              prop.Name.toLowerCase() === matchingPropertyName.toLowerCase(),
-          ),
+        const matchingEntities = allEntities.filter(
+          (entity) =>
+            (entity.properties.properties.some(
+              (prop) =>
+                prop.Name.toLowerCase() === matchingPropertyName.toLowerCase(),
+            ) ||
+              entity.properties.navigationProperties.some(
+                (navProp) =>
+                  navProp.Name.toLowerCase() ===
+                  matchingPropertyName.toLowerCase(),
+              )) &&
+            entity.name !== selectedEntity,
         );
         console.log('matchingEntities', matchingEntities);
+        setMatchingEntitiesState(matchingEntities);
       }
     });
 
@@ -206,31 +239,91 @@ export default function EntitySection({ id }) {
           </Button>
         </div>
 
-        <Tooltip
-          title='Select all properties you want to display'
-          placement='top'
-          variant='solid'
-        >
-          <span>
-            <Autocomplete
-              options={uniqueSortedPropertyOptions}
-              groupBy={(option) => option['sap:label'].charAt(0).toUpperCase()}
-              getOptionLabel={(option) => option['sap:label'] || option.Name}
-              placeholder='Select a property'
-              onChange={(event, newValue) =>
-                handleSelectedPropertyChange(event, newValue)
-              }
-              key={resetKey}
-              multiple={true}
-              isOptionEqualToValue={(option, value) =>
-                option.Name === value?.Name
-              }
-              sx={{
-                width: '14rem',
-              }}
-            />
-          </span>
-        </Tooltip>
+        <div className='flex items-center flex-col gap-2 max-w-[225px]'>
+          <Tooltip
+            title='Select all properties you want to display'
+            placement='top'
+            variant='solid'
+          >
+            <span>
+              <Autocomplete
+                options={uniqueSortedPropertyOptions}
+                groupBy={(option) => option.Name.charAt(0).toUpperCase()}
+                getOptionLabel={(option) => option.Name}
+                placeholder='Select a property'
+                onChange={(event, newValue) =>
+                  handleSelectedPropertyChange(
+                    'mainAutocomplete',
+                    event,
+                    newValue,
+                  )
+                }
+                key={resetKey}
+                multiple={true}
+                isOptionEqualToValue={(option, value) =>
+                  option.Name === value?.Name
+                }
+                sx={{
+                  width: '14rem',
+                }}
+              />
+            </span>
+          </Tooltip>
+          {matchingEntitiesState.length > 0 && (
+            <AccordionGroup
+              sx={(theme) => ({
+                maxWidth: '100%',
+                [`& .${accordionClasses.root}`]: {
+                  marginTop: '0.5rem',
+                  transition: '0.2s ease',
+                  '& button:not([aria-expanded="true"])': {
+                    transition: '0.2s ease',
+                    paddingBottom: '0.625rem',
+                  },
+                  '& button:hover': {
+                    background: 'transparent',
+                  },
+                },
+                [`& .${accordionClasses.root}.${accordionClasses.expanded}`]: {
+                  bgcolor: 'background.level1',
+                  borderRadius: 'md',
+                  borderBottom: '1px solid',
+                  borderColor: 'background.level2',
+                },
+                '& [aria-expanded="true"]': {
+                  boxShadow: `inset 0 -1px 0 ${theme.vars.palette.divider}`,
+                },
+              })}
+            >
+              {matchingEntitiesState.map((entity) => (
+                <Accordion key={entity.name}>
+                  <AccordionSummary>{entity.name}</AccordionSummary>
+                  <AccordionDetails>
+                    <Autocomplete
+                      options={[
+                        ...entity.properties.properties,
+                        ...entity.properties.navigationProperties,
+                      ].sort((a, b) => a.Name.localeCompare(b.Name))}
+                      groupBy={(option) => option.Name.charAt(0).toUpperCase()}
+                      getOptionLabel={(option) => option.Name}
+                      placeholder='Select a property'
+                      multiple
+                      onChange={(event, newValue) =>
+                        handleSelectedPropertyChange(
+                          entity.name,
+                          event,
+                          newValue,
+                        )
+                      }
+                      sx={{ marginTop: 1 }}
+                    />
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+            </AccordionGroup>
+          )}
+        </div>
+
         <Handle
           type='source'
           position={Position.Right}
