@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setFilteredEntities, setAllEntities } from '../redux/entitiesSlice';
+import {
+  setFilteredEntities,
+  setAllEntities,
+  setAssociationSets,
+} from '../redux/entitiesSlice';
 import { RELEVANT_ENTITY_NAMES } from './useFetchEntities.constants';
 
 const API_USER = import.meta.env.VITE_API_USER;
@@ -32,6 +36,25 @@ const useFetchEntities = () => {
           const text = await response.text();
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(text, 'application/xml');
+
+          let associationSetsArray = [];
+          const associationSets = Array.from(
+            xmlDoc.getElementsByTagName('AssociationSet'),
+          );
+          associationSets.forEach((associationSet) => {
+            const name = associationSet.getAttribute('Name');
+            const endElements = Array.from(
+              associationSet.getElementsByTagName('End'),
+            ).map((end) => {
+              const attributes = {};
+              Array.from(end.attributes).forEach((attr) => {
+                attributes[attr.name] = attr.value;
+              });
+              return attributes;
+            });
+            associationSetsArray.push({ name, endElements });
+          });
+          dispatch(setAssociationSets(associationSetsArray));
 
           const entitySets = Array.from(
             xmlDoc.getElementsByTagName('EntitySet'),
