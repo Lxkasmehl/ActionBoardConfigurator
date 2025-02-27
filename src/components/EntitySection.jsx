@@ -1,16 +1,5 @@
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createSelector } from '@reduxjs/toolkit';
-import {
-  addEntity,
-  removeEntity,
-  setPropertySelection,
-  setPropertyOptions,
-  removeFormData,
-  removeEntityConfig,
-  setSelectedEntity,
-  setSelectedProperties,
-} from '../redux/entitiesSlice';
 import PropTypes from 'prop-types';
 import {
   Accordion,
@@ -26,11 +15,29 @@ import {
 } from '@mui/joy';
 import FilterModal from './FilterModal';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { Handle, Position, useReactFlow } from '@xyflow/react';
+import { Handle, Position } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { selectPropertyOptions } from '../redux/selectors/entitySelectors';
+import { useReactFlowSetup } from '../hooks/useReactFlowSetup';
+import { useEntityChangeHandler } from '../hooks/useEntityChangeHandler';
+import { useModalState } from '../hooks/useModalState';
+import {
+  sortEntities,
+  sortProperties,
+  filterUniqueProperties,
+} from '../utils/entityUtils';
+import {
+  setSelectedProperties,
+  setPropertySelection,
+} from '../redux/entitiesSlice';
 
 export default function EntitySection({ id }) {
+  const [matchingEntitiesState, setMatchingEntitiesState] = useState([]);
+  const [selectedPropertiesState, setSelectedPropertiesState] = useState({});
+
   const dispatch = useDispatch();
+  const { removeNodeById, isTargetOfEdge } = useReactFlowSetup(id);
+  const { isOpen, openModal, closeModal } = useModalState();
 
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
@@ -42,90 +49,24 @@ export default function EntitySection({ id }) {
     (state) => state.entities.selectedEntities,
   );
   const selectedEntity = selectedEntities[id];
-
-  const selectPropertyOptions = createSelector(
-    (state) => state.entities.propertyOptions,
-    (_, id) => id,
-    (propertyOptions, id) => propertyOptions[id] || [],
-  );
-
   const propertyOptions = useSelector((state) =>
     selectPropertyOptions(state, id),
   );
 
-  const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [resetKey, setResetKey] = useState(0);
-  const [matchingEntitiesState, setMatchingEntitiesState] = useState([]);
-  const [selectedPropertiesState, setSelectedPropertiesState] = useState({});
-
-  const { setNodes, getEdges } = useReactFlow();
-
-  const ref = useRef();
-
-  const sortedEntities = [...filteredEntities].sort((a, b) => {
-    const labelA = (a['sap:label'] || a.Name || '').toLowerCase();
-    const labelB = (b['sap:label'] || b.Name || '').toLowerCase();
-    return labelA.localeCompare(labelB);
-  });
-
-  const sortedPropertyOptions = [...propertyOptions].sort((a, b) => {
-    const labelA = (a.Name || '').toLowerCase();
-    const labelB = (b.Name || '').toLowerCase();
-    return labelA.localeCompare(labelB);
-  });
-
-  const uniqueSortedPropertyOptions = sortedPropertyOptions.filter(
-    (value, index, self) =>
-      index === self.findIndex((t) => t['sap:label'] === value['sap:label']),
+  const sortedEntities = sortEntities(filteredEntities);
+  const sortedPropertyOptions = sortProperties(propertyOptions);
+  const uniqueSortedPropertyOptions = filterUniqueProperties(
+    sortedPropertyOptions,
   );
 
-  const edges = getEdges();
-  const isTargetOfEdge = edges.some((edge) => edge.target === id);
+  const handleEntityChange = useEntityChangeHandler(
+    id,
+    filteredEntities,
+    selectedEntity,
+    isTargetOfEdge,
+  );
 
-  const handleEntityChange = (_, newValue) => {
-    if (!newValue) return;
-
-    const entityName = newValue.name;
-
-    const entity = filteredEntities.find((e) => e.name === entityName);
-    const properties = entity
-      ? Array.from(
-          new Set(entity.properties.properties.map((p) => p.Name)),
-        ).map((Name) =>
-          entity.properties.properties.find((p) => p.Name === Name),
-        )
-      : [];
-
-    const navigationProperties = entity
-      ? Array.from(
-          new Set(entity.properties.navigationProperties.map((p) => p.Name)),
-        ).map((Name) =>
-          entity.properties.navigationProperties.find((p) => p.Name === Name),
-        )
-      : [];
-
-    const combinedProperties = [...properties, ...navigationProperties];
-
-    // const toRoleSet = new Set(navigationProperties.map((prop) => prop.ToRole));
-    // const matchingEntities = allEntities.filter((entity) =>
-    //   toRoleSet.has(entity.name),
-    // );
-
-    if (isTargetOfEdge) {
-      if (selectedEntity) {
-        dispatch(removeEntity({ id, entityName: selectedEntity }));
-      }
-      dispatch(addEntity({ id, entityName }));
-      dispatch(removeFormData({ id }));
-    }
-
-    dispatch(setPropertyOptions({ id, properties: combinedProperties }));
-    dispatch(setSelectedEntity({ id, entityName }));
-
-    setResetKey((prev) => prev + 1);
-
-    console.log(config);
-  };
+  const ref = useRef();
 
   const handleSelectedPropertyChange = (autocompleteId, _, newValue) => {
     const newSelectedProperties = {
@@ -197,13 +138,6 @@ export default function EntitySection({ id }) {
     console.log(config);
   };
 
-  const handleRemove = () => {
-    setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
-    dispatch(removeEntityConfig(id));
-    dispatch(removeFormData({ id }));
-    console.log(config);
-  };
-
   return (
     <div ref={ref}>
       <Card
@@ -224,7 +158,7 @@ export default function EntitySection({ id }) {
           }
           getOptionLabel={(option) => option['sap:label'] || option.name}
           placeholder='Select an entity'
-          onChange={(event, newValue) => handleEntityChange(event, newValue)}
+          onChange={handleEntityChange}
           isOptionEqualToValue={(option, value) => option.name === value.name}
           sx={{ width: '14rem' }}
         />
@@ -232,7 +166,7 @@ export default function EntitySection({ id }) {
           <Button
             color='neutral'
             variant='outlined'
-            onClick={() => setFilterModalOpen(true)}
+            onClick={openModal}
             disabled={!selectedEntity}
           >
             {!formData[id] ? 'Add Filter' : 'Edit Filter'}
@@ -258,7 +192,6 @@ export default function EntitySection({ id }) {
                     newValue,
                   )
                 }
-                key={resetKey}
                 multiple={true}
                 isOptionEqualToValue={(option, value) =>
                   option.Name === value?.Name
@@ -358,7 +291,7 @@ export default function EntitySection({ id }) {
         </Handle>
       </Card>
       <IconButton
-        onClick={handleRemove}
+        onClick={removeNodeById}
         variant='outlined'
         color='danger'
         sx={{
@@ -370,8 +303,8 @@ export default function EntitySection({ id }) {
         <RemoveIcon />
       </IconButton>
       <FilterModal
-        open={filterModalOpen}
-        onClose={() => setFilterModalOpen(false)}
+        open={isOpen}
+        onClose={closeModal}
         entity={selectedEntity}
         id={id}
       />
