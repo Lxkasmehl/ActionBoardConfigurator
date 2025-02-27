@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   filteredEntities: [],
   allEntities: [],
+  associationSets: [],
   config: {},
   propertyOptions: {},
   formData: {},
@@ -25,8 +26,6 @@ const initializeEntityConfig = (state, id, entityName) => {
   }
 };
 
-//TODO: different slices
-
 const entitiesSlice = createSlice({
   name: 'entities',
   initialState,
@@ -37,6 +36,10 @@ const entitiesSlice = createSlice({
 
     setAllEntities(state, action) {
       state.allEntities = action.payload;
+    },
+
+    setAssociationSets(state, action) {
+      state.associationSets = action.payload;
     },
 
     addEntity(state, action) {
@@ -125,6 +128,7 @@ const entitiesSlice = createSlice({
 export const {
   setFilteredEntities,
   setAllEntities,
+  setAssociationSets,
   addEntity,
   removeEntity,
   setPropertyOptions,

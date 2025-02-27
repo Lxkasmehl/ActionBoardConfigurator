@@ -15,10 +15,9 @@ import {
 } from '@mui/joy';
 import FilterModal from './FilterModal';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { selectPropertyOptions } from '../redux/selectors/entitySelectors';
-import { useReactFlowSetup } from '../hooks/useReactFlowSetup';
 import { useEntityChangeHandler } from '../hooks/useEntityChangeHandler';
 import { useModalState } from '../hooks/useModalState';
 import {
@@ -29,20 +28,29 @@ import {
 import {
   setSelectedProperties,
   setPropertySelection,
+  removeEntityConfig,
+  removeFormData,
 } from '../redux/entitiesSlice';
 
 export default function EntitySection({ id }) {
   const [matchingEntitiesState, setMatchingEntitiesState] = useState([]);
   const [selectedPropertiesState, setSelectedPropertiesState] = useState({});
+  const [resetKey, setResetKey] = useState(0);
 
   const dispatch = useDispatch();
-  const { removeNodeById, isTargetOfEdge } = useReactFlowSetup(id);
   const { isOpen, openModal, closeModal } = useModalState();
+
+  const { setNodes, getEdges } = useReactFlow();
+  const edges = getEdges();
+  const isTargetOfEdge = edges.some((edge) => edge.target === id);
 
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
   );
   const allEntities = useSelector((state) => state.entities.allEntities);
+  const associationSets = useSelector(
+    (state) => state.entities.associationSets,
+  );
   const config = useSelector((state) => state.entities.config);
   const formData = useSelector((state) => state.entities.formData);
   const selectedEntities = useSelector(
@@ -64,6 +72,8 @@ export default function EntitySection({ id }) {
     filteredEntities,
     selectedEntity,
     isTargetOfEdge,
+    setResetKey,
+    setMatchingEntitiesState,
   );
 
   const ref = useRef();
@@ -102,6 +112,8 @@ export default function EntitySection({ id }) {
         )
       : [];
 
+    let matchingEntities = [];
+
     newValue.forEach((property) => {
       const propertyName = property.Name;
       const matchingProperty = navigationProperties.find((np) => {
@@ -112,29 +124,43 @@ export default function EntitySection({ id }) {
       });
 
       if (matchingProperty) {
-        let matchingPropertyName = matchingProperty.Name;
-        if (matchingProperty.Name.endsWith('Nav')) {
-          matchingPropertyName = matchingProperty.Name.slice(0, -3);
-        }
+        const matchingAssociationSet = associationSets.find((as) => {
+          const relationship = matchingProperty.Relationship.startsWith(
+            'SFOData.',
+          )
+            ? matchingProperty.Relationship.slice(8)
+            : matchingProperty.Relationship;
+          return as.name === relationship;
+        });
 
-        const matchingEntities = allEntities.filter(
-          (entity) =>
-            (entity.properties.properties.some(
-              (prop) =>
-                prop.Name.toLowerCase() === matchingPropertyName.toLowerCase(),
-            ) ||
-              entity.properties.navigationProperties.some(
-                (navProp) =>
-                  navProp.Name.toLowerCase() ===
-                  matchingPropertyName.toLowerCase(),
-              )) &&
-            entity.name !== selectedEntity,
-        );
-        console.log('matchingEntities', matchingEntities);
-        setMatchingEntitiesState(matchingEntities);
+        if (matchingAssociationSet) {
+          const matchingEndElement = matchingAssociationSet.endElements.find(
+            (ee) => {
+              return ee.Role === matchingProperty.ToRole;
+            },
+          );
+
+          if (matchingEndElement) {
+            const matchingEntity = allEntities.find((e) => {
+              return e.name === matchingEndElement.EntitySet;
+            });
+
+            if (matchingEntity) {
+              matchingEntities.push(matchingEntity);
+            }
+          }
+        }
       }
     });
 
+    setMatchingEntitiesState(matchingEntities);
+    console.log(config);
+  };
+
+  const handleRemove = () => {
+    setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
+    dispatch(removeEntityConfig(id));
+    dispatch(removeFormData({ id }));
     console.log(config);
   };
 
@@ -196,6 +222,7 @@ export default function EntitySection({ id }) {
                 isOptionEqualToValue={(option, value) =>
                   option.Name === value?.Name
                 }
+                key={resetKey}
                 sx={{
                   width: '14rem',
                 }}
@@ -291,7 +318,7 @@ export default function EntitySection({ id }) {
         </Handle>
       </Card>
       <IconButton
-        onClick={removeNodeById}
+        onClick={handleRemove}
         variant='outlined'
         color='danger'
         sx={{
