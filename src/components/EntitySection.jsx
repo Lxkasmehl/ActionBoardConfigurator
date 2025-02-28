@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
@@ -76,8 +76,6 @@ export default function EntitySection({ id }) {
     setMatchingEntitiesState,
   );
 
-  const ref = useRef();
-
   const handleSelectedPropertyChange = (autocompleteId, _, newValue) => {
     const newSelectedProperties = {
       ...selectedPropertiesState,
@@ -85,9 +83,18 @@ export default function EntitySection({ id }) {
     };
     setSelectedPropertiesState(newSelectedProperties);
 
-    const allSelectedPropertyNames = Object.values(
+    console.log(newSelectedProperties);
+
+    const allSelectedPropertyNames = Object.entries(
       newSelectedProperties,
-    ).flat();
+    ).flatMap(([key, values]) => {
+      if (key === 'mainAutocomplete') {
+        return values;
+      }
+      return values.map((value) => `${key}/${value}`);
+    });
+
+    console.log('allSelectedPropertyNames', allSelectedPropertyNames);
 
     if (!newValue || !isTargetOfEdge) {
       dispatch(
@@ -103,6 +110,8 @@ export default function EntitySection({ id }) {
       );
     }
 
+    //TODO: Was passiert wenn manager, manager/manager und manager/manager/manager existieren und manager entfernt wird?
+
     const entity = filteredEntities.find((e) => e.name === selectedEntity);
     const navigationProperties = entity
       ? Array.from(
@@ -114,8 +123,11 @@ export default function EntitySection({ id }) {
 
     let matchingEntities = [];
 
-    newValue.forEach((property) => {
-      const propertyName = property.Name;
+    allSelectedPropertyNames.forEach((propertyPath) => {
+      const propertyName = propertyPath.includes('/')
+        ? propertyPath.split('/').slice(-1)[0]
+        : propertyPath;
+
       const matchingProperty = navigationProperties.find((np) => {
         if (np.Name.endsWith('Nav')) {
           return np.Name.slice(0, -3) === propertyName;
@@ -146,7 +158,7 @@ export default function EntitySection({ id }) {
             });
 
             if (matchingEntity) {
-              matchingEntities.push(matchingEntity);
+              matchingEntities.push({ propertyPath, matchingEntity });
             }
           }
         }
@@ -165,7 +177,7 @@ export default function EntitySection({ id }) {
   };
 
   return (
-    <div ref={ref}>
+    <div>
       <Card
         color={isTargetOfEdge ? 'primary' : 'neutral'}
         sx={{
@@ -173,7 +185,8 @@ export default function EntitySection({ id }) {
           flexDirection: 'row',
           justifyContent: 'space-around',
           alignItems: 'center',
-          width: '40em',
+          minWidth: '40em',
+          width: 'fit-content',
           padding: 3,
         }}
       >
@@ -219,6 +232,7 @@ export default function EntitySection({ id }) {
                   )
                 }
                 multiple={true}
+                disableCloseOnSelect
                 isOptionEqualToValue={(option, value) =>
                   option.Name === value?.Name
                 }
@@ -232,7 +246,6 @@ export default function EntitySection({ id }) {
           {matchingEntitiesState.length > 0 && (
             <AccordionGroup
               sx={(theme) => ({
-                maxWidth: '100%',
                 [`& .${accordionClasses.root}`]: {
                   marginTop: '0.5rem',
                   transition: '0.2s ease',
@@ -256,21 +269,23 @@ export default function EntitySection({ id }) {
               })}
             >
               {matchingEntitiesState.map((entity) => (
-                <Accordion key={entity.name}>
-                  <AccordionSummary>{entity.name}</AccordionSummary>
+                <Accordion key={entity.propertyPath}>
+                  <AccordionSummary>{entity.propertyPath}</AccordionSummary>
                   <AccordionDetails>
                     <Autocomplete
                       options={[
-                        ...entity.properties.properties,
-                        ...entity.properties.navigationProperties,
+                        ...entity.matchingEntity.properties.properties,
+                        ...entity.matchingEntity.properties
+                          .navigationProperties,
                       ].sort((a, b) => a.Name.localeCompare(b.Name))}
                       groupBy={(option) => option.Name.charAt(0).toUpperCase()}
                       getOptionLabel={(option) => option.Name}
                       placeholder='Select a property'
                       multiple
+                      disableCloseOnSelect
                       onChange={(event, newValue) =>
                         handleSelectedPropertyChange(
-                          entity.name,
+                          entity.propertyPath,
                           event,
                           newValue,
                         )
