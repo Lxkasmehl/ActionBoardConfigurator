@@ -83,7 +83,22 @@ export default function EntitySection({ id }) {
     };
     setSelectedPropertiesState(newSelectedProperties);
 
-    console.log(newSelectedProperties);
+    const keys = Object.keys(newSelectedProperties);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const nextKey = keys[i + 1];
+
+      if (nextKey && newSelectedProperties[key]) {
+        const lastPartOfNextKey = nextKey.split('/').pop();
+        if (!newSelectedProperties[key].includes(lastPartOfNextKey)) {
+          Object.keys(newSelectedProperties).forEach((k) => {
+            if (k.includes(key)) {
+              delete newSelectedProperties[k];
+            }
+          });
+        }
+      }
+    }
 
     const allSelectedPropertyNames = Object.entries(
       newSelectedProperties,
@@ -109,8 +124,6 @@ export default function EntitySection({ id }) {
         }),
       );
     }
-
-    //TODO: Was passiert wenn manager, manager/manager und manager/manager/manager existieren und manager entfernt wird?
 
     const entity = filteredEntities.find((e) => e.name === selectedEntity);
     const navigationProperties = entity
