@@ -38,6 +38,8 @@ export default function EntitySection({ id }) {
   const [selectedPropertiesSectionState, setSelectedPropertiesSectionState] =
     useState([]);
   const [isChecked, setIsChecked] = useState(false);
+  const [accordionSelectedProperties, setAccordionSelectedProperties] =
+    useState({});
 
   const dispatch = useDispatch();
   const { isOpen, openModal, closeModal } = useModalState();
@@ -102,6 +104,31 @@ export default function EntitySection({ id }) {
     } else {
       setSelectedPropertiesSectionState([]);
       handleSelectedPropertyChange('mainAutocomplete', event, []);
+    }
+  };
+
+  const toggleAccordionSelectAll = (entity, event) => {
+    const checked = event.target.checked;
+    setAccordionSelectedProperties((prev) => ({
+      ...prev,
+      [entity.propertyPath]: checked,
+    }));
+    const properties = [
+      ...entity.matchingEntity.properties.properties,
+      ...entity.matchingEntity.properties.navigationProperties,
+    ];
+    if (checked) {
+      setAccordionSelectedProperties((prev) => ({
+        ...prev,
+        [entity.propertyPath]: properties,
+      }));
+      handleSelectedPropertyChange(entity.propertyPath, event, properties);
+    } else {
+      setAccordionSelectedProperties((prev) => ({
+        ...prev,
+        [entity.propertyPath]: [],
+      }));
+      handleSelectedPropertyChange(entity.propertyPath, event, []);
     }
   };
 
@@ -229,14 +256,34 @@ export default function EntitySection({ id }) {
                       placeholder='Select a property'
                       multiple
                       disableCloseOnSelect
-                      onChange={(event, newValue) =>
+                      onChange={(event, newValue) => {
+                        setAccordionSelectedProperties((prev) => ({
+                          ...prev,
+                          [entity.propertyPath]: newValue,
+                        }));
                         handleSelectedPropertyChange(
                           entity.propertyPath,
                           event,
                           newValue,
-                        )
+                        );
+                      }}
+                      limitTags={2}
+                      value={
+                        accordionSelectedProperties[entity.propertyPath] || []
                       }
                       sx={{ marginTop: 1 }}
+                    />
+                    <Checkbox
+                      label='Select All'
+                      variant='outlined'
+                      checked={
+                        accordionSelectedProperties[entity.propertyPath] ||
+                        false
+                      }
+                      onChange={(event) =>
+                        toggleAccordionSelectAll(entity, event)
+                      }
+                      sx={{ marginTop: 1, marginLeft: 1, alignSelf: 'start' }}
                     />
                   </AccordionDetails>
                 </Accordion>
