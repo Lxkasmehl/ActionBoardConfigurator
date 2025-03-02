@@ -9,6 +9,7 @@ export function useSelectedPropertyChangeHandler(
   isTargetOfEdge,
   id,
   setMatchingEntitiesState,
+  matchingEntitiesState,
 ) {
   const dispatch = useDispatch();
 
@@ -77,9 +78,24 @@ export function useSelectedPropertyChangeHandler(
     const entity = filteredEntities.find((e) => e.name === selectedEntity);
     const navigationProperties = entity
       ? Array.from(
-          new Set(entity.properties.navigationProperties.map((p) => p.Name)),
-        ).map((Name) =>
-          entity.properties.navigationProperties.find((p) => p.Name === Name),
+          new Set([
+            ...entity.properties.navigationProperties.map((p) => p.Name),
+            ...matchingEntitiesState.flatMap((me) =>
+              me.matchingEntity.properties.navigationProperties.map(
+                (p) => p.Name,
+              ),
+            ),
+          ]),
+        ).map(
+          (Name) =>
+            entity.properties.navigationProperties.find(
+              (p) => p.Name === Name,
+            ) ||
+            matchingEntitiesState
+              .flatMap(
+                (me) => me.matchingEntity.properties.navigationProperties,
+              )
+              .find((p) => p.Name === Name),
         )
       : [];
 
