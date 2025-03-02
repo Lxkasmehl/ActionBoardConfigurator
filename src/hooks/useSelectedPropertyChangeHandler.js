@@ -60,8 +60,6 @@ export function useSelectedPropertyChangeHandler(
       return values.map((value) => `${key}/${value}`);
     });
 
-    console.log('allSelectedPropertyNames', allSelectedPropertyNames);
-
     if (!newValue || !isTargetOfEdge) {
       dispatch(
         setSelectedProperties({ id, propertyNames: allSelectedPropertyNames }),

@@ -12,25 +12,32 @@ import {
   Card,
   IconButton,
   Tooltip,
+  Checkbox,
 } from '@mui/joy';
-import FilterModal from './FilterModal';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+
 import { selectPropertyOptions } from '../redux/selectors/entitySelectors';
+import { removeEntityConfig, removeFormData } from '../redux/entitiesSlice';
 import { useEntityChangeHandler } from '../hooks/useEntityChangeHandler';
 import { useModalState } from '../hooks/useModalState';
+import { useSelectedPropertyChangeHandler } from '../hooks/useSelectedPropertyChangeHandler';
 import {
   sortEntities,
   sortProperties,
   filterUniqueProperties,
 } from '../utils/entityUtils';
-import { removeEntityConfig, removeFormData } from '../redux/entitiesSlice';
-import { useSelectedPropertyChangeHandler } from '../hooks/useSelectedPropertyChangeHandler';
+
+import FilterModal from './FilterModal';
+
+import '@xyflow/react/dist/style.css';
 
 export default function EntitySection({ id }) {
   const [matchingEntitiesState, setMatchingEntitiesState] = useState([]);
   const [resetKey, setResetKey] = useState(0);
+  const [selectedPropertiesSectionState, setSelectedPropertiesSectionState] =
+    useState([]);
+  const [isChecked, setIsChecked] = useState(false);
 
   const dispatch = useDispatch();
   const { isOpen, openModal, closeModal } = useModalState();
@@ -78,6 +85,24 @@ export default function EntitySection({ id }) {
     dispatch(removeEntityConfig(id));
     dispatch(removeFormData({ id }));
     console.log(config);
+  };
+
+  const toggleSelectAll = (event) => {
+    const checked = event.target.checked;
+    setIsChecked(checked);
+    if (checked) {
+      setSelectedPropertiesSectionState(
+        uniqueSortedPropertyOptions.map((option) => option.Name),
+      );
+      handleSelectedPropertyChange(
+        'mainAutocomplete',
+        event,
+        uniqueSortedPropertyOptions,
+      );
+    } else {
+      setSelectedPropertiesSectionState([]);
+      handleSelectedPropertyChange('mainAutocomplete', event, []);
+    }
   };
 
   return (
@@ -128,25 +153,42 @@ export default function EntitySection({ id }) {
                 groupBy={(option) => option.Name.charAt(0).toUpperCase()}
                 getOptionLabel={(option) => option.Name}
                 placeholder='Select a property'
-                onChange={(event, newValue) =>
+                onChange={(event, newValue) => {
+                  setSelectedPropertiesSectionState(
+                    newValue.map((option) => option.Name),
+                  );
                   handleSelectedPropertyChange(
                     'mainAutocomplete',
                     event,
                     newValue,
-                  )
-                }
+                  );
+                }}
                 multiple={true}
                 disableCloseOnSelect
                 isOptionEqualToValue={(option, value) =>
                   option.Name === value?.Name
                 }
                 key={resetKey}
+                value={selectedPropertiesSectionState.map((name) =>
+                  uniqueSortedPropertyOptions.find(
+                    (option) => option.Name === name,
+                  ),
+                )}
+                limitTags={2}
                 sx={{
                   width: '14rem',
                 }}
               />
             </span>
           </Tooltip>
+          <Checkbox
+            label='Select All'
+            variant='outlined'
+            checked={isChecked}
+            onChange={toggleSelectAll}
+            disabled={!selectedEntity}
+            sx={{ marginTop: 1, marginLeft: 1, alignSelf: 'start' }}
+          />
           {matchingEntitiesState.length > 0 && (
             <AccordionGroup
               sx={(theme) => ({
