@@ -80,6 +80,7 @@ export default function EntitySection({ id }) {
     isTargetOfEdge,
     id,
     setMatchingEntitiesState,
+    matchingEntitiesState,
   );
 
   const handleRemove = () => {
