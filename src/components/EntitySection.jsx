@@ -143,7 +143,8 @@ export default function EntitySection({ id }) {
           justifyContent: 'space-around',
           alignItems: 'center',
           minWidth: '40em',
-          width: 'fit-content',
+          maxWidth: '100%',
+          width: 'auto',
           padding: 3,
         }}
       >
@@ -169,7 +170,7 @@ export default function EntitySection({ id }) {
           </Button>
         </div>
 
-        <div className='flex items-center flex-col gap-2 max-w-[225px]'>
+        <div className='flex items-center flex-col gap-2'>
           <Tooltip
             title='Select all properties you want to display'
             placement='top'
@@ -272,14 +273,19 @@ export default function EntitySection({ id }) {
                       value={
                         accordionSelectedProperties[entity.propertyPath] || []
                       }
-                      sx={{ marginTop: 1 }}
+                      sx={{ marginTop: 1, width: '13rem' }}
                     />
                     <Checkbox
                       label='Select All'
                       variant='outlined'
                       checked={
-                        accordionSelectedProperties[entity.propertyPath] ||
-                        false
+                        accordionSelectedProperties[entity.propertyPath]
+                          ?.length ===
+                        [
+                          ...entity.matchingEntity.properties.properties,
+                          ...entity.matchingEntity.properties
+                            .navigationProperties,
+                        ].length
                       }
                       onChange={(event) =>
                         toggleAccordionSelectAll(entity, event)
