@@ -11,8 +11,6 @@ import {
   Button,
   Card,
   IconButton,
-  Tooltip,
-  Checkbox,
 } from '@mui/joy';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
@@ -29,12 +27,12 @@ import {
 } from '../utils/entityUtils';
 
 import FilterModal from './FilterModal';
+import PropertySelector from './PropertySelector';
 
 import '@xyflow/react/dist/style.css';
 
 export default function EntitySection({ id }) {
   const [matchingEntitiesState, setMatchingEntitiesState] = useState([]);
-  const [resetKey, setResetKey] = useState(0);
   const [selectedPropertiesSectionState, setSelectedPropertiesSectionState] =
     useState([]);
   const [isChecked, setIsChecked] = useState(false);
@@ -72,8 +70,8 @@ export default function EntitySection({ id }) {
     filteredEntities,
     selectedEntity,
     isTargetOfEdge,
-    setResetKey,
     setMatchingEntitiesState,
+    setSelectedPropertiesSectionState,
   );
 
   const handleSelectedPropertyChange = useSelectedPropertyChangeHandler(
@@ -171,133 +169,102 @@ export default function EntitySection({ id }) {
         </div>
 
         <div className='flex items-center flex-col gap-2'>
-          <Tooltip
-            title='Select all properties you want to display'
-            placement='top'
-            variant='solid'
-          >
-            <span>
-              <Autocomplete
-                options={uniqueSortedPropertyOptions}
-                groupBy={(option) => option.Name.charAt(0).toUpperCase()}
-                getOptionLabel={(option) => option.Name}
-                placeholder='Select a property'
-                onChange={(event, newValue) => {
-                  setSelectedPropertiesSectionState(
-                    newValue.map((option) => option.Name),
-                  );
-                  handleSelectedPropertyChange(
-                    'mainAutocomplete',
-                    event,
-                    newValue,
-                  );
-                }}
-                multiple={true}
-                disableCloseOnSelect
-                isOptionEqualToValue={(option, value) =>
-                  option.Name === value?.Name
-                }
-                key={resetKey}
-                value={selectedPropertiesSectionState.map((name) =>
-                  uniqueSortedPropertyOptions.find(
-                    (option) => option.Name === name,
-                  ),
-                )}
-                limitTags={2}
-                sx={{
-                  width: '14rem',
-                }}
-              />
-            </span>
-          </Tooltip>
-          <Checkbox
-            label='Select All'
-            variant='outlined'
-            checked={isChecked}
-            onChange={toggleSelectAll}
-            disabled={!selectedEntity}
-            sx={{ marginTop: 1, marginLeft: 1, alignSelf: 'start' }}
+          <PropertySelector
+            options={uniqueSortedPropertyOptions}
+            selectedOptions={selectedPropertiesSectionState.map((name) =>
+              uniqueSortedPropertyOptions.find(
+                (option) => option.Name === name,
+              ),
+            )}
+            onChange={(event, newValue) => {
+              setSelectedPropertiesSectionState(
+                newValue.map((option) => option.Name),
+              );
+              handleSelectedPropertyChange('mainAutocomplete', event, newValue);
+            }}
+            onSelectAllChange={toggleSelectAll}
+            isChecked={isChecked}
+            label='Select all properties you want to display'
+            placeholder='Select a property'
+            groupBy={(option) => option.Name.charAt(0).toUpperCase()}
+            getOptionLabel={(option) => (option ? option.Name : '')}
+            limitTags={2}
+            sx={{ width: '14rem' }}
           />
-          {matchingEntitiesState.length > 0 && (
-            <AccordionGroup
-              sx={(theme) => ({
-                [`& .${accordionClasses.root}`]: {
-                  marginTop: '0.5rem',
+        </div>
+
+        {matchingEntitiesState.length > 0 && (
+          <AccordionGroup
+            sx={(theme) => ({
+              [`& .${accordionClasses.root}`]: {
+                marginTop: '0.5rem',
+                transition: '0.2s ease',
+                '& button:not([aria-expanded="true"])': {
                   transition: '0.2s ease',
-                  '& button:not([aria-expanded="true"])': {
-                    transition: '0.2s ease',
-                    paddingBottom: '0.625rem',
-                  },
-                  '& button:hover': {
-                    background: 'transparent',
-                  },
+                  paddingBottom: '0.625rem',
                 },
-                [`& .${accordionClasses.root}.${accordionClasses.expanded}`]: {
-                  bgcolor: 'background.level1',
-                  borderRadius: 'md',
-                  borderBottom: '1px solid',
-                  borderColor: 'background.level2',
+                '& button:hover': {
+                  background: 'transparent',
                 },
-                '& [aria-expanded="true"]': {
-                  boxShadow: `inset 0 -1px 0 ${theme.vars.palette.divider}`,
-                },
-              })}
-            >
-              {matchingEntitiesState.map((entity) => (
-                <Accordion key={entity.propertyPath}>
-                  <AccordionSummary>{entity.propertyPath}</AccordionSummary>
-                  <AccordionDetails>
-                    <Autocomplete
-                      options={[
+              },
+              [`& .${accordionClasses.root}.${accordionClasses.expanded}`]: {
+                bgcolor: 'background.level1',
+                borderRadius: 'md',
+                borderBottom: '1px solid',
+                borderColor: 'background.level2',
+              },
+              '& [aria-expanded="true"]': {
+                boxShadow: `inset 0 -1px 0 ${theme.vars.palette.divider}`,
+              },
+            })}
+          >
+            {matchingEntitiesState.map((entity) => (
+              <Accordion key={entity.propertyPath}>
+                <AccordionSummary>{entity.propertyPath}</AccordionSummary>
+                <AccordionDetails>
+                  <PropertySelector
+                    options={[
+                      ...entity.matchingEntity.properties.properties,
+                      ...entity.matchingEntity.properties.navigationProperties,
+                    ].sort((a, b) => a.Name.localeCompare(b.Name))}
+                    selectedOptions={
+                      accordionSelectedProperties[entity.propertyPath] || []
+                    }
+                    onChange={(event, newValue) => {
+                      setAccordionSelectedProperties((prev) => ({
+                        ...prev,
+                        [entity.propertyPath]: newValue,
+                      }));
+                      handleSelectedPropertyChange(
+                        entity.propertyPath,
+                        event,
+                        newValue,
+                      );
+                    }}
+                    onSelectAllChange={(event) =>
+                      toggleAccordionSelectAll(entity, event)
+                    }
+                    isChecked={
+                      accordionSelectedProperties[entity.propertyPath]
+                        ?.length ===
+                      [
                         ...entity.matchingEntity.properties.properties,
                         ...entity.matchingEntity.properties
                           .navigationProperties,
-                      ].sort((a, b) => a.Name.localeCompare(b.Name))}
-                      groupBy={(option) => option.Name.charAt(0).toUpperCase()}
-                      getOptionLabel={(option) => option.Name}
-                      placeholder='Select a property'
-                      multiple
-                      disableCloseOnSelect
-                      onChange={(event, newValue) => {
-                        setAccordionSelectedProperties((prev) => ({
-                          ...prev,
-                          [entity.propertyPath]: newValue,
-                        }));
-                        handleSelectedPropertyChange(
-                          entity.propertyPath,
-                          event,
-                          newValue,
-                        );
-                      }}
-                      limitTags={2}
-                      value={
-                        accordionSelectedProperties[entity.propertyPath] || []
-                      }
-                      sx={{ marginTop: 1, width: '13rem' }}
-                    />
-                    <Checkbox
-                      label='Select All'
-                      variant='outlined'
-                      checked={
-                        accordionSelectedProperties[entity.propertyPath]
-                          ?.length ===
-                        [
-                          ...entity.matchingEntity.properties.properties,
-                          ...entity.matchingEntity.properties
-                            .navigationProperties,
-                        ].length
-                      }
-                      onChange={(event) =>
-                        toggleAccordionSelectAll(entity, event)
-                      }
-                      sx={{ marginTop: 1, marginLeft: 1, alignSelf: 'start' }}
-                    />
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-            </AccordionGroup>
-          )}
-        </div>
+                      ].length
+                    }
+                    label='Select all properties you want to display'
+                    placeholder='Select a property'
+                    groupBy={(option) => option.Name.charAt(0).toUpperCase()}
+                    getOptionLabel={(option) => option.Name}
+                    limitTags={2}
+                    sx={{ marginTop: 1, width: '13rem' }}
+                  />
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </AccordionGroup>
+        )}
 
         <Handle
           type='source'

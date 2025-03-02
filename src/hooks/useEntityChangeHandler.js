@@ -12,8 +12,8 @@ export function useEntityChangeHandler(
   filteredEntities,
   selectedEntity,
   isTargetOfEdge,
-  setResetKey,
   setMatchingEntitiesState,
+  setSelectedPropertiesSectionState,
 ) {
   const dispatch = useDispatch();
 
@@ -39,7 +39,7 @@ export function useEntityChangeHandler(
     dispatch(setPropertyOptions({ id, properties: combinedProperties }));
     dispatch(setSelectedEntity({ id, entityName }));
 
-    setResetKey((prevKey) => prevKey + 1);
+    setSelectedPropertiesSectionState([]);
     setMatchingEntitiesState([]);
   };
 
