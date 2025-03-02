@@ -137,65 +137,76 @@ export default function EntitySection({ id }) {
         color={isTargetOfEdge ? 'primary' : 'neutral'}
         sx={{
           display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-around',
+          flexDirection: 'column',
+          justifyContent: 'center',
           alignItems: 'center',
           minWidth: '40em',
-          maxWidth: '100%',
+          maxWidth: '760px',
           width: 'auto',
           padding: 3,
         }}
       >
-        <Autocomplete
-          options={sortedEntities}
-          groupBy={(option) =>
-            (option['sap:label'] || option.name || '').charAt(0).toUpperCase()
-          }
-          getOptionLabel={(option) => option['sap:label'] || option.name}
-          placeholder='Select an entity'
-          onChange={handleEntityChange}
-          isOptionEqualToValue={(option, value) => option.name === value.name}
-          sx={{ width: '14rem' }}
-        />
-        <div className='flex items-center'>
-          <Button
-            color='neutral'
-            variant='outlined'
-            onClick={openModal}
-            disabled={!selectedEntity}
-          >
-            {!formData[id] ? 'Add Filter' : 'Edit Filter'}
-          </Button>
-        </div>
-
-        <div className='flex items-center flex-col gap-2'>
-          <PropertySelector
-            options={uniqueSortedPropertyOptions}
-            selectedOptions={selectedPropertiesSectionState.map((name) =>
-              uniqueSortedPropertyOptions.find(
-                (option) => option.Name === name,
-              ),
-            )}
-            onChange={(event, newValue) => {
-              setSelectedPropertiesSectionState(
-                newValue.map((option) => option.Name),
-              );
-              handleSelectedPropertyChange('mainAutocomplete', event, newValue);
-            }}
-            onSelectAllChange={toggleSelectAll}
-            isChecked={isChecked}
-            label='Select all properties you want to display'
-            placeholder='Select a property'
-            groupBy={(option) => option.Name.charAt(0).toUpperCase()}
-            getOptionLabel={(option) => (option ? option.Name : '')}
-            limitTags={2}
-            sx={{ width: '14rem' }}
+        <div className='flex flex-row gap-6 items-center'>
+          <Autocomplete
+            options={sortedEntities}
+            groupBy={(option) =>
+              (option['sap:label'] || option.name || '').charAt(0).toUpperCase()
+            }
+            getOptionLabel={(option) => option['sap:label'] || option.name}
+            placeholder='Select an entity'
+            onChange={handleEntityChange}
+            isOptionEqualToValue={(option, value) => option.name === value.name}
+            sx={{ width: '14rem', height: 'fit-content' }}
           />
+          <div className='flex items-center'>
+            <Button
+              color='neutral'
+              variant='outlined'
+              onClick={openModal}
+              disabled={!selectedEntity}
+            >
+              {!formData[id] ? 'Add Filter' : 'Edit Filter'}
+            </Button>
+          </div>
+
+          <div className='flex items-center flex-col gap-2'>
+            <PropertySelector
+              options={uniqueSortedPropertyOptions}
+              selectedOptions={selectedPropertiesSectionState.map((name) =>
+                uniqueSortedPropertyOptions.find(
+                  (option) => option.Name === name,
+                ),
+              )}
+              onChange={(event, newValue) => {
+                setSelectedPropertiesSectionState(
+                  newValue.map((option) => option.Name),
+                );
+                handleSelectedPropertyChange(
+                  'mainAutocomplete',
+                  event,
+                  newValue,
+                );
+              }}
+              onSelectAllChange={toggleSelectAll}
+              isChecked={isChecked}
+              label='Select all properties you want to display'
+              placeholder='Select a property'
+              groupBy={(option) => option.Name.charAt(0).toUpperCase()}
+              getOptionLabel={(option) => (option ? option.Name : '')}
+              limitTags={2}
+              sx={{ width: '14rem' }}
+            />
+          </div>
         </div>
 
         {matchingEntitiesState.length > 0 && (
           <AccordionGroup
+            disableDivider
             sx={(theme) => ({
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
               [`& .${accordionClasses.root}`]: {
                 marginTop: '0.5rem',
                 transition: '0.2s ease',
@@ -219,7 +230,10 @@ export default function EntitySection({ id }) {
             })}
           >
             {matchingEntitiesState.map((entity) => (
-              <Accordion key={entity.propertyPath}>
+              <Accordion
+                key={entity.propertyPath}
+                sx={{ height: 'fit-content' }}
+              >
                 <AccordionSummary>{entity.propertyPath}</AccordionSummary>
                 <AccordionDetails>
                   <PropertySelector
