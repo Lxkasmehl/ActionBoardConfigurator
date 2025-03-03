@@ -10,10 +10,13 @@ export function useSelectedPropertyChangeHandler(
   id,
   setMatchingEntitiesState,
   matchingEntitiesState,
+  setAccordionSelectedProperties,
+  accordionSelectedProperties,
 ) {
   const dispatch = useDispatch();
 
   const [selectedPropertiesState, setSelectedPropertiesState] = useState({});
+  const [previousKeys, setPreviousKeys] = useState([]);
 
   const allEntities = useSelector((state) => state.entities.allEntities);
   const associationSets = useSelector(
@@ -35,25 +38,53 @@ export function useSelectedPropertyChangeHandler(
     };
     setSelectedPropertiesState(newSelectedProperties);
 
-    const keys = Object.keys(newSelectedProperties);
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
-      const nextKey = keys[i + 1];
+    const currentKeys = Object.entries(newSelectedProperties)
+      .filter(([, values]) => values.length > 0)
+      .map(([key]) => key);
 
-      if (nextKey && newSelectedProperties[key]) {
-        const lastPartOfNextKey = nextKey.split('/').pop();
-        //TODO: darf nicht immer mainAutocomplete sein
-        if (
-          !newSelectedProperties['mainAutocomplete'].includes(lastPartOfNextKey)
-        ) {
-          Object.keys(newSelectedProperties).forEach((k) => {
-            if (k.includes(key)) {
-              delete newSelectedProperties[k];
-            }
-          });
-        }
+    const removedValues = previousKeys.reduce((acc, key) => {
+      const previousValues = selectedPropertiesState[key] || [];
+      const currentValues = newSelectedProperties[key] || [];
+      const removed = previousValues.filter(
+        (value) => !currentValues.includes(value),
+      );
+
+      if (removed.length > 0) {
+        acc[key] = removed;
       }
+      return acc;
+    }, {});
+
+    if (Object.keys(removedValues).length > 0) {
+      Object.entries(removedValues).forEach(([key, values]) => {
+        console.log(`Removed ${key}/${values}`);
+
+        Object.keys(newSelectedProperties).forEach((k) => {
+          if (key === 'mainAutocomplete') {
+            if (k.startsWith(values)) {
+              delete newSelectedProperties[k];
+              setAccordionSelectedProperties(
+                (Array.isArray(accordionSelectedProperties)
+                  ? accordionSelectedProperties
+                  : []
+                ).filter((prop) => prop.Name !== k),
+              );
+            }
+          } else if (k.includes(`${key}/${values}`)) {
+            console.log('else if deleted');
+            delete newSelectedProperties[k];
+            setAccordionSelectedProperties(
+              (Array.isArray(accordionSelectedProperties)
+                ? accordionSelectedProperties
+                : []
+              ).filter((prop) => prop.Name !== k),
+            );
+          }
+        });
+      });
     }
+
+    setPreviousKeys(currentKeys);
 
     const allSelectedPropertyNames = Object.entries(
       newSelectedProperties,
