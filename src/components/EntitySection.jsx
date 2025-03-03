@@ -79,6 +79,8 @@ export default function EntitySection({ id }) {
     id,
     setMatchingEntitiesState,
     matchingEntitiesState,
+    setAccordionSelectedProperties,
+    accordionSelectedProperties,
   );
 
   const handleRemove = () => {
