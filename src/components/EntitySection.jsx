@@ -194,6 +194,7 @@ export default function EntitySection({ id }) {
               groupBy={(option) => option.Name.charAt(0).toUpperCase()}
               getOptionLabel={(option) => (option ? option.Name : '')}
               limitTags={2}
+              disabled={!selectedEntity}
               sx={{ width: '14rem' }}
             />
           </div>
@@ -272,6 +273,7 @@ export default function EntitySection({ id }) {
                     groupBy={(option) => option.Name.charAt(0).toUpperCase()}
                     getOptionLabel={(option) => option.Name}
                     limitTags={2}
+                    disabled={!selectedEntity}
                     sx={{ marginTop: 1, width: '13rem' }}
                   />
                 </AccordionDetails>

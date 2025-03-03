@@ -12,11 +12,23 @@ function PropertySelector({
   groupBy,
   getOptionLabel,
   limitTags,
+  disabled,
   sx,
 }) {
   return (
     <div>
-      <Tooltip title={label} placement='top' variant='solid'>
+      <Tooltip
+        title={
+          disabled
+            ? 'Select an entity first'
+            : isChecked
+              ? 'You can not deselect individual properties if you selected all properties. Uncheck the Checkbox to select individual properties'
+              : label
+        }
+        placement='top'
+        variant='solid'
+        sx={{ maxWidth: 300, whiteSpace: 'normal' }}
+      >
         <span>
           <Autocomplete
             options={options}
@@ -32,6 +44,7 @@ function PropertySelector({
             value={selectedOptions}
             limitTags={limitTags}
             sx={sx}
+            disabled={isChecked || disabled}
           />
         </span>
       </Tooltip>
@@ -40,6 +53,7 @@ function PropertySelector({
         variant='outlined'
         checked={isChecked}
         onChange={onSelectAllChange}
+        disabled={disabled}
         sx={{ marginTop: 1, marginLeft: 1, alignSelf: 'start' }}
       />
     </div>
@@ -57,6 +71,7 @@ PropertySelector.propTypes = {
   groupBy: PropTypes.func.isRequired,
   getOptionLabel: PropTypes.func.isRequired,
   limitTags: PropTypes.number.isRequired,
+  disabled: PropTypes.bool,
   sx: PropTypes.object,
 };
 
