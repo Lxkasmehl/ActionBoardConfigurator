@@ -42,7 +42,10 @@ export function useSelectedPropertyChangeHandler(
 
       if (nextKey && newSelectedProperties[key]) {
         const lastPartOfNextKey = nextKey.split('/').pop();
-        if (!newSelectedProperties[key].includes(lastPartOfNextKey)) {
+        //TODO: darf nicht immer mainAutocomplete sein
+        if (
+          !newSelectedProperties['mainAutocomplete'].includes(lastPartOfNextKey)
+        ) {
           Object.keys(newSelectedProperties).forEach((k) => {
             if (k.includes(key)) {
               delete newSelectedProperties[k];
@@ -61,21 +64,96 @@ export function useSelectedPropertyChangeHandler(
       return values.map((value) => `${key}/${value}`);
     });
 
+    const entity = filteredEntities.find((e) => e.name === selectedEntity);
+
+    const availableProperties = [
+      ...entity.properties.properties,
+      ...entity.properties.navigationProperties,
+      ...matchingEntitiesState.flatMap((me) => [
+        ...me.matchingEntity.properties.properties.map((prop) => ({
+          ...prop,
+          Name: `${me.propertyPath}/${prop.Name}`,
+          ['sap:label']: `${me.propertyPath}/${prop['sap:label']}`,
+        })),
+        ...me.matchingEntity.properties.navigationProperties.map((prop) => ({
+          ...prop,
+          Name: `${me.propertyPath}/${prop.Name}`,
+          ['sap:label']: `${me.propertyPath}/${prop['sap:label']}`,
+        })),
+      ]),
+    ];
+
+    const uniqueAvailableProperties = availableProperties.filter(
+      (value, index, self) =>
+        index === self.findIndex((t) => t['sap:label'] === value['sap:label']),
+    );
+
+    const propertiesBySection = {};
+    uniqueAvailableProperties.forEach((prop) => {
+      const section = prop.Name.includes('/')
+        ? prop.Name.split('/')[0]
+        : 'mainAutocomplete';
+      if (!propertiesBySection[section]) {
+        propertiesBySection[section] = [];
+      }
+      propertiesBySection[section].push(prop);
+    });
+
+    const sectionSelectionStatus = Object.entries(propertiesBySection).map(
+      ([section, props]) => {
+        const selectedPropsInSection = allSelectedPropertyNames.filter(
+          (selected) => {
+            if (section === 'mainAutocomplete') {
+              return !selected.includes('/');
+            }
+            return selected.startsWith(`${section}/`);
+          },
+        );
+
+        const allPropsInSectionSelected = props.every((prop) =>
+          selectedPropsInSection.some(
+            (selected) =>
+              selected === prop.Name || selected.endsWith(`/${prop.Name}`),
+          ),
+        );
+
+        return { section, allPropsSelected: allPropsInSectionSelected };
+      },
+    );
+
+    let propertyNames = [];
+    propertyNames = Object.entries(newSelectedProperties).flatMap(
+      ([key, values]) => {
+        const sectionStatus = sectionSelectionStatus.find(
+          (s) => s.section === key,
+        );
+        if (sectionStatus?.allPropsSelected) {
+          return key === 'mainAutocomplete' ? ['/'] : [`${key}/`];
+        }
+        if (key === 'mainAutocomplete') {
+          return values;
+        }
+        return values.map((value) => `${key}/${value}`);
+      },
+    );
+
     if (!newValue || !isTargetOfEdge) {
       dispatch(
-        setSelectedProperties({ id, propertyNames: allSelectedPropertyNames }),
+        setSelectedProperties({
+          id,
+          propertyNames,
+        }),
       );
     } else {
       dispatch(
         setPropertySelection({
           entityName: selectedEntity,
-          propertyNames: allSelectedPropertyNames,
+          propertyNames,
           id,
         }),
       );
     }
 
-    const entity = filteredEntities.find((e) => e.name === selectedEntity);
     const navigationProperties = entity
       ? Array.from(
           new Set([
