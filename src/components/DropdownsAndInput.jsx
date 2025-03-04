@@ -1,82 +1,24 @@
-import { useState, useMemo } from 'react';
-import { Autocomplete, Input, Select, Option } from '@mui/joy';
+import { useState } from 'react';
+import { Autocomplete, Select, Option } from '@mui/joy';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { useReactFlow } from '@xyflow/react';
-import { OPERATOR_OPTIONS } from './dropdownsAndInput.constants';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import dayjs from 'dayjs';
-
-const getInputComponentForType = (propertyType, props) => {
-  if (propertyType && typeof propertyType === 'string') {
-    const typeMatch = propertyType.match(/Edm\.(.*)/);
-    const type = typeMatch ? typeMatch[1] : propertyType;
-
-    switch (type.toLowerCase()) {
-      case 'datetimeoffset':
-      case 'date':
-        return (
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateTimePicker
-              name={props.name}
-              value={props.value ? dayjs(props.value) : null}
-              onChange={props.onChange}
-              slotProps={{
-                textField: {
-                  size: 'small',
-                  sx: {
-                    '& .MuiInputBase-root': {
-                      borderRadius: 0,
-                      height: '36px',
-                    },
-                  },
-                },
-              }}
-              label={props.placeholder}
-            />
-          </LocalizationProvider>
-        );
-      case 'int16':
-      case 'int32':
-      case 'int64':
-      case 'decimal':
-      case 'double':
-      case 'single':
-        return <Input type='' {...props} />;
-      case 'boolean':
-        return (
-          <Select {...props}>
-            <Option value='true'>True</Option>
-            <Option value='false'>False</Option>
-          </Select>
-        );
-      default:
-        return <Input type='text' {...props} />;
-    }
-  }
-  return <Input type='text' {...props} />;
-};
+import {
+  OPERATOR_OPTIONS,
+  AUTOCOMPLETE_STYLES,
+  SELECT_STYLES,
+} from './dropdownsAndInput.constants';
+import PropertyTypeInput from './PropertyTypeInput';
+import usePropertyOptions from '../hooks/usePropertyOptions';
 
 export default function DropdownsAndInput({
   propertyOptionsId,
   fieldIdentifierId,
   ...props
 }) {
-  const propertyOptions = useSelector(
-    (state) => state.entities.propertyOptions[propertyOptionsId] || [],
-  );
   const formData = useSelector((state) => state.entities.formData);
-  const config = useSelector((state) => state.entities.config);
-  const propertyOptionsState = useSelector(
-    (state) => state.entities.propertyOptions,
-  );
 
-  const sortedPropertyOptions = useMemo(
-    () => [...propertyOptions].sort((a, b) => a.Name.localeCompare(b.Name)),
-    [propertyOptions],
-  );
+  const { combinedOptions, propertyOptions } =
+    usePropertyOptions(propertyOptionsId);
 
   const [property, setProperty] = useState(() => {
     const storedPropertyName =
@@ -89,114 +31,13 @@ export default function DropdownsAndInput({
   const [operator, setOperator] = useState(
     formData[propertyOptionsId]?.[`operator_${fieldIdentifierId}`] ?? '',
   );
+
   const [value, setValue] = useState(
     formData[propertyOptionsId]?.[`value_${fieldIdentifierId}`] ?? '',
   );
 
-  const { getEdges } = useReactFlow();
-  const edges = getEdges();
-
-  const relatedSourceIds = edges
-    .filter((edge) => edge.target === propertyOptionsId)
-    .map((edge) => edge.source);
-
-  const sourcePropertyOptions = useMemo(
-    () =>
-      relatedSourceIds.flatMap(
-        (sourceId) => propertyOptionsState[sourceId] || [],
-      ),
-    [propertyOptionsState, relatedSourceIds],
-  );
-
-  const relatedSourceSelectedProperties = relatedSourceIds.flatMap((sourceId) =>
-    (config[sourceId] ? Object.values(config[sourceId]) : []).flatMap(
-      (entity) =>
-        (entity.selectedProperties || []).map(
-          (propertyName) =>
-            sourcePropertyOptions.find(
-              (prop) => prop.Name === propertyName,
-            ) || { name: propertyName },
-        ),
-    ),
-  );
-
-  const relatedSourceEntities = relatedSourceIds.flatMap((sourceId) =>
-    config[sourceId] ? Object.keys(config[sourceId]) : [],
-  );
-
-  const groupedAvailableProperties = sortedPropertyOptions.reduce(
-    (acc, prop) => {
-      const label = prop.Name;
-      const firstLetter = label[0].toUpperCase();
-      if (!acc[firstLetter]) acc[firstLetter] = [];
-      acc[firstLetter].push(prop);
-      return acc;
-    },
-    {},
-  );
-
-  const combinedOptions = [
-    ...relatedSourceEntities.map((entity) => {
-      const relevantProperties = relatedSourceSelectedProperties.filter(
-        (prop) =>
-          relatedSourceIds.some(
-            (sourceId) =>
-              config[sourceId] &&
-              Object.keys(config[sourceId]).some(
-                (entityConfig) =>
-                  entityConfig === entity &&
-                  config[sourceId][entityConfig]?.selectedProperties?.includes(
-                    prop.Name,
-                  ),
-              ),
-          ),
-      );
-
-      return {
-        group: `Selected Props of ${entity}`,
-        options: relevantProperties,
-      };
-    }),
-    ...Object.keys(groupedAvailableProperties)
-      .sort()
-      .map((letter) => ({
-        group: letter,
-        options: groupedAvailableProperties[letter],
-      })),
-  ];
-
-  const renderInputComponent = () => {
-    const propertyType = property?.Type || property?.type;
-
-    const inputProps = {
-      name: `value_${fieldIdentifierId}`,
-      value: value,
-      onChange: (e) => {
-        if (propertyType && typeof propertyType === 'string') {
-          const typeMatch = propertyType.match(/Edm\.(.*)/);
-          const type = typeMatch ? typeMatch[1] : propertyType;
-
-          if (
-            type.toLowerCase() === 'datetimeoffset' ||
-            type.toLowerCase() === 'date'
-          ) {
-            setValue(e);
-            return;
-          }
-        }
-
-        setValue(typeof e === 'object' && e.target ? e.target.value : e);
-      },
-      placeholder: 'Enter a value',
-      required: true,
-      sx: {
-        borderRadius: 0,
-        width: 170,
-      },
-      ...props,
-    };
-
-    return getInputComponentForType(propertyType, inputProps);
+  const handleValueChange = (e) => {
+    setValue(typeof e === 'object' && e.target ? e.target.value : e);
   };
 
   return (
@@ -217,21 +58,14 @@ export default function DropdownsAndInput({
         placeholder='Property'
         required
         isOptionEqualToValue={(option, value) => option.Name === value?.Name}
-        sx={{
-          borderTopRightRadius: 0,
-          borderBottomRightRadius: 0,
-          width: 200,
-        }}
+        sx={AUTOCOMPLETE_STYLES}
       />
       <Select
         name={`operator_${fieldIdentifierId}`}
         value={operator || ''}
         onChange={(e, newValue) => setOperator(newValue)}
         required
-        sx={{
-          borderRadius: 0,
-          width: 120,
-        }}
+        sx={SELECT_STYLES}
       >
         <Option value='' disabled>
           Operator
@@ -242,7 +76,15 @@ export default function DropdownsAndInput({
           </Option>
         ))}
       </Select>
-      {renderInputComponent()}
+      <PropertyTypeInput
+        propertyType={property?.Type || property?.type}
+        name={`value_${fieldIdentifierId}`}
+        value={value}
+        onChange={handleValueChange}
+        placeholder='Enter a value'
+        required
+        {...props}
+      />
     </>
   );
 }
