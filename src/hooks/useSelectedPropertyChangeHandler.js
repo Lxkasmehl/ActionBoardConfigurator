@@ -71,7 +71,6 @@ export function useSelectedPropertyChangeHandler(
               );
             }
           } else if (k.includes(`${key}/${values}`)) {
-            console.log('else if deleted');
             delete newSelectedProperties[k];
             setAccordionSelectedProperties(
               (Array.isArray(accordionSelectedProperties)

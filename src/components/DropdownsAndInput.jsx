@@ -4,6 +4,60 @@ import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useReactFlow } from '@xyflow/react';
 import { OPERATOR_OPTIONS } from './dropdownsAndInput.constants';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import dayjs from 'dayjs';
+
+const getInputComponentForType = (propertyType, props) => {
+  if (propertyType && typeof propertyType === 'string') {
+    const typeMatch = propertyType.match(/Edm\.(.*)/);
+    const type = typeMatch ? typeMatch[1] : propertyType;
+
+    switch (type.toLowerCase()) {
+      case 'datetimeoffset':
+      case 'date':
+        return (
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateTimePicker
+              name={props.name}
+              value={props.value ? dayjs(props.value) : null}
+              onChange={props.onChange}
+              slotProps={{
+                textField: {
+                  size: 'small',
+                  sx: {
+                    '& .MuiInputBase-root': {
+                      borderRadius: 0,
+                      height: '36px',
+                    },
+                  },
+                },
+              }}
+              label={props.placeholder}
+            />
+          </LocalizationProvider>
+        );
+      case 'int16':
+      case 'int32':
+      case 'int64':
+      case 'decimal':
+      case 'double':
+      case 'single':
+        return <Input type='' {...props} />;
+      case 'boolean':
+        return (
+          <Select {...props}>
+            <Option value='true'>True</Option>
+            <Option value='false'>False</Option>
+          </Select>
+        );
+      default:
+        return <Input type='text' {...props} />;
+    }
+  }
+  return <Input type='text' {...props} />;
+};
 
 export default function DropdownsAndInput({
   propertyOptionsId,
@@ -111,6 +165,40 @@ export default function DropdownsAndInput({
       })),
   ];
 
+  const renderInputComponent = () => {
+    const propertyType = property?.Type || property?.type;
+
+    const inputProps = {
+      name: `value_${fieldIdentifierId}`,
+      value: value,
+      onChange: (e) => {
+        if (propertyType && typeof propertyType === 'string') {
+          const typeMatch = propertyType.match(/Edm\.(.*)/);
+          const type = typeMatch ? typeMatch[1] : propertyType;
+
+          if (
+            type.toLowerCase() === 'datetimeoffset' ||
+            type.toLowerCase() === 'date'
+          ) {
+            setValue(e);
+            return;
+          }
+        }
+
+        setValue(typeof e === 'object' && e.target ? e.target.value : e);
+      },
+      placeholder: 'Enter a value',
+      required: true,
+      sx: {
+        borderRadius: 0,
+        width: 170,
+      },
+      ...props,
+    };
+
+    return getInputComponentForType(propertyType, inputProps);
+  };
+
   return (
     <>
       <Autocomplete
@@ -154,18 +242,7 @@ export default function DropdownsAndInput({
           </Option>
         ))}
       </Select>
-      <Input
-        name={`value_${fieldIdentifierId}`}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder='Enter a value'
-        required
-        sx={{
-          borderRadius: 0,
-          width: 170,
-        }}
-        {...props}
-      />
+      {renderInputComponent()}
     </>
   );
 }
