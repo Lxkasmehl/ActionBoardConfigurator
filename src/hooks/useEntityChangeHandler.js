@@ -14,6 +14,7 @@ export function useEntityChangeHandler(
   isTargetOfEdge,
   setMatchingEntitiesState,
   setSelectedPropertiesSectionState,
+  setIsChecked,
 ) {
   const dispatch = useDispatch();
 
@@ -41,6 +42,7 @@ export function useEntityChangeHandler(
 
     setSelectedPropertiesSectionState([]);
     setMatchingEntitiesState([]);
+    setIsChecked(false);
   };
 
   return handleEntityChange;

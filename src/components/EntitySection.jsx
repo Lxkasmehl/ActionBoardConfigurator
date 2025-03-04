@@ -72,6 +72,7 @@ export default function EntitySection({ id }) {
     isTargetOfEdge,
     setMatchingEntitiesState,
     setSelectedPropertiesSectionState,
+    setIsChecked,
   );
 
   const handleSelectedPropertyChange = useSelectedPropertyChangeHandler(
@@ -142,8 +143,8 @@ export default function EntitySection({ id }) {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          minWidth: '40em',
-          maxWidth: '760px',
+          minWidth: '600px',
+          maxWidth: '780px',
           width: 'auto',
           padding: 3,
         }}
@@ -209,7 +210,7 @@ export default function EntitySection({ id }) {
               display: 'flex',
               flexDirection: 'row',
               flexWrap: 'wrap',
-              justifyContent: 'space-between',
+              gap: '1rem',
               [`& .${accordionClasses.root}`]: {
                 marginTop: '0.5rem',
                 transition: '0.2s ease',
@@ -237,7 +238,17 @@ export default function EntitySection({ id }) {
                 key={entity.propertyPath}
                 sx={{ height: 'fit-content' }}
               >
-                <AccordionSummary>{entity.propertyPath}</AccordionSummary>
+                <AccordionSummary
+                  sx={{
+                    maxWidth: '232px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    wordBreak: 'break-word',
+                    hyphens: 'auto',
+                  }}
+                >
+                  {entity.propertyPath}
+                </AccordionSummary>
                 <AccordionDetails>
                   <PropertySelector
                     options={[
