@@ -7,8 +7,8 @@ export default function usePropertyOptions(propertyOptionsId) {
     (state) => state.entities.propertyOptions[propertyOptionsId] || [],
   );
   const config = useSelector((state) => state.entities.config);
-  const propertyOptionsState = useSelector(
-    (state) => state.entities.propertyOptions,
+  const propertiesBySection = useSelector(
+    (state) => state.entities.propertiesBySection || {},
   );
 
   const { getEdges } = useReactFlow();
@@ -23,23 +23,21 @@ export default function usePropertyOptions(propertyOptionsId) {
     .filter((edge) => edge.target === propertyOptionsId)
     .map((edge) => edge.source);
 
-  const sourcePropertyOptions = useMemo(
-    () =>
-      relatedSourceIds.flatMap(
-        (sourceId) => propertyOptionsState[sourceId] || [],
-      ),
-    [propertyOptionsState, relatedSourceIds],
-  );
-
   const relatedSourceSelectedProperties = relatedSourceIds.flatMap((sourceId) =>
     (config[sourceId] ? Object.values(config[sourceId]) : []).flatMap(
       (entity) =>
-        (entity.selectedProperties || []).map(
-          (propertyName) =>
-            sourcePropertyOptions.find(
-              (prop) => prop.Name === propertyName,
-            ) || { name: propertyName },
-        ),
+        (entity.selectedProperties || []).map((propertyPath) => {
+          if (!propertyPath.includes('/')) {
+            return propertiesBySection[sourceId]['mainAutocomplete'].find(
+              (prop) => prop.Name === propertyPath,
+            );
+          } else {
+            const path = propertyPath.split('/').slice(0, -1).join('/');
+            return propertiesBySection[sourceId][path].find(
+              (prop) => prop.Name === propertyPath,
+            );
+          }
+        }),
     ),
   );
 

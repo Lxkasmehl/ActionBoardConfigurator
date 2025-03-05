@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedProperties,
   setPropertySelection,
+  setPropertiesBySection,
 } from '../redux/entitiesSlice';
 
 export function useSelectedPropertyChangeHandler(
@@ -121,13 +122,15 @@ export function useSelectedPropertyChangeHandler(
     const propertiesBySection = {};
     uniqueAvailableProperties.forEach((prop) => {
       const section = prop.Name.includes('/')
-        ? prop.Name.split('/')[0]
+        ? prop.Name.split('/').slice(0, -1).join('/')
         : 'mainAutocomplete';
       if (!propertiesBySection[section]) {
         propertiesBySection[section] = [];
       }
       propertiesBySection[section].push(prop);
     });
+
+    dispatch(setPropertiesBySection({ id, propertiesBySection }));
 
     const sectionSelectionStatus = Object.entries(propertiesBySection).map(
       ([section, props]) => {
