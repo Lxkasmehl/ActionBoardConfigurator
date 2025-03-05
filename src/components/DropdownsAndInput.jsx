@@ -82,6 +82,7 @@ export default function DropdownsAndInput({
         value={value}
         onChange={handleValueChange}
         placeholder='Enter a value'
+        operator={operator}
         required
         {...props}
       />
