@@ -9,6 +9,10 @@ import {
 } from './dropdownsAndInput.constants';
 import PropertyTypeInput from './PropertyTypeInput';
 import usePropertyOptions from '../hooks/usePropertyOptions';
+import {
+  findMatchingEntity,
+  getNavigationProperties,
+} from '../utils/navigationUtils';
 
 export default function DropdownsAndInput({
   propertyOptionsId,
@@ -89,17 +93,7 @@ export default function DropdownsAndInput({
       matchingEntityObjectState?.matchingEntity ||
       filteredEntities.find((e) => e.name === selectedEntity);
 
-    const navigationProperties = currentEntity
-      ? Array.from(
-          new Set(
-            currentEntity.properties.navigationProperties.map((p) => p.Name),
-          ),
-        ).map((Name) =>
-          currentEntity.properties.navigationProperties.find(
-            (p) => p.Name === Name,
-          ),
-        )
-      : [];
+    const navigationProperties = getNavigationProperties(currentEntity);
 
     const isNavigationProperty = navigationProperties.some((np) =>
       np.Name.endsWith('Nav')
@@ -116,29 +110,17 @@ export default function DropdownsAndInput({
         const currentEntity = filteredEntities.find(
           (e) => e.name === selectedEntity,
         );
-        const navProp = currentEntity.properties.navigationProperties.find(
-          (np) =>
-            np.Name.endsWith('Nav')
-              ? np.Name.slice(0, -3) === pathParts[pathParts.length - 1]
-              : np.Name === pathParts[pathParts.length - 1],
-        );
-        if (navProp) {
-          const relationship = navProp.Relationship.startsWith('SFOData.')
-            ? navProp.Relationship.slice(8)
-            : navProp.Relationship;
-          const matchingAssociationSet = associationSets.find(
-            (as) => as.name === relationship,
-          );
-          const matchingEndElement = matchingAssociationSet?.endElements.find(
-            (ee) => ee.Role === navProp.FromRole,
-          );
-          const newCurrentEntity = allEntities.find(
-            (e) => e.name === matchingEndElement?.EntitySet,
-          );
-          if (newCurrentEntity) {
-            relevantNavigationProperties =
-              newCurrentEntity.properties.navigationProperties;
-          }
+        const { matchingEntity: newCurrentEntity } =
+          findMatchingEntity({
+            propertyName: pathParts[pathParts.length - 1],
+            navigationProperties: currentEntity.properties.navigationProperties,
+            associationSets,
+            allEntities,
+          }) || {};
+
+        if (newCurrentEntity) {
+          relevantNavigationProperties =
+            newCurrentEntity.properties.navigationProperties;
         }
       }
 
@@ -171,38 +153,17 @@ export default function DropdownsAndInput({
     setPath(newPath);
     setPartialPath(newPath);
 
-    const matchingProperty = navigationProperties.find((np) =>
-      np.Name.endsWith('Nav')
-        ? np.Name.slice(0, -3) === newValueName
-        : np.Name === newValueName,
-    );
+    const { matchingEntity } =
+      findMatchingEntity({
+        propertyName: newValueName,
+        navigationProperties,
+        associationSets,
+        allEntities,
+      }) || {};
 
-    let matchingEntityObject = { path: newPath, matchingEntity: {} };
-
-    if (matchingProperty) {
-      const relationship = matchingProperty.Relationship.startsWith('SFOData.')
-        ? matchingProperty.Relationship.slice(8)
-        : matchingProperty.Relationship;
-
-      const matchingAssociationSet = associationSets.find(
-        (as) => as.name === relationship,
-      );
-
-      if (matchingAssociationSet) {
-        const matchingEndElement = matchingAssociationSet.endElements.find(
-          (ee) => ee.Role === matchingProperty.ToRole,
-        );
-
-        if (matchingEndElement) {
-          const matchingEntity = allEntities.find(
-            (e) => e.name === matchingEndElement.EntitySet,
-          );
-          if (matchingEntity) {
-            matchingEntityObject = { path: newPath, matchingEntity };
-          }
-        }
-      }
-    }
+    const matchingEntityObject = matchingEntity
+      ? { path: newPath, matchingEntity }
+      : { path: newPath, matchingEntity: {} };
 
     setMatchingEntityObjectState(matchingEntityObject);
     setAutocompleteKey((prev) => prev + 1);

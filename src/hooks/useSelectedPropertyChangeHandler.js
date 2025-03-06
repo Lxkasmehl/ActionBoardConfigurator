@@ -5,6 +5,10 @@ import {
   setPropertySelection,
   setPropertiesBySection,
 } from '../redux/entitiesSlice';
+import {
+  findMatchingEntity,
+  getNavigationProperties,
+} from '../utils/navigationUtils';
 
 export function useSelectedPropertyChangeHandler(
   isTargetOfEdge,
@@ -187,28 +191,7 @@ export function useSelectedPropertyChangeHandler(
       );
     }
 
-    const navigationProperties = entity
-      ? Array.from(
-          new Set([
-            ...entity.properties.navigationProperties.map((p) => p.Name),
-            ...matchingEntitiesState.flatMap((me) =>
-              me.matchingEntity.properties.navigationProperties.map(
-                (p) => p.Name,
-              ),
-            ),
-          ]),
-        ).map(
-          (Name) =>
-            entity.properties.navigationProperties.find(
-              (p) => p.Name === Name,
-            ) ||
-            matchingEntitiesState
-              .flatMap(
-                (me) => me.matchingEntity.properties.navigationProperties,
-              )
-              .find((p) => p.Name === Name),
-        )
-      : [];
+    const navigationProperties = getNavigationProperties(entity);
 
     let matchingEntities = [];
     allSelectedPropertyNames.forEach((propertyPath) => {
@@ -216,40 +199,16 @@ export function useSelectedPropertyChangeHandler(
         ? propertyPath.split('/').slice(-1)[0]
         : propertyPath;
 
-      const matchingProperty = navigationProperties.find((np) => {
-        if (np.Name.endsWith('Nav')) {
-          return np.Name.slice(0, -3) === propertyName;
-        }
-        return np.Name === propertyName;
-      });
+      const { matchingEntity } =
+        findMatchingEntity({
+          propertyName,
+          navigationProperties,
+          associationSets,
+          allEntities,
+        }) || {};
 
-      if (matchingProperty) {
-        const matchingAssociationSet = associationSets.find((as) => {
-          const relationship = matchingProperty.Relationship.startsWith(
-            'SFOData.',
-          )
-            ? matchingProperty.Relationship.slice(8)
-            : matchingProperty.Relationship;
-          return as.name === relationship;
-        });
-
-        if (matchingAssociationSet) {
-          const matchingEndElement = matchingAssociationSet.endElements.find(
-            (ee) => {
-              return ee.Role === matchingProperty.ToRole;
-            },
-          );
-
-          if (matchingEndElement) {
-            const matchingEntity = allEntities.find((e) => {
-              return e.name === matchingEndElement.EntitySet;
-            });
-
-            if (matchingEntity) {
-              matchingEntities.push({ propertyPath, matchingEntity });
-            }
-          }
-        }
+      if (matchingEntity) {
+        matchingEntities.push({ propertyPath, matchingEntity });
       }
     });
 

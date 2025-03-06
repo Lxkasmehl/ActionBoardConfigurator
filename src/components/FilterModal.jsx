@@ -18,7 +18,7 @@ const buildConditions = (obj) => {
   const grouped = {};
 
   for (const [key, value] of Object.entries(obj)) {
-    const match = key.match(/(property|operator|value)_(\d+)/);
+    const match = key.match(/(fullPath|operator|value)_(\d+)/);
     if (match) {
       const [, type, id] = match;
       if (!grouped[id]) grouped[id] = {};
@@ -27,9 +27,9 @@ const buildConditions = (obj) => {
   }
 
   for (const group of Object.values(grouped)) {
-    if (group.property && group.operator && group.value) {
+    if (group.fullPath && group.operator && group.value) {
       conditions.push({
-        field: group.property,
+        field: group.fullPath,
         operator: group.operator,
         value: group.value,
       });
@@ -58,7 +58,7 @@ const buildFilterObject = (obj) => {
   for (const condition of conditions) {
     const groupId = Object.keys(logicGroups).find((id) =>
       Object.keys(obj).some(
-        (key) => key.includes(`property_${id}`) && obj[key] === condition.field,
+        (key) => key.includes(`fullPath_${id}`) && obj[key] === condition.field,
       ),
     );
 
