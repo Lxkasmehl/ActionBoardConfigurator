@@ -211,7 +211,6 @@ export function useSelectedPropertyChangeHandler(
       : [];
 
     let matchingEntities = [];
-
     allSelectedPropertyNames.forEach((propertyPath) => {
       const propertyName = propertyPath.includes('/')
         ? propertyPath.split('/').slice(-1)[0]
@@ -253,6 +252,8 @@ export function useSelectedPropertyChangeHandler(
         }
       }
     });
+
+    console.log('matchingEntities', matchingEntities);
 
     setMatchingEntitiesState(matchingEntities);
     console.log(config);

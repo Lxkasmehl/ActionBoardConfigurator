@@ -13,6 +13,7 @@ const initialState = {
   selectedProperties: {},
   customFilters: {},
   propertiesBySection: {},
+  matchingEntityObjects: {},
 };
 
 const initializeEntityConfig = (state, id, entityName) => {
@@ -128,6 +129,11 @@ const entitiesSlice = createSlice({
       const { id, propertiesBySection } = action.payload;
       state.propertiesBySection[id] = propertiesBySection;
     },
+
+    setMatchingEntityObjects(state, action) {
+      const { id, matchingEntityObjects } = action.payload;
+      state.matchingEntityObjects[id] = matchingEntityObjects;
+    },
   },
 });
 
@@ -150,6 +156,7 @@ export const {
   setSelectedProperties,
   setCustomFilter,
   setPropertiesBySection,
+  setMatchingEntityObjects,
 } = entitiesSlice.actions;
 
 export default entitiesSlice.reducer;

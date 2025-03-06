@@ -9,6 +9,7 @@ import {
   setFormData,
   removeGroupedEntityLogic,
   setCustomFilter,
+  setMatchingEntityObjects,
 } from '../redux/entitiesSlice';
 import { useReactFlow } from '@xyflow/react';
 
@@ -146,7 +147,22 @@ export default function FilterModal({ open, onClose, entity, id }) {
     const formObject = Object.fromEntries(fd.entries());
     const filterObject = buildFilterObject(formObject);
 
+    const matchingEntityObjects = {};
+    const elements = event.target.elements;
+    for (let i = 0; i < elements.length; i++) {
+      const element = elements[i];
+      if (element.name?.startsWith('matchingEntityObject_')) {
+        const fieldId = element.name.split('_')[1];
+        try {
+          matchingEntityObjects[fieldId] = JSON.parse(element.value);
+        } catch (e) {
+          console.warn('Failed to parse matching entity object:', e);
+        }
+      }
+    }
+
     dispatch(setFormData({ id, formObject }));
+    dispatch(setMatchingEntityObjects({ id, matchingEntityObjects }));
 
     if (isTargetOfEdge) {
       dispatch(setEntityFilter({ entityName: entity, id, filterObject }));
