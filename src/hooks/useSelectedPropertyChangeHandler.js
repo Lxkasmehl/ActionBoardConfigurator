@@ -212,8 +212,6 @@ export function useSelectedPropertyChangeHandler(
       }
     });
 
-    console.log('matchingEntities', matchingEntities);
-
     setMatchingEntitiesState(matchingEntities);
     console.log(config);
   };

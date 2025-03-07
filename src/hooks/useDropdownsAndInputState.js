@@ -1,10 +1,11 @@
 import { useReducer } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import usePropertyOptions from './usePropertyOptions';
 import {
   findMatchingEntity,
   getNavigationProperties,
 } from '../utils/navigationUtils';
+import { setMatchingEntityObjects } from '../redux/entitiesSlice';
 
 const initialState = {
   property: null,
@@ -42,9 +43,6 @@ export default function useDropdownsAndInputState(
   fieldIdentifierId,
 ) {
   const formData = useSelector((state) => state.entities.formData);
-  const storedMatchingEntityObjects = useSelector(
-    (state) => state.entities.matchingEntityObjects,
-  );
   const allEntities = useSelector((state) => state.entities.allEntities);
   const associationSets = useSelector(
     (state) => state.entities.associationSets,
@@ -52,29 +50,25 @@ export default function useDropdownsAndInputState(
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
   );
+  const matchingEntityObjects = useSelector(
+    (state) => state.entities.matchingEntityObjects,
+  );
   const selectedEntities = useSelector(
     (state) => state.entities.selectedEntities,
   );
   const selectedEntity = selectedEntities[propertyOptionsId];
-  const { combinedOptions, propertyOptions } =
-    usePropertyOptions(propertyOptionsId);
+  const { combinedOptions } = usePropertyOptions(propertyOptionsId);
+  const dispatch = useDispatch();
 
-  const [state, dispatch] = useReducer(reducer, {
+  const [state, localDispatch] = useReducer(reducer, {
     ...initialState,
-    property: formData[propertyOptionsId]?.[`property_${fieldIdentifierId}`]
-      ? propertyOptions.find(
-          (prop) =>
-            prop.Name ===
-            formData[propertyOptionsId]?.[`property_${fieldIdentifierId}`],
-        ) || null
-      : null,
+    ...getInitialPropertyState(),
     operator:
       formData[propertyOptionsId]?.[`operator_${fieldIdentifierId}`] ?? '',
     value: formData[propertyOptionsId]?.[`value_${fieldIdentifierId}`] ?? '',
-    matchingEntityObjectState:
-      storedMatchingEntityObjects[propertyOptionsId]?.[fieldIdentifierId] ||
-      null,
     path: formData[propertyOptionsId]?.[`fullPath_${fieldIdentifierId}`] ?? '',
+    matchingEntityObjectState:
+      matchingEntityObjects[propertyOptionsId]?.[fieldIdentifierId],
     partialPath: (() => {
       const initialPath =
         formData[propertyOptionsId]?.[`fullPath_${fieldIdentifierId}`] ?? '';
@@ -85,8 +79,33 @@ export default function useDropdownsAndInputState(
     })(),
   });
 
+  function getInitialPropertyState() {
+    const propertyFromForm =
+      formData[propertyOptionsId]?.[`property_${fieldIdentifierId}`];
+
+    console.log(matchingEntityObjects[propertyOptionsId]?.[fieldIdentifierId]);
+
+    const matchingProperty = matchingEntityObjects[propertyOptionsId]?.[
+      fieldIdentifierId
+    ].matchingEntity
+      ? matchingEntityObjects[propertyOptionsId][
+          fieldIdentifierId
+        ]?.matchingEntity?.properties?.properties?.find(
+          (prop) => prop.Name === propertyFromForm,
+        )
+      : propertyFromForm
+        ? combinedOptions
+            .flatMap((group) => group.options)
+            .find((prop) => prop.Name === propertyFromForm) || null
+        : null;
+
+    return {
+      property: matchingProperty,
+    };
+  }
+
   const handleValueChange = (e) => {
-    dispatch({
+    localDispatch({
       type: 'SET_VALUE',
       payload: typeof e === 'object' && e.target ? e.target.value : e,
     });
@@ -109,21 +128,25 @@ export default function useDropdownsAndInputState(
     );
 
     if (!isNavigationProperty) {
-      dispatch({ type: 'SET_PROPERTY', payload: newValue });
+      localDispatch({ type: 'SET_PROPERTY', payload: newValue });
       const pathParts = state.path.split('/');
 
       let relevantNavigationProperties = navigationProperties;
       if (pathParts.length > 0) {
-        const currentEntity = filteredEntities.find(
+        let currentEntity = filteredEntities.find(
           (e) => e.name === selectedEntity,
         );
-        const { matchingEntity: newCurrentEntity } =
-          findMatchingEntity({
+
+        let newCurrentEntity = currentEntity;
+        if (pathParts.length > 1) {
+          const result = findMatchingEntity({
             propertyName: pathParts[pathParts.length - 1],
             navigationProperties: currentEntity.properties.navigationProperties,
             associationSets,
             allEntities,
-          }) || {};
+          });
+          newCurrentEntity = result?.matchingEntity;
+        }
 
         if (newCurrentEntity) {
           relevantNavigationProperties =
@@ -145,23 +168,23 @@ export default function useDropdownsAndInputState(
           : newValueName
         : newValueName;
 
-      dispatch({ type: 'SET_PATH', payload: newPath });
-      dispatch({
+      localDispatch({ type: 'SET_PATH', payload: newPath });
+      localDispatch({
         type: 'SET_MATCHING_ENTITY',
         payload: {
           ...state.matchingEntityObjectState,
           path: newPath,
         },
       });
-      dispatch({ type: 'INCREMENT_AUTOCOMPLETE_KEY' });
+      localDispatch({ type: 'INCREMENT_AUTOCOMPLETE_KEY' });
       return;
     }
 
     const newPath = state.matchingEntityObjectState
       ? `${state.partialPath !== '' ? `${state.partialPath}/` : ''}${newValueName}`
       : newValueName;
-    dispatch({ type: 'SET_PATH', payload: newPath });
-    dispatch({ type: 'SET_PARTIAL_PATH', payload: newPath });
+    localDispatch({ type: 'SET_PATH', payload: newPath });
+    localDispatch({ type: 'SET_PARTIAL_PATH', payload: newPath });
 
     const { matchingEntity } =
       findMatchingEntity({
@@ -175,8 +198,23 @@ export default function useDropdownsAndInputState(
       ? { path: newPath, matchingEntity }
       : { path: newPath, matchingEntity: {} };
 
-    dispatch({ type: 'SET_MATCHING_ENTITY', payload: matchingEntityObject });
-    dispatch({ type: 'INCREMENT_AUTOCOMPLETE_KEY' });
+    localDispatch({
+      type: 'SET_MATCHING_ENTITY',
+      payload: matchingEntityObject,
+    });
+    localDispatch({ type: 'INCREMENT_AUTOCOMPLETE_KEY' });
+
+    const updatedMatchingEntityObjects = {
+      ...matchingEntityObjects[propertyOptionsId],
+      [fieldIdentifierId]: matchingEntity,
+    };
+
+    dispatch(
+      setMatchingEntityObjects({
+        id: propertyOptionsId,
+        matchingEntityObjects: updatedMatchingEntityObjects,
+      }),
+    );
   };
 
   return {
@@ -184,6 +222,6 @@ export default function useDropdownsAndInputState(
     handleValueChange,
     handlePropertyChange,
     combinedOptions,
-    dispatch,
+    localDispatch,
   };
 }
