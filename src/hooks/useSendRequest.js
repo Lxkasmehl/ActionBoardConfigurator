@@ -1,31 +1,11 @@
 import { useCallback } from 'react';
+import { requestManager } from '../utils/requestManager';
+import { convertFilterToOData } from '../utils/oDataUtils';
 
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
 
 export const useSendRequest = (config) => {
-  const convertFilterToOData = (filter) => {
-    if (!filter || !filter.conditions || filter.conditions.length === 0)
-      return '';
-
-    const conditions = filter.conditions.map((condition) => {
-      switch (condition.operator) {
-        case 'eq':
-          return `${condition.field} eq '${condition.value}'`;
-        case 'ne':
-          return `${condition.field} ne '${condition.value}'`;
-        case 'gt':
-          return `${condition.field} gt '${condition.value}'`;
-        case 'lt':
-          return `${condition.field} lt '${condition.value}'`;
-        default:
-          return `${condition.field} eq '${condition.value}'`;
-      }
-    });
-
-    return conditions.join(` ${filter.entityLogic || 'AND'} `);
-  };
-
   const handleSendRequest = useCallback(async () => {
     try {
       const headers = new Headers();
@@ -61,14 +41,21 @@ export const useSendRequest = (config) => {
           params.append('$filter', filterString);
         }
 
-        return fetch(`${baseUrl}?${params.toString()}`, {
-          method: 'GET',
-          mode: 'cors',
-          headers,
-        });
+        return async () => {
+          await requestManager.waitForOpenSlot();
+          try {
+            return await fetch(`${baseUrl}?${params.toString()}`, {
+              method: 'GET',
+              mode: 'cors',
+              headers,
+            });
+          } finally {
+            requestManager.releaseSlot();
+          }
+        };
       });
 
-      const responses = await Promise.all(requests);
+      const responses = await Promise.all(requests.map((req) => req()));
 
       for (const response of responses) {
         if (!response.ok) {
