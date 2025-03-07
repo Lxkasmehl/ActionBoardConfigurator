@@ -83,8 +83,6 @@ export default function useDropdownsAndInputState(
     const propertyFromForm =
       formData[propertyOptionsId]?.[`property_${fieldIdentifierId}`];
 
-    console.log(matchingEntityObjects[propertyOptionsId]?.[fieldIdentifierId]);
-
     const matchingProperty = matchingEntityObjects[propertyOptionsId]?.[
       fieldIdentifierId
     ].matchingEntity
