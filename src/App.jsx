@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { IconButton, CircularProgress } from '@mui/joy';
+import { IconButton, CircularProgress, Button } from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
+import { useSendRequest } from './hooks/useSendRequest';
 
 import { INITIAL_NODES, NODE_TYPES, EDGE_TYPES } from './app.constants.js';
 import {
@@ -159,6 +160,17 @@ export default function App() {
     console.log(config);
   }, [createNodeId, config, nodes, setNodes]);
 
+  const handleSendRequest = useSendRequest(config);
+
+  const handleRequest = async () => {
+    try {
+      const results = await handleSendRequest();
+      console.log('Received results:', results);
+    } catch (error) {
+      console.error('Error handling request:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className='flex justify-center items-center w-screen h-screen'>
@@ -188,6 +200,22 @@ export default function App() {
         <Background />
         <Controls />
       </ReactFlow>
+
+      <Button
+        onClick={handleRequest}
+        variant='solid'
+        aria-label='Send Request'
+        color='neutral'
+        size='lg'
+        sx={{
+          position: 'fixed',
+          bottom: '40px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+        }}
+      >
+        Send Request
+      </Button>
 
       <IconButton
         onClick={addSection}
