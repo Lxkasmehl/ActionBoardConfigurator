@@ -20,50 +20,72 @@ export const useSendRequest = (config) => {
       const requests = Object.entries(config).flatMap(([, nodeConfig]) => {
         const [entityName, entityConfig] = Object.entries(nodeConfig)[0];
 
-        const baseUrl = `/api/odata/v2/${entityName}`;
-        const params = new URLSearchParams();
-
-        params.append('$format', 'json');
-
-        if (entityConfig.selectedProperties?.length > 0) {
-          if (
-            !(
-              entityConfig.selectedProperties.length === 1 &&
-              entityConfig.selectedProperties[0] === '/'
-            )
-          ) {
-            params.append('$select', entityConfig.selectedProperties.join(','));
-          }
-        }
-
-        const filterString = convertFilterToOData(entityConfig.filter);
-        if (filterString) {
-          params.append('$filter', filterString);
-        }
-
         return async () => {
-          await requestManager.waitForOpenSlot();
-          try {
-            return await fetch(`${baseUrl}?${params.toString()}`, {
-              method: 'GET',
-              mode: 'cors',
-              headers,
-            });
-          } finally {
-            requestManager.releaseSlot();
+          const allResults = [];
+          let skip = 0;
+          const top = 100;
+          let hasMoreResults = true;
+
+          while (hasMoreResults) {
+            const baseUrl = `/api/odata/v2/${entityName}`;
+            const params = new URLSearchParams();
+
+            params.append('$format', 'json');
+            params.append('$inlinecount', 'allpages');
+            params.append('$top', top.toString());
+            params.append('$skip', skip.toString());
+
+            if (entityConfig.selectedProperties?.length > 0) {
+              if (
+                !(
+                  entityConfig.selectedProperties.length === 1 &&
+                  entityConfig.selectedProperties[0] === '/'
+                )
+              ) {
+                params.append(
+                  '$select',
+                  entityConfig.selectedProperties.join(','),
+                );
+              }
+            }
+
+            const filterString = convertFilterToOData(entityConfig.filter);
+            if (filterString) {
+              params.append('$filter', filterString);
+            }
+
+            await requestManager.waitForOpenSlot();
+            try {
+              const response = await fetch(`${baseUrl}?${params.toString()}`, {
+                method: 'GET',
+                mode: 'cors',
+                headers,
+              });
+
+              if (!response.ok) {
+                throw new Error(
+                  `Request failed with status ${response.status}`,
+                );
+              }
+
+              const data = await response.json();
+              allResults.push(...data.d.results);
+
+              const totalCount = parseInt(data.d.__count);
+              if (skip + top >= totalCount) {
+                hasMoreResults = false;
+                break;
+              }
+              skip += top;
+            } finally {
+              requestManager.releaseSlot();
+            }
           }
+          return { d: { results: allResults } };
         };
       });
 
-      const responses = await Promise.all(requests.map((req) => req()));
-
-      for (const response of responses) {
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
-        }
-      }
-
-      const results = await Promise.all(responses.map((r) => r.json()));
+      const results = await Promise.all(requests.map((req) => req()));
       return results;
     } catch (error) {
       console.error('Error sending request:', error);
