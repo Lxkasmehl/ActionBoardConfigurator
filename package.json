@@ -12,17 +12,13 @@
     "test": "jest"
   },
   "dependencies": {
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^2.1.1",
     "@mui/icons-material": "^6.4.4",
     "@mui/joy": "^5.0.0-beta.51",
     "@mui/material": "^6.4.6",
     "@mui/x-date-pickers": "^7.27.1",
-    "@nextui-org/react": "^2.3.5",
     "@reduxjs/toolkit": "^2.5.1",
     "@xyflow/react": "^12.4.3",
     "axios": "^1.6.8",
