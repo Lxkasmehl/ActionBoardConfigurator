@@ -46,7 +46,14 @@ export const useSendRequest = (config) => {
         params.append('$format', 'json');
 
         if (entityConfig.selectedProperties?.length > 0) {
-          params.append('$select', entityConfig.selectedProperties.join(','));
+          if (
+            !(
+              entityConfig.selectedProperties.length === 1 &&
+              entityConfig.selectedProperties[0] === '/'
+            )
+          ) {
+            params.append('$select', entityConfig.selectedProperties.join(','));
+          }
         }
 
         const filterString = convertFilterToOData(entityConfig.filter);
