@@ -18,7 +18,7 @@ export default function DropdownsAndInput({
     handleValueChange,
     handlePropertyChange,
     combinedOptions,
-    dispatch,
+    localDispatch,
   } = useDropdownsAndInputState(propertyOptionsId, fieldIdentifierId);
 
   const commonAutocompleteProps = {
@@ -99,11 +99,7 @@ export default function DropdownsAndInput({
             ? (option) => option.group
             : undefined
         }
-        isOptionEqualToValue={
-          !state.matchingEntityObjectState
-            ? (option, value) => option.Name === value?.Name
-            : undefined
-        }
+        isOptionEqualToValue={(option, value) => option.Name === value?.Name}
         sx={{
           ...AUTOCOMPLETE_STYLES,
           ...(state.matchingEntityObjectState && {
@@ -116,7 +112,7 @@ export default function DropdownsAndInput({
         name={`operator_${fieldIdentifierId}`}
         value={state.operator || ''}
         onChange={(e, newValue) =>
-          dispatch({ type: 'SET_OPERATOR', payload: newValue })
+          localDispatch({ type: 'SET_OPERATOR', payload: newValue })
         }
         required
         sx={SELECT_STYLES}
