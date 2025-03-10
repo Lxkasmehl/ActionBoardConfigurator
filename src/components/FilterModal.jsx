@@ -15,75 +15,67 @@ import { useReactFlow } from '@xyflow/react';
 
 const buildConditions = (obj) => {
   const conditions = [];
-  const grouped = {};
+  const groups = new Map();
 
   for (const [key, value] of Object.entries(obj)) {
-    const match = key.match(/(fullPath|operator|value)_(\d+)/);
-    if (match) {
-      const [, type, id] = match;
-      if (!grouped[id]) grouped[id] = {};
-      grouped[id][type] = value;
+    if (key.startsWith('fullPath_')) {
+      const id = key.split('fullPath_')[1];
+      const groupMatch = id.match(/^group_(\d+)_(\d+)$/);
+
+      if (groupMatch) {
+        const [, groupId, conditionId] = groupMatch;
+        if (!groups.has(groupId)) {
+          groups.set(groupId, []);
+        }
+        groups.get(groupId).push({
+          id: conditionId,
+          field: value,
+          operator: obj[`operator_${id}`],
+          value: obj[`value_${id}`],
+        });
+      } else {
+        conditions.push({
+          id,
+          field: value,
+          operator: obj[`operator_${id}`],
+          value: obj[`value_${id}`],
+        });
+      }
     }
   }
 
-  for (const group of Object.values(grouped)) {
-    if (group.fullPath && group.operator && group.value) {
-      conditions.push({
-        field: group.fullPath,
-        operator: group.operator,
-        value: group.value,
-      });
-    }
-  }
-
-  return conditions;
+  return { rootConditions: conditions, groupedConditions: groups };
 };
 
 const buildFilterObject = (obj) => {
   const rootLogic = obj['entityLogic']?.toUpperCase() ?? 'AND';
+  const { rootConditions, groupedConditions } = buildConditions(obj);
+  const conditions = [];
 
-  const rootConditions = [];
-  const logicGroups = {};
-  const conditions = buildConditions(obj);
+  conditions.push(
+    ...rootConditions.map((condition) => ({
+      field: condition.field,
+      operator: condition.operator,
+      value: condition.value,
+    })),
+  );
 
-  for (const [key, value] of Object.entries(obj)) {
-    const match = key.match(/logic_(\d+)/);
-    if (match) {
-      const [, id] = match;
-      if (!logicGroups[id])
-        logicGroups[id] = { entityLogic: value.toUpperCase(), conditions: [] };
-    }
-  }
-
-  for (const condition of conditions) {
-    const groupId = Object.keys(logicGroups).find((id) =>
-      Object.keys(obj).some(
-        (key) => key.includes(`fullPath_${id}`) && obj[key] === condition.field,
-      ),
-    );
-
-    if (groupId) {
-      if (!logicGroups[groupId].conditions) {
-        logicGroups[groupId].conditions = [];
-      }
-      logicGroups[groupId].conditions.push(condition);
-    } else {
-      rootConditions.push(condition);
-    }
-  }
-
-  for (const group of Object.values(logicGroups)) {
-    if (group.conditions && group.conditions.length) {
-      rootConditions.push({
-        entityLogic: group.entityLogic,
-        conditions: group.conditions,
+  for (const [groupId, groupConditions] of groupedConditions.entries()) {
+    if (groupConditions.length > 0) {
+      conditions.push({
+        entityLogic: obj[`subLogic_${groupId}`]?.toUpperCase() ?? 'AND',
+        conditions: groupConditions.map((condition) => ({
+          field: condition.field,
+          operator: condition.operator,
+          value: condition.value,
+        })),
       });
     }
   }
 
   return {
     entityLogic: rootLogic,
-    conditions: rootConditions,
+    conditions,
   };
 };
 
@@ -153,10 +145,19 @@ export default function FilterModal({ open, onClose, entity, id }) {
       const element = elements[i];
       if (element.name?.startsWith('matchingEntityObject_')) {
         const fieldId = element.name.split('_')[1];
-        try {
-          matchingEntityObjects[fieldId] = JSON.parse(element.value);
-        } catch (e) {
-          console.warn('Failed to parse matching entity object:', e);
+        const value = element.value.trim();
+        if (value) {
+          try {
+            matchingEntityObjects[fieldId] = JSON.parse(value);
+          } catch (e) {
+            console.warn(
+              `Failed to parse matching entity object for field ${fieldId}:`,
+              e,
+            );
+            matchingEntityObjects[fieldId] = null;
+          }
+        } else {
+          matchingEntityObjects[fieldId] = null;
         }
       }
     }

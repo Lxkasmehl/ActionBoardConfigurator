@@ -60,6 +60,10 @@ export default function useDropdownsAndInputState(
   const { combinedOptions } = usePropertyOptions(propertyOptionsId);
   const dispatch = useDispatch();
 
+  const baseFieldId = fieldIdentifierId.includes('group_')
+    ? fieldIdentifierId.split('group_')[1].split('_').slice(1).join('_')
+    : fieldIdentifierId;
+
   const [state, localDispatch] = useReducer(reducer, {
     ...initialState,
     ...getInitialPropertyState(),
@@ -68,6 +72,7 @@ export default function useDropdownsAndInputState(
     value: formData[propertyOptionsId]?.[`value_${fieldIdentifierId}`] ?? '',
     path: formData[propertyOptionsId]?.[`fullPath_${fieldIdentifierId}`] ?? '',
     matchingEntityObjectState:
+      matchingEntityObjects[propertyOptionsId]?.[baseFieldId] ??
       matchingEntityObjects[propertyOptionsId]?.[fieldIdentifierId],
     partialPath: (() => {
       const initialPath =
@@ -84,18 +89,25 @@ export default function useDropdownsAndInputState(
       formData[propertyOptionsId]?.[`property_${fieldIdentifierId}`];
 
     const matchingProperty = matchingEntityObjects[propertyOptionsId]?.[
-      fieldIdentifierId
-    ].matchingEntity
+      baseFieldId
+    ]?.matchingEntity
       ? matchingEntityObjects[propertyOptionsId][
-          fieldIdentifierId
+          baseFieldId
         ]?.matchingEntity?.properties?.properties?.find(
           (prop) => prop.Name === propertyFromForm,
         )
-      : propertyFromForm
-        ? combinedOptions
-            .flatMap((group) => group.options)
-            .find((prop) => prop.Name === propertyFromForm) || null
-        : null;
+      : matchingEntityObjects[propertyOptionsId]?.[fieldIdentifierId]
+            ?.matchingEntity
+        ? matchingEntityObjects[propertyOptionsId][
+            fieldIdentifierId
+          ]?.matchingEntity?.properties?.properties?.find(
+            (prop) => prop.Name === propertyFromForm,
+          )
+        : propertyFromForm
+          ? combinedOptions
+              .flatMap((group) => group.options)
+              .find((prop) => prop.Name === propertyFromForm) || null
+          : null;
 
     return {
       property: matchingProperty,
