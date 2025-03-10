@@ -39,3 +39,26 @@ export const convertFilterToOData = (filter) => {
 
   return processCondition(filter);
 };
+
+export const generateExpandParam = (selectedProperties) => {
+  let expandSet = new Set();
+
+  let expandMap = new Map();
+  selectedProperties.forEach((field) => {
+    if (field.includes('/')) {
+      const hierarchy = field.substring(0, field.lastIndexOf('/'));
+      expandMap.set(hierarchy, field);
+    }
+  });
+
+  const deepestPaths = [...expandMap.keys()].filter(
+    (path) =>
+      ![...expandMap.keys()].some(
+        (otherPath) => path !== otherPath && otherPath.startsWith(path + '/'),
+      ),
+  );
+
+  deepestPaths.forEach((path) => expandSet.add(path));
+
+  return expandSet.size > 0 ? [...expandSet].join(',') : '';
+};
