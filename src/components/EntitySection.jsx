@@ -297,7 +297,7 @@ export default function EntitySection({ id }) {
 
         <Handle
           type='source'
-          position={Position.Right}
+          position={Position.Bottom}
           style={{
             width: '30px',
             height: '30px',
