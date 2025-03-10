@@ -1,33 +1,10 @@
 import { useCallback } from 'react';
 import { requestManager } from '../utils/requestManager';
-import { convertFilterToOData } from '../utils/oDataUtils';
+import { convertFilterToOData, generateExpandParam } from '../utils/oDataUtils';
 import { fixedEncodeURIComponent } from '../utils/sendRequestUtils';
 
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
-
-const generateExpandParam = (selectedProperties) => {
-  let expandSet = new Set();
-
-  let expandMap = new Map();
-  selectedProperties.forEach((field) => {
-    if (field.includes('/')) {
-      const hierarchy = field.substring(0, field.lastIndexOf('/'));
-      expandMap.set(hierarchy, field);
-    }
-  });
-
-  const deepestPaths = [...expandMap.keys()].filter(
-    (path) =>
-      ![...expandMap.keys()].some(
-        (otherPath) => path !== otherPath && otherPath.startsWith(path + '/'),
-      ),
-  );
-
-  deepestPaths.forEach((path) => expandSet.add(path));
-
-  return expandSet.size > 0 ? [...expandSet].join(',') : '';
-};
 
 export const useSendRequest = (config) => {
   const handleSendRequest = useCallback(async () => {
