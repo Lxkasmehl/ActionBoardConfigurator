@@ -4,10 +4,8 @@ export function findMatchingEntity({
   associationSets,
   allEntities,
 }) {
-  const matchingProperty = navigationProperties.find((np) =>
-    np.Name.endsWith('Nav')
-      ? np.Name.slice(0, -3) === propertyName
-      : np.Name === propertyName,
+  const matchingProperty = navigationProperties.find(
+    (np) => np.Name === propertyName,
   );
 
   if (!matchingProperty) return null;

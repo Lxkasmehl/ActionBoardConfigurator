@@ -17,6 +17,6 @@ export const sortProperties = (properties) => {
 export const filterUniqueProperties = (properties) => {
   return properties.filter(
     (value, index, self) =>
-      index === self.findIndex((t) => t['sap:label'] === value['sap:label']),
+      index === self.findIndex((t) => t.Name === value.Name),
   );
 };
