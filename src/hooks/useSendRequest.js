@@ -6,6 +6,29 @@ import { fixedEncodeURIComponent } from '../utils/sendRequestUtils';
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
 
+const generateExpandParam = (selectedProperties) => {
+  let expandSet = new Set();
+
+  let expandMap = new Map();
+  selectedProperties.forEach((field) => {
+    if (field.includes('/')) {
+      const hierarchy = field.substring(0, field.lastIndexOf('/'));
+      expandMap.set(hierarchy, field);
+    }
+  });
+
+  const deepestPaths = [...expandMap.keys()].filter(
+    (path) =>
+      ![...expandMap.keys()].some(
+        (otherPath) => path !== otherPath && otherPath.startsWith(path + '/'),
+      ),
+  );
+
+  deepestPaths.forEach((path) => expandSet.add(path));
+
+  return expandSet.size > 0 ? [...expandSet].join(',') : '';
+};
+
 export const useSendRequest = (config) => {
   const handleSendRequest = useCallback(async () => {
     try {
@@ -42,11 +65,34 @@ export const useSendRequest = (config) => {
                   entityConfig.selectedProperties[0] === '/'
                 )
               ) {
+                const filteredProperties =
+                  entityConfig.selectedProperties.filter((prop) => {
+                    if (!prop.includes('/')) {
+                      return !entityConfig.selectedProperties.some(
+                        (otherProp) =>
+                          otherProp !== prop &&
+                          otherProp.startsWith(prop + '/'),
+                      );
+                    }
+
+                    const prefix = prop + '/';
+                    return !entityConfig.selectedProperties.some(
+                      (otherProp) =>
+                        otherProp !== prop && otherProp.startsWith(prefix),
+                    );
+                  });
+
                 queryString +=
                   '&$select=' +
-                  fixedEncodeURIComponent(
-                    entityConfig.selectedProperties.join(','),
-                  );
+                  fixedEncodeURIComponent(filteredProperties.join(','));
+
+                const expandParam = generateExpandParam(
+                  entityConfig.selectedProperties,
+                );
+                if (expandParam) {
+                  queryString +=
+                    '&$expand=' + fixedEncodeURIComponent(expandParam);
+                }
               }
             }
 
