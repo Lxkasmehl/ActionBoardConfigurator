@@ -54,6 +54,8 @@ export const useSendRequest = (config) => {
               params.append('$filter', filterString);
             }
 
+            console.log('filterString', filterString);
+
             await requestManager.waitForOpenSlot();
             try {
               const response = await fetch(`${baseUrl}?${params.toString()}`, {
