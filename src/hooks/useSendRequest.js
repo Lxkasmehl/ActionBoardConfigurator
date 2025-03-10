@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { requestManager } from '../utils/requestManager';
 import { convertFilterToOData } from '../utils/oDataUtils';
+import { fixedEncodeURIComponent } from '../utils/sendRequestUtils';
 
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
@@ -28,12 +29,11 @@ export const useSendRequest = (config) => {
 
           while (hasMoreResults) {
             const baseUrl = `/api/odata/v2/${entityName}`;
-            const params = new URLSearchParams();
-
-            params.append('$format', 'json');
-            params.append('$inlinecount', 'allpages');
-            params.append('$top', top.toString());
-            params.append('$skip', skip.toString());
+            let queryString =
+              '$format=json&$inlinecount=allpages&$top=' +
+              top +
+              '&$skip=' +
+              skip;
 
             if (entityConfig.selectedProperties?.length > 0) {
               if (
@@ -42,23 +42,23 @@ export const useSendRequest = (config) => {
                   entityConfig.selectedProperties[0] === '/'
                 )
               ) {
-                params.append(
-                  '$select',
-                  entityConfig.selectedProperties.join(','),
-                );
+                queryString +=
+                  '&$select=' +
+                  fixedEncodeURIComponent(
+                    entityConfig.selectedProperties.join(','),
+                  );
               }
             }
 
             const filterString = convertFilterToOData(entityConfig.filter);
             if (filterString) {
-              params.append('$filter', filterString);
+              queryString +=
+                '&$filter=' + fixedEncodeURIComponent(filterString);
             }
-
-            console.log('filterString', filterString);
 
             await requestManager.waitForOpenSlot();
             try {
-              const response = await fetch(`${baseUrl}?${params.toString()}`, {
+              const response = await fetch(`${baseUrl}?${queryString}`, {
                 method: 'GET',
                 mode: 'cors',
                 headers,
