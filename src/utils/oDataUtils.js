@@ -1,8 +1,14 @@
 export const convertFilterToOData = (filter) => {
-  if (!filter || !filter.conditions || filter.conditions.length === 0)
+  if (!filter || !filter.conditions || filter.conditions.length === 0) {
     return '';
+  }
 
-  const conditions = filter.conditions.map((condition) => {
+  const processCondition = (condition) => {
+    if (condition.conditions) {
+      const nestedConditions = condition.conditions.map(processCondition);
+      return `(${nestedConditions.join(` ${condition.entityLogic?.toLowerCase() || 'and'} `)})`;
+    }
+
     let values;
     const value = condition.value?.toString() || '';
 
@@ -29,7 +35,7 @@ export const convertFilterToOData = (filter) => {
       default:
         return `${condition.field} eq '${value}'`;
     }
-  });
+  };
 
-  return conditions.join(` ${filter.entityLogic.toLowerCase() || 'and'} `);
+  return processCondition(filter);
 };
