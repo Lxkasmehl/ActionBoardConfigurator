@@ -199,10 +199,25 @@ export function useSelectedPropertyChangeHandler(
         ? propertyPath.split('/').slice(-1)[0]
         : propertyPath;
 
+      let navPropsToUse = navigationProperties;
+
+      if (propertyPath.includes('/')) {
+        const pathParts = propertyPath.split('/');
+        const parentPropertyPath = pathParts.slice(0, -1).join('/');
+
+        const parentMatchingEntity = matchingEntities.find(
+          (me) => me.propertyPath === parentPropertyPath,
+        )?.matchingEntity;
+
+        if (parentMatchingEntity) {
+          navPropsToUse = getNavigationProperties(parentMatchingEntity);
+        }
+      }
+
       const { matchingEntity } =
         findMatchingEntity({
           propertyName,
-          navigationProperties,
+          navigationProperties: navPropsToUse,
           associationSets,
           allEntities,
         }) || {};
