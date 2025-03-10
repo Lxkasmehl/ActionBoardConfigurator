@@ -2,11 +2,14 @@ import { useCallback } from 'react';
 import { requestManager } from '../utils/requestManager';
 import { convertFilterToOData, generateExpandParam } from '../utils/oDataUtils';
 import { fixedEncodeURIComponent } from '../utils/sendRequestUtils';
+import { useSelector } from 'react-redux';
 
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
 
 export const useSendRequest = (config) => {
+  const allEntities = useSelector((state) => state.entities.allEntities);
+
   const handleSendRequest = useCallback(async () => {
     try {
       const headers = new Headers();
@@ -35,36 +38,58 @@ export const useSendRequest = (config) => {
               '&$skip=' +
               skip;
 
-            if (entityConfig.selectedProperties?.length > 0) {
-              if (
-                !(
-                  entityConfig.selectedProperties.length === 1 &&
-                  entityConfig.selectedProperties[0] === '/'
-                )
-              ) {
-                const filteredProperties =
-                  entityConfig.selectedProperties.filter((prop) => {
-                    if (!prop.includes('/')) {
-                      return !entityConfig.selectedProperties.some(
-                        (otherProp) =>
-                          otherProp !== prop &&
-                          otherProp.startsWith(prop + '/'),
-                      );
-                    }
+            const navigationPropertiesFromFilter = [];
+            const collectNavigationProperties = (filterObj) => {
+              if (!filterObj) return;
 
-                    const prefix = prop + '/';
-                    return !entityConfig.selectedProperties.some(
+              if (filterObj.conditions) {
+                filterObj.conditions.forEach(collectNavigationProperties);
+              } else if (filterObj.field && filterObj.field.includes('/')) {
+                const navPath = filterObj.field.substring(
+                  0,
+                  filterObj.field.lastIndexOf('/'),
+                );
+                navigationPropertiesFromFilter.push(navPath);
+              }
+            };
+
+            collectNavigationProperties(entityConfig.filter);
+
+            const allProperties = [
+              ...(entityConfig.selectedProperties || []),
+              ...navigationPropertiesFromFilter,
+            ];
+
+            if (allProperties.length > 0) {
+              if (!(allProperties.length === 1 && allProperties[0] === '/')) {
+                const filteredProperties = allProperties.filter((prop) => {
+                  if (!prop.includes('/')) {
+                    return !allProperties.some(
                       (otherProp) =>
-                        otherProp !== prop && otherProp.startsWith(prefix),
+                        otherProp !== prop && otherProp.startsWith(prop + '/'),
                     );
-                  });
+                  }
 
-                queryString +=
-                  '&$select=' +
-                  fixedEncodeURIComponent(filteredProperties.join(','));
+                  const prefix = prop + '/';
+                  return !allProperties.some(
+                    (otherProp) =>
+                      otherProp !== prop && otherProp.startsWith(prefix),
+                  );
+                });
+
+                const selectProperties = filteredProperties.filter(
+                  (prop) => !prop.includes('/'),
+                );
+                if (selectProperties.length > 0) {
+                  queryString +=
+                    '&$select=' +
+                    fixedEncodeURIComponent(selectProperties.join(','));
+                }
 
                 const expandParam = generateExpandParam(
-                  entityConfig.selectedProperties,
+                  allProperties,
+                  entityName,
+                  allEntities,
                 );
                 if (expandParam) {
                   queryString +=
@@ -116,7 +141,7 @@ export const useSendRequest = (config) => {
       console.error('Error sending request:', error);
       throw error;
     }
-  }, [config]);
+  }, [config, allEntities]);
 
   return handleSendRequest;
 };
