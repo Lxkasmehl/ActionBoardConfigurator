@@ -131,10 +131,8 @@ export default function useDropdownsAndInputState(
 
     const navigationProperties = getNavigationProperties(currentEntity);
 
-    const isNavigationProperty = navigationProperties.some((np) =>
-      np.Name.endsWith('Nav')
-        ? np.Name.slice(0, -3) === newValueName
-        : np.Name === newValueName,
+    const isNavigationProperty = navigationProperties.some(
+      (np) => np.Name === newValueName,
     );
 
     if (!isNavigationProperty) {
@@ -164,10 +162,8 @@ export default function useDropdownsAndInputState(
         }
       }
 
-      const lastPartIsNavigation = relevantNavigationProperties.some((np) =>
-        np.Name.endsWith('Nav')
-          ? np.Name.slice(0, -3) === pathParts[pathParts.length - 1]
-          : np.Name === pathParts[pathParts.length - 1],
+      const lastPartIsNavigation = relevantNavigationProperties.some(
+        (np) => np.Name === pathParts[pathParts.length - 1],
       );
 
       const newPath = state.matchingEntityObjectState

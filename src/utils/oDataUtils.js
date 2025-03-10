@@ -11,36 +11,41 @@ export const convertFilterToOData = (filter) => {
 
     let values;
     const value = condition.value?.toString() || '';
+    const fieldName = condition.field;
 
     switch (condition.operator) {
       case 'eq':
-        return `${condition.field} eq '${value}'`;
+        return `${fieldName} eq '${value}'`;
       case 'ne':
-        return `${condition.field} ne '${value}'`;
+        return `${fieldName} ne '${value}'`;
       case 'gt':
-        return `${condition.field} gt '${value}'`;
+        return `${fieldName} gt '${value}'`;
       case 'lt':
-        return `${condition.field} lt '${value}'`;
+        return `${fieldName} lt '${value}'`;
       case 'le':
-        return `${condition.field} le '${value}'`;
+        return `${fieldName} le '${value}'`;
       case 'ge':
-        return `${condition.field} ge '${value}'`;
+        return `${fieldName} ge '${value}'`;
       case 'LIKE':
-        return `${condition.field} like '${value}'`;
+        return `${fieldName} like '${value}'`;
       case 'IN':
         values = Array.isArray(condition.value)
           ? condition.value
           : value.split(',');
-        return `(${values.map((v) => `${condition.field} eq '${v.trim()}'`).join(' or ')})`;
+        return `(${values.map((v) => `${fieldName} eq '${v.trim()}'`).join(' or ')})`;
       default:
-        return `${condition.field} eq '${value}'`;
+        return `${fieldName} eq '${value}'`;
     }
   };
 
   return processCondition(filter);
 };
 
-export const generateExpandParam = (selectedProperties) => {
+export const generateExpandParam = (
+  selectedProperties,
+  entityName,
+  allEntities,
+) => {
   let expandSet = new Set();
 
   selectedProperties.forEach((field) => {
@@ -48,9 +53,13 @@ export const generateExpandParam = (selectedProperties) => {
       const hierarchy = field.substring(0, field.lastIndexOf('/'));
       expandSet.add(hierarchy);
     } else {
-      // Treat all direct fields as potential navigation properties
-      // OData servers usually ignore invalid expands
-      expandSet.add(field);
+      const entity = allEntities.find((e) => e.name === entityName);
+      const navigationProperty = entity.properties.navigationProperties.find(
+        (p) => p.name === field,
+      );
+      if (navigationProperty) {
+        expandSet.add(navigationProperty);
+      }
     }
   });
 
