@@ -43,22 +43,23 @@ export const convertFilterToOData = (filter) => {
 export const generateExpandParam = (selectedProperties) => {
   let expandSet = new Set();
 
-  let expandMap = new Map();
   selectedProperties.forEach((field) => {
     if (field.includes('/')) {
       const hierarchy = field.substring(0, field.lastIndexOf('/'));
-      expandMap.set(hierarchy, field);
+      expandSet.add(hierarchy);
+    } else {
+      // Treat all direct fields as potential navigation properties
+      // OData servers usually ignore invalid expands
+      expandSet.add(field);
     }
   });
 
-  const deepestPaths = [...expandMap.keys()].filter(
+  const filteredExpands = [...expandSet].filter(
     (path) =>
-      ![...expandMap.keys()].some(
+      ![...expandSet].some(
         (otherPath) => path !== otherPath && otherPath.startsWith(path + '/'),
       ),
   );
 
-  deepestPaths.forEach((path) => expandSet.add(path));
-
-  return expandSet.size > 0 ? [...expandSet].join(',') : '';
+  return filteredExpands.length > 0 ? filteredExpands.join(',') : '';
 };
