@@ -35,7 +35,6 @@ export default function EntitySection({ id }) {
   const [matchingEntitiesState, setMatchingEntitiesState] = useState([]);
   const [selectedPropertiesSectionState, setSelectedPropertiesSectionState] =
     useState([]);
-  const [isChecked, setIsChecked] = useState(false);
   const [accordionSelectedProperties, setAccordionSelectedProperties] =
     useState({});
 
@@ -72,7 +71,6 @@ export default function EntitySection({ id }) {
     isTargetOfEdge,
     setMatchingEntitiesState,
     setSelectedPropertiesSectionState,
-    setIsChecked,
   );
 
   const handleSelectedPropertyChange = useSelectedPropertyChangeHandler(
@@ -89,49 +87,6 @@ export default function EntitySection({ id }) {
     dispatch(removeEntityConfig(id));
     dispatch(removeFormData({ id }));
     console.log(config);
-  };
-
-  const toggleSelectAll = (event) => {
-    const checked = event.target.checked;
-    setIsChecked(checked);
-    if (checked) {
-      setSelectedPropertiesSectionState(
-        uniqueSortedPropertyOptions.map((option) => option.Name),
-      );
-      handleSelectedPropertyChange(
-        'mainAutocomplete',
-        event,
-        uniqueSortedPropertyOptions,
-      );
-    } else {
-      setSelectedPropertiesSectionState([]);
-      handleSelectedPropertyChange('mainAutocomplete', event, []);
-    }
-  };
-
-  const toggleAccordionSelectAll = (entity, event) => {
-    const checked = event.target.checked;
-    setAccordionSelectedProperties((prev) => ({
-      ...prev,
-      [entity.propertyPath]: checked,
-    }));
-    const properties = [
-      ...entity.matchingEntity.properties.properties,
-      ...entity.matchingEntity.properties.navigationProperties,
-    ];
-    if (checked) {
-      setAccordionSelectedProperties((prev) => ({
-        ...prev,
-        [entity.propertyPath]: properties,
-      }));
-      handleSelectedPropertyChange(entity.propertyPath, event, properties);
-    } else {
-      setAccordionSelectedProperties((prev) => ({
-        ...prev,
-        [entity.propertyPath]: [],
-      }));
-      handleSelectedPropertyChange(entity.propertyPath, event, []);
-    }
   };
 
   return (
@@ -190,9 +145,6 @@ export default function EntitySection({ id }) {
                   newValue,
                 );
               }}
-              onSelectAllChange={toggleSelectAll}
-              isChecked={isChecked}
-              label='Select all properties you want to display'
               placeholder='Select a property'
               groupBy={(option) => option.Name.charAt(0).toUpperCase()}
               getOptionLabel={(option) => (option ? option.Name : '')}
@@ -269,19 +221,6 @@ export default function EntitySection({ id }) {
                         newValue,
                       );
                     }}
-                    onSelectAllChange={(event) =>
-                      toggleAccordionSelectAll(entity, event)
-                    }
-                    isChecked={
-                      accordionSelectedProperties[entity.propertyPath]
-                        ?.length ===
-                      [
-                        ...entity.matchingEntity.properties.properties,
-                        ...entity.matchingEntity.properties
-                          .navigationProperties,
-                      ].length
-                    }
-                    label='Select all properties you want to display'
                     placeholder='Select a property'
                     groupBy={(option) => option.Name.charAt(0).toUpperCase()}
                     getOptionLabel={(option) => option.Name}
