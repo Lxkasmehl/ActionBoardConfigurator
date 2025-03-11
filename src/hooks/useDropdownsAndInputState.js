@@ -1,6 +1,5 @@
 import { useReducer } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import usePropertyOptions from './usePropertyOptions';
 import {
   findMatchingEntity,
   getNavigationProperties,
@@ -57,7 +56,10 @@ export default function useDropdownsAndInputState(
     (state) => state.entities.selectedEntities,
   );
   const selectedEntity = selectedEntities[propertyOptionsId];
-  const { combinedOptions } = usePropertyOptions(propertyOptionsId);
+  // const { combinedOptions } = usePropertyOptions(propertyOptionsId);
+  const propertyOptions = useSelector(
+    (state) => state.entities.propertyOptions[propertyOptionsId],
+  );
   const dispatch = useDispatch();
 
   const baseFieldId = fieldIdentifierId.includes('group_')
@@ -104,9 +106,8 @@ export default function useDropdownsAndInputState(
             (prop) => prop.Name === propertyFromForm,
           )
         : propertyFromForm
-          ? combinedOptions
-              .flatMap((group) => group.options)
-              .find((prop) => prop.Name === propertyFromForm) || null
+          ? propertyOptions.find((prop) => prop.Name === propertyFromForm) ||
+            null
           : null;
 
     return {
@@ -228,7 +229,6 @@ export default function useDropdownsAndInputState(
     state,
     handleValueChange,
     handlePropertyChange,
-    combinedOptions,
     localDispatch,
   };
 }
