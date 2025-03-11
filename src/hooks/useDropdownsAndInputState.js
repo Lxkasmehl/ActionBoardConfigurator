@@ -209,6 +209,7 @@ export default function useDropdownsAndInputState(
       payload: matchingEntityObject,
     });
     localDispatch({ type: 'INCREMENT_AUTOCOMPLETE_KEY' });
+    localDispatch({ type: 'SET_PROPERTY', payload: null });
 
     const updatedMatchingEntityObjects = {
       ...matchingEntityObjects[propertyOptionsId],
