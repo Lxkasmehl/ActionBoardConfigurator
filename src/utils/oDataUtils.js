@@ -50,15 +50,22 @@ export const generateExpandParam = (
 
   selectedProperties.forEach((field) => {
     if (field.includes('/')) {
-      const hierarchy = field.substring(0, field.lastIndexOf('/'));
-      expandSet.add(hierarchy);
+      const parts = field.split('/');
+
+      expandSet.add(parts[0]);
+
+      if (parts.length > 2) {
+        for (let i = 1; i < parts.length - 1; i++) {
+          expandSet.add(parts.slice(0, i + 1).join('/'));
+        }
+      }
     } else {
       const entity = allEntities.find((e) => e.name === entityName);
-      const navigationProperty = entity.properties.navigationProperties.find(
-        (p) => p.name === field,
+      const navigationProperty = entity?.properties?.navigationProperties?.find(
+        (p) => p.Name === field,
       );
       if (navigationProperty) {
-        expandSet.add(navigationProperty);
+        expandSet.add(navigationProperty.Name);
       }
     }
   });

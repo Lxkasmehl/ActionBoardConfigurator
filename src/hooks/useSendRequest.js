@@ -63,6 +63,13 @@ export const useSendRequest = (config) => {
             if (allProperties.length > 0) {
               if (!(allProperties.length === 1 && allProperties[0] === '/')) {
                 const filteredProperties = allProperties.filter((prop) => {
+                  if (
+                    entityConfig.selectedProperties &&
+                    entityConfig.selectedProperties.includes(prop)
+                  ) {
+                    return true;
+                  }
+
                   if (!prop.includes('/')) {
                     return !allProperties.some(
                       (otherProp) =>
@@ -77,9 +84,17 @@ export const useSendRequest = (config) => {
                   );
                 });
 
-                const selectProperties = filteredProperties.filter(
-                  (prop) => !prop.includes('/'),
+                const navPropertyFields = filteredProperties.map(
+                  (prop) => prop,
                 );
+
+                const selectProperties = navPropertyFields.filter((prop) => {
+                  return !allProperties.some(
+                    (otherProp) =>
+                      otherProp !== prop && otherProp.startsWith(prop + '/'),
+                  );
+                });
+
                 if (selectProperties.length > 0) {
                   queryString +=
                     '&$select=' +

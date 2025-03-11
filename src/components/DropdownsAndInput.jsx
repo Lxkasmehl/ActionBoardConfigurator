@@ -72,37 +72,40 @@ export default function DropdownsAndInput({
         options={
           Object.keys(state.matchingEntityObjectState?.matchingEntity || {})
             .length > 0
-            ? (() => {
-                const options = [
-                  ...Object.values(
-                    state.matchingEntityObjectState.matchingEntity?.properties
-                      ?.properties || {},
-                  ).flat(),
-                  ...Object.values(
-                    state.matchingEntityObjectState.matchingEntity?.properties
-                      ?.navigationProperties || {},
-                  ).flat(),
-                ].sort((a, b) => a.Name.localeCompare(b.Name));
-                return options;
-              })()
+            ? [
+                ...Object.values(
+                  state.matchingEntityObjectState?.matchingEntity?.properties
+                    ?.properties || {},
+                )
+                  .flat()
+                  .filter((prop) => prop['sap:filterable'] === 'true'),
+                ...Object.values(
+                  state.matchingEntityObjectState?.matchingEntity?.properties
+                    ?.navigationProperties || {},
+                )
+                  .flat()
+                  .filter((prop) => prop['sap:filterable'] === 'true'),
+              ].sort((a, b) => a.Name.localeCompare(b.Name))
             : combinedOptions.flatMap(({ group, options }) =>
-                options.map((option) => ({
-                  ...option,
-                  group,
-                  key: `${group}-${option.Name || option.type || Math.random()}`,
-                })),
+                options
+                  .filter((prop) => prop['sap:filterable'] === 'true')
+                  .map((option) => ({
+                    ...option,
+                    group,
+                    key: `${group}-${option.Name || option.type || Math.random()}`,
+                  })),
               )
         }
         value={state.property || null}
         groupBy={
           !state.matchingEntityObjectState
             ? (option) => option.group
-            : undefined
+            : (option) => option.Name?.[0]?.toUpperCase() || 'Other'
         }
         isOptionEqualToValue={(option, value) => option.Name === value?.Name}
         sx={{
           ...AUTOCOMPLETE_STYLES,
-          ...(state.matchingEntityObjectState && {
+          ...(state.matchingEntityObjectState?.matchingEntity && {
             borderTopLeftRadius: 0,
             borderBottomLeftRadius: 0,
           }),
