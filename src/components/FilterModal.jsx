@@ -177,7 +177,7 @@ export default function FilterModal({ open, onClose, entity, id }) {
   return (
     <Modal open={open} onClose={onClose}>
       <form onSubmit={saveAndClose}>
-        <ModalDialog variant='plain'>
+        <ModalDialog variant='plain' data-testid='filter-modal'>
           <ModalClose />
           <Typography level='h4'>Build your filter for {entity}</Typography>
           <div className='flex flex-col gap-4'>
@@ -215,6 +215,7 @@ export default function FilterModal({ open, onClose, entity, id }) {
                 variant='plain'
                 color='neutral'
                 onClick={addConditionGroup}
+                data-testid='add-condition-group'
               >
                 + Add condition group
               </Button>

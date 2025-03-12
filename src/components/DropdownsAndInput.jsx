@@ -112,6 +112,7 @@ export default function DropdownsAndInput({
         }}
       />
       <Select
+        data-testid='property-type-dropdown'
         name={`operator_${fieldIdentifierId}`}
         value={state.operator || ''}
         onChange={(e, newValue) =>
