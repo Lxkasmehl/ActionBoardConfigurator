@@ -1,8 +1,13 @@
 import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { IconButton, CircularProgress, Button } from '@mui/joy';
+import {
+  IconButton,
+  CircularProgress,
+  Button,
+} from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
 import { useSendRequest } from './hooks/useSendRequest';
+import { formatODataResult } from './utils/formatODataResult';
 
 import { INITIAL_NODES, NODE_TYPES, EDGE_TYPES } from './app.constants.js';
 import {
@@ -25,6 +30,7 @@ import {
   addEdge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import ResultsModal from './components/ResultsModal';
 
 export default function App() {
   const loading = useFetchEntities();
@@ -36,6 +42,9 @@ export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [renderKey, setRenderKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const createNodeId = useCallback(() => crypto.randomUUID(), []);
 
@@ -163,11 +172,16 @@ export default function App() {
   const handleSendRequest = useSendRequest(config);
 
   const handleRequest = async () => {
+    setIsLoading(true);
+    setModalOpen(true);
     try {
       const results = await handleSendRequest();
-      console.log('Received results:', results);
+      setResults(formatODataResult(results));
     } catch (error) {
       console.error('Error handling request:', error);
+      setResults({ error: 'An error occurred' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -200,6 +214,16 @@ export default function App() {
         <Background />
         <Controls />
       </ReactFlow>
+
+      <ResultsModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setResults(null);
+        }}
+        isLoading={isLoading}
+        results={results}
+      />
 
       <Button
         onClick={handleRequest}
