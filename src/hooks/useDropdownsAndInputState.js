@@ -1,6 +1,5 @@
 import { useReducer } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import usePropertyOptions from './usePropertyOptions';
 import {
   findMatchingEntity,
   getNavigationProperties,
@@ -57,8 +56,15 @@ export default function useDropdownsAndInputState(
     (state) => state.entities.selectedEntities,
   );
   const selectedEntity = selectedEntities[propertyOptionsId];
-  const { combinedOptions } = usePropertyOptions(propertyOptionsId);
+  // const { combinedOptions } = usePropertyOptions(propertyOptionsId);
+  const propertyOptions = useSelector(
+    (state) => state.entities.propertyOptions[propertyOptionsId],
+  );
   const dispatch = useDispatch();
+
+  const baseFieldId = fieldIdentifierId.includes('group_')
+    ? fieldIdentifierId.split('group_')[1].split('_').slice(1).join('_')
+    : fieldIdentifierId;
 
   const [state, localDispatch] = useReducer(reducer, {
     ...initialState,
@@ -68,6 +74,7 @@ export default function useDropdownsAndInputState(
     value: formData[propertyOptionsId]?.[`value_${fieldIdentifierId}`] ?? '',
     path: formData[propertyOptionsId]?.[`fullPath_${fieldIdentifierId}`] ?? '',
     matchingEntityObjectState:
+      matchingEntityObjects[propertyOptionsId]?.[baseFieldId] ??
       matchingEntityObjects[propertyOptionsId]?.[fieldIdentifierId],
     partialPath: (() => {
       const initialPath =
@@ -83,21 +90,25 @@ export default function useDropdownsAndInputState(
     const propertyFromForm =
       formData[propertyOptionsId]?.[`property_${fieldIdentifierId}`];
 
-    console.log(matchingEntityObjects[propertyOptionsId]?.[fieldIdentifierId]);
-
     const matchingProperty = matchingEntityObjects[propertyOptionsId]?.[
-      fieldIdentifierId
-    ].matchingEntity
+      baseFieldId
+    ]?.matchingEntity
       ? matchingEntityObjects[propertyOptionsId][
-          fieldIdentifierId
+          baseFieldId
         ]?.matchingEntity?.properties?.properties?.find(
           (prop) => prop.Name === propertyFromForm,
         )
-      : propertyFromForm
-        ? combinedOptions
-            .flatMap((group) => group.options)
-            .find((prop) => prop.Name === propertyFromForm) || null
-        : null;
+      : matchingEntityObjects[propertyOptionsId]?.[fieldIdentifierId]
+            ?.matchingEntity
+        ? matchingEntityObjects[propertyOptionsId][
+            fieldIdentifierId
+          ]?.matchingEntity?.properties?.properties?.find(
+            (prop) => prop.Name === propertyFromForm,
+          )
+        : propertyFromForm
+          ? propertyOptions.find((prop) => prop.Name === propertyFromForm) ||
+            null
+          : null;
 
     return {
       property: matchingProperty,
@@ -121,10 +132,8 @@ export default function useDropdownsAndInputState(
 
     const navigationProperties = getNavigationProperties(currentEntity);
 
-    const isNavigationProperty = navigationProperties.some((np) =>
-      np.Name.endsWith('Nav')
-        ? np.Name.slice(0, -3) === newValueName
-        : np.Name === newValueName,
+    const isNavigationProperty = navigationProperties.some(
+      (np) => np.Name === newValueName,
     );
 
     if (!isNavigationProperty) {
@@ -154,10 +163,8 @@ export default function useDropdownsAndInputState(
         }
       }
 
-      const lastPartIsNavigation = relevantNavigationProperties.some((np) =>
-        np.Name.endsWith('Nav')
-          ? np.Name.slice(0, -3) === pathParts[pathParts.length - 1]
-          : np.Name === pathParts[pathParts.length - 1],
+      const lastPartIsNavigation = relevantNavigationProperties.some(
+        (np) => np.Name === pathParts[pathParts.length - 1],
       );
 
       const newPath = state.matchingEntityObjectState
@@ -203,6 +210,7 @@ export default function useDropdownsAndInputState(
       payload: matchingEntityObject,
     });
     localDispatch({ type: 'INCREMENT_AUTOCOMPLETE_KEY' });
+    localDispatch({ type: 'SET_PROPERTY', payload: null });
 
     const updatedMatchingEntityObjects = {
       ...matchingEntityObjects[propertyOptionsId],
@@ -221,7 +229,6 @@ export default function useDropdownsAndInputState(
     state,
     handleValueChange,
     handlePropertyChange,
-    combinedOptions,
     localDispatch,
   };
 }
