@@ -7,19 +7,20 @@ import {
 } from './dropdownsAndInput.constants';
 import PropertyTypeInput from './PropertyTypeInput';
 import useDropdownsAndInputState from '../hooks/useDropdownsAndInputState';
+import { useSelector } from 'react-redux';
+import { sortProperties } from '../utils/entityUtils';
 
 export default function DropdownsAndInput({
   propertyOptionsId,
   fieldIdentifierId,
   ...props
 }) {
-  const {
-    state,
-    handleValueChange,
-    handlePropertyChange,
-    combinedOptions,
-    localDispatch,
-  } = useDropdownsAndInputState(propertyOptionsId, fieldIdentifierId);
+  const { state, handleValueChange, handlePropertyChange, localDispatch } =
+    useDropdownsAndInputState(propertyOptionsId, fieldIdentifierId);
+  const propertyOptions = useSelector(
+    (state) => state.entities.propertyOptions[propertyOptionsId],
+  );
+  const sortedPropertyOptions = sortProperties(propertyOptions);
 
   const commonAutocompleteProps = {
     placeholder: 'Property',
@@ -72,37 +73,39 @@ export default function DropdownsAndInput({
         options={
           Object.keys(state.matchingEntityObjectState?.matchingEntity || {})
             .length > 0
-            ? (() => {
-                const options = [
-                  ...Object.values(
-                    state.matchingEntityObjectState.matchingEntity?.properties
-                      ?.properties || {},
-                  ).flat(),
-                  ...Object.values(
-                    state.matchingEntityObjectState.matchingEntity?.properties
-                      ?.navigationProperties || {},
-                  ).flat(),
-                ].sort((a, b) => a.Name.localeCompare(b.Name));
-                return options;
-              })()
-            : combinedOptions.flatMap(({ group, options }) =>
-                options.map((option) => ({
-                  ...option,
-                  group,
-                  key: `${group}-${option.Name || option.type || Math.random()}`,
-                })),
+            ? [
+                ...Object.values(
+                  state.matchingEntityObjectState?.matchingEntity?.properties
+                    ?.properties || {},
+                )
+                  .flat()
+                  .filter((prop) => prop['sap:filterable'] === 'true'),
+                ...Object.values(
+                  state.matchingEntityObjectState?.matchingEntity?.properties
+                    ?.navigationProperties || {},
+                )
+                  .flat()
+                  .filter((prop) => prop['sap:filterable'] === 'true'),
+              ].sort((a, b) => a.Name.localeCompare(b.Name))
+            : // : combinedOptions.flatMap(({ group, options }) =>
+              //     options
+              //       .filter((prop) => prop['sap:filterable'] === 'true')
+              //       .map((option) => ({
+              //         ...option,
+              //         group,
+              //         key: `${group}-${option.Name || option.type || Math.random()}`,
+              //       })),
+              //   )
+              sortedPropertyOptions.filter(
+                (prop) => prop['sap:filterable'] === 'true',
               )
         }
         value={state.property || null}
-        groupBy={
-          !state.matchingEntityObjectState
-            ? (option) => option.group
-            : undefined
-        }
+        groupBy={(option) => option.Name?.[0]?.toUpperCase() || 'Other'}
         isOptionEqualToValue={(option, value) => option.Name === value?.Name}
         sx={{
           ...AUTOCOMPLETE_STYLES,
-          ...(state.matchingEntityObjectState && {
+          ...(state.matchingEntityObjectState?.matchingEntity && {
             borderTopLeftRadius: 0,
             borderBottomLeftRadius: 0,
           }),
@@ -133,6 +136,7 @@ export default function DropdownsAndInput({
         onChange={handleValueChange}
         placeholder='Enter a value'
         operator={state.operator}
+        propertyOptionsId={propertyOptionsId}
         required
         {...props}
       />

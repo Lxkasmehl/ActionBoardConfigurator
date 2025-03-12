@@ -46,6 +46,7 @@ export default function ConditionGroup({
             index={index}
             isSubCondition
             groupIndex={groupIndex}
+            groupId={conditionGroup.id}
           />
         ))}
 

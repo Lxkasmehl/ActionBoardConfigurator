@@ -11,7 +11,12 @@ export default function Condition({
   index,
   isSubCondition,
   groupIndex,
+  groupId,
 }) {
+  const fieldPrefix = isSubCondition ? `group_${groupId}_` : '';
+
+  //TODO: Attention: The different name has to be handled when reopening the filter modal
+
   return (
     <div className='flex flex-row items-center'>
       <LogicSelector
@@ -30,7 +35,7 @@ export default function Condition({
       />
       <DropdownsAndInput
         propertyOptionsId={id}
-        fieldIdentifierId={condition.id}
+        fieldIdentifierId={`${fieldPrefix}${condition.id}`}
       />
       <IconButton
         variant='outlined'
@@ -53,4 +58,5 @@ Condition.propTypes = {
   index: PropTypes.number.isRequired,
   isSubCondition: PropTypes.bool.isRequired,
   groupIndex: PropTypes.number,
+  groupId: PropTypes.number,
 };

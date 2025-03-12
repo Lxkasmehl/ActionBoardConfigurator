@@ -1,27 +1,15 @@
-import { useState } from 'react';
-import {
-  Input,
-  Select,
-  Option,
-  Chip,
-  IconButton,
-  Box,
-  ChipDelete,
-} from '@mui/joy';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import dayjs from 'dayjs';
+import { useState, useMemo } from 'react';
+import { Input, Select, Option, Box } from '@mui/joy';
 import PropTypes from 'prop-types';
-import AddIcon from '@mui/icons-material/Add';
-import {
-  COMMON_INPUT_STYLES,
-  DATE_PICKER_STYLES,
-} from './PropertyTypeInput.constants';
+import { COMMON_INPUT_STYLES } from './PropertyTypeInput.constants';
+import { convertValueByType } from '../utils/entityUtils';
+import ValueChips from './ValueChips';
+import RelatedSourceSelect from './RelatedSourceSelect';
 
 export default function PropertyTypeInput({
   propertyType,
   operator,
+  propertyOptionsId,
   ...props
 }) {
   const [inputValue, setInputValue] = useState('');
@@ -32,20 +20,15 @@ export default function PropertyTypeInput({
   const handleInputKeyDown = (e) => {
     if (e.key === 'Enter' && inputValue.trim()) {
       e.preventDefault();
-      const newValues = [...values, inputValue.trim()];
-      setValues(newValues);
-      setInputValue('');
-      props.onChange(newValues.join(','));
+      addValue(inputValue.trim());
     }
   };
 
-  const handleAddClick = () => {
-    if (inputValue.trim()) {
-      const newValues = [...values, inputValue.trim()];
-      setValues(newValues);
-      setInputValue('');
-      props.onChange(newValues.join(','));
-    }
+  const addValue = (value) => {
+    const newValues = [...values, value];
+    setValues(newValues);
+    setInputValue('');
+    props.onChange(newValues.join(','));
   };
 
   const handleDelete = (valueToDelete) => {
@@ -53,6 +36,56 @@ export default function PropertyTypeInput({
     setValues(newValues);
     props.onChange(newValues.join(','));
   };
+
+  const handleRelatedSourceChange = (value, currentOperator) => {
+    if (currentOperator === 'IN') {
+      const newValues = [...values, value];
+      setValues(newValues);
+      props.onChange(newValues.join(','));
+    } else {
+      props.onChange(value);
+    }
+  };
+
+  const getInputType = () => {
+    if (!propertyType || typeof propertyType !== 'string') {
+      return 'text';
+    }
+
+    const typeMatch = propertyType.match(/Edm\.(.*)/);
+    const type = (typeMatch ? typeMatch[1] : propertyType).toLowerCase();
+
+    switch (type) {
+      case 'datetimeoffset':
+      case 'date':
+        return 'datetime-local';
+      case 'int16':
+      case 'int32':
+      case 'int64':
+      case 'decimal':
+      case 'double':
+      case 'single':
+        return 'number';
+      case 'boolean':
+        return 'boolean';
+      default:
+        return 'text';
+    }
+  };
+
+  const inputType = getInputType();
+
+  const initialValue = useMemo(() => {
+    if (
+      inputType === 'datetime-local' &&
+      props.value &&
+      typeof props.value === 'string' &&
+      props.value.startsWith('/Date(')
+    ) {
+      return convertValueByType(props.value, propertyType);
+    }
+    return props.value;
+  }, [inputType, props.value, propertyType]);
 
   if (operator === 'IN') {
     return (
@@ -62,42 +95,21 @@ export default function PropertyTypeInput({
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleInputKeyDown}
           placeholder='Type and press Enter'
-          sx={{ flex: 1, borderRadius: 0, width: 230 }}
+          sx={{ flex: 1, borderRadius: 0, width: 250, height: '36px' }}
           endDecorator={
-            <IconButton onClick={handleAddClick} sx={{ alignSelf: 'center' }}>
-              <AddIcon />
-            </IconButton>
+            <RelatedSourceSelect
+              propertyType={propertyType}
+              propertyOptionsId={propertyOptionsId}
+              onChange={handleRelatedSourceChange}
+              operator={operator}
+            />
           }
           startDecorator={
-            values.length > 0 && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 0.5,
-                  paddingTop: 0.5,
-                  paddingBottom: 0.5,
-                  maxWidth: 120,
-                }}
-              >
-                {values.map((value, index) => (
-                  <Chip
-                    size='sm'
-                    key={index}
-                    variant='soft'
-                    endDecorator={
-                      <ChipDelete
-                        onDelete={() => {
-                          handleDelete(value);
-                        }}
-                      />
-                    }
-                  >
-                    {value}
-                  </Chip>
-                ))}
-              </Box>
-            )
+            <ValueChips
+              values={values}
+              propertyType={propertyType}
+              onDelete={handleDelete}
+            />
           }
         />
         <input type='hidden' name={props.name} value={values.join(',')} />
@@ -105,49 +117,41 @@ export default function PropertyTypeInput({
     );
   }
 
-  if (!propertyType || typeof propertyType !== 'string') {
-    return <Input type='text' sx={COMMON_INPUT_STYLES} {...props} />;
-  }
-
-  const typeMatch = propertyType.match(/Edm\.(.*)/);
-  const type = (typeMatch ? typeMatch[1] : propertyType).toLowerCase();
-
-  switch (type) {
-    case 'datetimeoffset':
-    case 'date':
-      return (
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DateTimePicker
-            name={props.name}
-            value={props.value ? dayjs(props.value) : null}
-            onChange={props.onChange}
-            slotProps={{
-              textField: {
-                size: 'small',
-                sx: DATE_PICKER_STYLES,
-              },
-            }}
-            label={props.placeholder}
-          />
-        </LocalizationProvider>
-      );
-    case 'int16':
-    case 'int32':
-    case 'int64':
-    case 'decimal':
-    case 'double':
-    case 'single':
-      return <Input type='number' sx={COMMON_INPUT_STYLES} {...props} />;
-    case 'boolean':
-      return (
+  if (inputType === 'boolean') {
+    return (
+      <>
+        <RelatedSourceSelect
+          propertyType={propertyType}
+          propertyOptionsId={propertyOptionsId}
+          onChange={handleRelatedSourceChange}
+          operator={operator}
+        />
         <Select sx={COMMON_INPUT_STYLES} {...props}>
           <Option value='true'>True</Option>
           <Option value='false'>False</Option>
         </Select>
-      );
-    default:
-      return <Input type='text' sx={COMMON_INPUT_STYLES} {...props} />;
+      </>
+    );
   }
+
+  return (
+    <>
+      <Input
+        type={inputType}
+        sx={{ ...COMMON_INPUT_STYLES, paddingRight: 0 }}
+        endDecorator={
+          <RelatedSourceSelect
+            propertyType={propertyType}
+            propertyOptionsId={propertyOptionsId}
+            onChange={handleRelatedSourceChange}
+            operator={operator}
+          />
+        }
+        {...props}
+        value={initialValue || ''}
+      />
+    </>
+  );
 }
 
 PropertyTypeInput.propTypes = {
@@ -157,4 +161,6 @@ PropertyTypeInput.propTypes = {
   value: PropTypes.any,
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
+  propertyOptionsId: PropTypes.number,
+  fieldIdentifierId: PropTypes.string,
 };
