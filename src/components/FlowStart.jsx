@@ -11,6 +11,7 @@ export default function FlowStart() {
         width: 200,
         paddingBottom: 3,
       }}
+      data-testid='flow-start'
     >
       <SettingsIcon />
       <Typography level='title-lg' align='center'>

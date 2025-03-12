@@ -92,6 +92,7 @@ export default function EntitySection({ id }) {
   return (
     <div>
       <Card
+        data-testid='entity-section'
         color={isTargetOfEdge ? 'primary' : 'neutral'}
         sx={{
           display: 'flex',
