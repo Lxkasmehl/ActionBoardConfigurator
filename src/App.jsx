@@ -1,10 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  IconButton,
-  CircularProgress,
-  Button,
-} from '@mui/joy';
+import { IconButton, CircularProgress, Button } from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
 import { useSendRequest } from './hooks/useSendRequest';
 import { formatODataResult } from './utils/formatODataResult';
@@ -226,9 +222,9 @@ export default function App() {
       />
 
       <Button
+        data-testid='send-request-button'
         onClick={handleRequest}
         variant='solid'
-        aria-label='Send Request'
         color='neutral'
         size='lg'
         sx={{
