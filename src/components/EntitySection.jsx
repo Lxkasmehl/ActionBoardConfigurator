@@ -107,6 +107,7 @@ export default function EntitySection({ id }) {
       >
         <div className='flex flex-row gap-6 items-center'>
           <Autocomplete
+            data-testid='entity-autocomplete'
             options={sortedEntities}
             groupBy={(option) =>
               (option['sap:label'] || option.name || '').charAt(0).toUpperCase()
@@ -119,6 +120,7 @@ export default function EntitySection({ id }) {
           />
           <div className='flex items-center'>
             <Button
+              data-testid='add-filter-button'
               color='neutral'
               variant='outlined'
               onClick={openModal}
