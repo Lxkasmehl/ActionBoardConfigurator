@@ -94,9 +94,5 @@ test('create simple flow with one entity section, a simple filter and one select
 
   await page.getByTestId('send-request-button').click();
 
-  for (let i = 0; i < 2; i++) {
-    await page.getByTestId('KeyboardArrowRightIcon').click();
-  }
-
   await expect(page.getByText('averageRating: 3.75')).toBeVisible();
 });
