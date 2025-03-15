@@ -220,7 +220,7 @@ export default function FilterModal({ open, onClose, entity, id }) {
                 variant='plain'
                 color='neutral'
                 onClick={addConditionGroup}
-                data-testid='add-condition-group'
+                data-testid='add-condition-group-button'
               >
                 + Add condition group
               </Button>
