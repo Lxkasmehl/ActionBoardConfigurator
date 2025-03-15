@@ -67,3 +67,44 @@ export async function setupComplexFilter(page, conditions) {
 
   await page.getByTestId('filter-modal-save-button').click();
 }
+
+export async function setupExpand(page, accordionId, propertyName) {
+  await page
+    .getByTestId(`accordion-${accordionId}`)
+    .locator('button')
+    .first()
+    .click();
+
+  await selectFromAutocomplete(
+    page,
+    `accordion-${accordionId}-property-selector`,
+    propertyName,
+  );
+}
+
+export async function setupNestedFilterCondition(
+  page,
+  properties,
+  operator,
+  value,
+) {
+  await page.getByTestId('add-filter-button').click();
+  await page.getByTestId('add-condition-button').first().click();
+
+  for (const property of properties) {
+    await selectFromAutocomplete(
+      page,
+      'filter-property-autocomplete',
+      property,
+    );
+  }
+
+  await page.getByTestId('filter-operator-dropdown').click();
+  await page.getByRole('option', { name: operator }).click();
+
+  if (value) {
+    await page.getByPlaceholder('Enter a value').fill(value);
+  }
+
+  await page.getByTestId('filter-modal-save-button').click();
+}
