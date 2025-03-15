@@ -16,7 +16,6 @@ function PropertySelector({ selectedOptions, disabled, ...props }) {
       >
         <span>
           <Autocomplete
-            data-testid='property-selector'
             {...props}
             multiple
             disableCloseOnSelect

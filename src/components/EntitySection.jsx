@@ -132,6 +132,7 @@ export default function EntitySection({ id }) {
 
           <div className='flex items-center flex-col gap-2'>
             <PropertySelector
+              data-testid='property-selector'
               options={uniqueSortedPropertyOptions}
               selectedOptions={selectedPropertiesSectionState.map((name) =>
                 uniqueSortedPropertyOptions.find(
@@ -190,6 +191,7 @@ export default function EntitySection({ id }) {
           >
             {matchingEntitiesState.map((entity) => (
               <Accordion
+                data-testid={`accordion-${entity.propertyPath}`}
                 key={entity.propertyPath}
                 sx={{ height: 'fit-content' }}
               >
@@ -206,6 +208,7 @@ export default function EntitySection({ id }) {
                 </AccordionSummary>
                 <AccordionDetails>
                   <PropertySelector
+                    data-testid={`accordion-${entity.propertyPath}-property-selector`}
                     options={[
                       ...entity.matchingEntity.properties.properties,
                       ...entity.matchingEntity.properties.navigationProperties,
