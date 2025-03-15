@@ -51,6 +51,7 @@ export default function ConditionGroup({
         ))}
 
         <Button
+          data-testid='add-condition-inside-group-button'
           variant='plain'
           color='neutral'
           onClick={() => onAddCondition(conditionGroup)}
