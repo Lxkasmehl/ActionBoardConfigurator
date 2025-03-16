@@ -59,3 +59,83 @@ test('use complex filter with one entity section and one selected property', asy
     await expect(page.getByText(`entityUUID: ${uuid}`)).toBeVisible();
   }
 });
+
+test('use selected properties from one entity section as filter values in another entity section', async ({
+  page,
+}) => {
+  await setupFlowConnection(page);
+
+  await page.locator('button svg[data-testid="AddIcon"]').click();
+
+  await page
+    .getByTestId('entity-section')
+    .first()
+    .locator('div[class*="source"]')
+    .click();
+  await page
+    .getByTestId('entity-section')
+    .last()
+    .locator('div[class*="target"]')
+    .click();
+
+  await selectFromAutocomplete(page, 'entity-autocomplete', 'Business Unit', 0);
+  await setupFilterCondition(page, 'externalCode', '=', 'BU_003', 0);
+  await selectFromAutocomplete(page, 'property-selector', 'createdDateTime', 0);
+
+  await selectFromAutocomplete(page, 'entity-autocomplete', 'Candidate', 1);
+  const sections = page.getByTestId('entity-section');
+  const targetSection = sections.last();
+
+  await targetSection.getByTestId('add-filter-button').click();
+  await page.getByTestId('add-condition-button').first().click();
+
+  await page
+    .getByTestId('filter-property-autocomplete')
+    .getByRole('button', { title: 'Open' })
+    .last()
+    .click();
+  await page
+    .getByRole('option', { name: 'lastModifiedDateTime', exact: true })
+    .click();
+
+  await page.getByTestId('filter-operator-dropdown').click();
+  await page.getByRole('option', { name: '<' }).click();
+
+  await page.getByTestId('related-source-select').click();
+  await page.getByRole('option').first().click();
+
+  await page.getByTestId('filter-modal-save-button').click();
+  await selectFromAutocomplete(page, 'property-selector', 'lastName', 1);
+
+  await page.getByTestId('send-request-button').click();
+  await page.getByTestId('KeyboardArrowRightIcon').click();
+
+  await expect(
+    page.getByText('createdDateTime: 07.07.2015, 10:07'),
+  ).toBeVisible();
+
+  const expectedNames = [
+    'Watson',
+    'Zubov',
+    'Managing Director',
+    'Board',
+    'Hofmann',
+    'Griffin',
+    'Granger',
+    'Granger',
+    'Watson',
+    'Jessikowski',
+    'Richardson',
+    'Urban',
+  ];
+
+  const nameOccurrences = expectedNames.reduce((acc, name) => {
+    acc[name] = (acc[name] || 0) + 1;
+    return acc;
+  }, {});
+
+  for (const [name, expectedCount] of Object.entries(nameOccurrences)) {
+    const elements = await page.locator(`text=lastName: ${name}`).all();
+    await expect(elements).toHaveLength(expectedCount);
+  }
+});

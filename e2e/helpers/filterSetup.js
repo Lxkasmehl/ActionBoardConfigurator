@@ -1,5 +1,13 @@
-export async function selectFromAutocomplete(page, testId, optionName) {
-  await page
+export async function selectFromAutocomplete(
+  page,
+  testId,
+  optionName,
+  sectionIndex = 0,
+) {
+  const sections = page.getByTestId('entity-section');
+  const targetSection = sections.nth(sectionIndex);
+
+  await targetSection
     .getByTestId(testId)
     .getByRole('button', { title: 'Open' })
     .last()
@@ -12,15 +20,20 @@ export async function setupFilterCondition(
   propertyName,
   operator,
   value,
+  sectionIndex = 0,
 ) {
-  await page.getByTestId('add-filter-button').click();
+  const sections = page.getByTestId('entity-section');
+  const targetSection = sections.nth(sectionIndex);
+
+  await targetSection.getByTestId('add-filter-button').click();
   await page.getByTestId('add-condition-button').first().click();
 
-  await selectFromAutocomplete(
-    page,
-    'filter-property-autocomplete',
-    propertyName,
-  );
+  await page
+    .getByTestId('filter-property-autocomplete')
+    .getByRole('button', { title: 'Open' })
+    .last()
+    .click();
+  await page.getByRole('option', { name: propertyName, exact: true }).click();
 
   await page.getByTestId('filter-operator-dropdown').click();
   await page.getByRole('option', { name: operator }).click();
