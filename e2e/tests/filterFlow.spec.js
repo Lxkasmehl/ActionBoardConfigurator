@@ -64,47 +64,18 @@ test('use selected properties from one entity section as filter values in anothe
   page,
 }) => {
   await setupFlowConnection(page);
-
   await page.locator('button svg[data-testid="AddIcon"]').click();
 
-  await page
-    .getByTestId('entity-section')
-    .first()
-    .locator('div[class*="source"]')
-    .click();
-  await page
-    .getByTestId('entity-section')
-    .last()
-    .locator('div[class*="target"]')
-    .click();
+  const sections = page.getByTestId('entity-section');
+  await sections.first().locator('div[class*="source"]').click();
+  await sections.last().locator('div[class*="target"]').click();
 
   await selectFromAutocomplete(page, 'entity-autocomplete', 'Business Unit', 0);
   await setupFilterCondition(page, 'externalCode', '=', 'BU_003', 0);
   await selectFromAutocomplete(page, 'property-selector', 'createdDateTime', 0);
 
   await selectFromAutocomplete(page, 'entity-autocomplete', 'Candidate', 1);
-  const sections = page.getByTestId('entity-section');
-  const targetSection = sections.last();
-
-  await targetSection.getByTestId('add-filter-button').click();
-  await page.getByTestId('add-condition-button').first().click();
-
-  await page
-    .getByTestId('filter-property-autocomplete')
-    .getByRole('button', { title: 'Open' })
-    .last()
-    .click();
-  await page
-    .getByRole('option', { name: 'lastModifiedDateTime', exact: true })
-    .click();
-
-  await page.getByTestId('filter-operator-dropdown').click();
-  await page.getByRole('option', { name: '<' }).click();
-
-  await page.getByTestId('related-source-select').click();
-  await page.getByRole('option').first().click();
-
-  await page.getByTestId('filter-modal-save-button').click();
+  await setupFilterCondition(page, 'lastModifiedDateTime', '<', null, 1, true);
   await selectFromAutocomplete(page, 'property-selector', 'lastName', 1);
 
   await page.getByTestId('send-request-button').click();
@@ -114,28 +85,21 @@ test('use selected properties from one entity section as filter values in anothe
     page.getByText('createdDateTime: 07.07.2015, 10:07'),
   ).toBeVisible();
 
-  const expectedNames = [
-    'Watson',
-    'Zubov',
-    'Managing Director',
-    'Board',
-    'Hofmann',
-    'Griffin',
-    'Granger',
-    'Granger',
-    'Watson',
-    'Jessikowski',
-    'Richardson',
-    'Urban',
-  ];
+  const expectedNames = {
+    Watson: 2,
+    Zubov: 1,
+    'Managing Director': 1,
+    Board: 1,
+    Hofmann: 1,
+    Griffin: 1,
+    Granger: 2,
+    Jessikowski: 1,
+    Richardson: 1,
+    Urban: 1,
+  };
 
-  const nameOccurrences = expectedNames.reduce((acc, name) => {
-    acc[name] = (acc[name] || 0) + 1;
-    return acc;
-  }, {});
-
-  for (const [name, expectedCount] of Object.entries(nameOccurrences)) {
+  for (const [name, count] of Object.entries(expectedNames)) {
     const elements = await page.locator(`text=lastName: ${name}`).all();
-    await expect(elements).toHaveLength(expectedCount);
+    await expect(elements).toHaveLength(count);
   }
 });

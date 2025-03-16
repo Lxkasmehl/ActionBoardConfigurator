@@ -21,6 +21,7 @@ export async function setupFilterCondition(
   operator,
   value,
   sectionIndex = 0,
+  useRelationalFilter = false,
 ) {
   const sections = page.getByTestId('entity-section');
   const targetSection = sections.nth(sectionIndex);
@@ -38,7 +39,10 @@ export async function setupFilterCondition(
   await page.getByTestId('filter-operator-dropdown').click();
   await page.getByRole('option', { name: operator }).click();
 
-  if (value) {
+  if (useRelationalFilter) {
+    await page.getByTestId('related-source-select').click();
+    await page.getByRole('option').first().click();
+  } else if (value) {
     await page.getByPlaceholder('Enter a value').fill(value);
   }
 
