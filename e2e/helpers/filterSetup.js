@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 export async function selectFromAutocomplete(
   page,
   testId,
@@ -21,24 +19,7 @@ export async function selectFromAutocomplete(
     .last()
     .click();
 
-  const option = page.getByRole('option', { name: optionName, exact: true });
-
-  await page.waitForTimeout(500);
-
-  await option.waitFor({ state: 'attached', timeout: 5000 });
-  await expect(option).toBeVisible({ timeout: 5000 });
-  await expect(option).toBeEnabled({ timeout: 5000 });
-
-  try {
-    await option.click({ force: true, timeout: 5000 });
-  } catch (error) {
-    console.log(
-      `First click attempt failed for option "${optionName}". Retrying...`,
-    );
-    await page.waitForTimeout(2000);
-    await option.scrollIntoViewIfNeeded();
-    await option.click({ force: true, timeout: 5000 });
-  }
+  await page.getByRole('option', { name: optionName, exact: true }).click();
 }
 
 export async function selectFilterProperty(page, propertyName) {
