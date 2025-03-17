@@ -1,49 +1,37 @@
-import { expect } from '@playwright/test';
-
 export async function selectFromAutocomplete(
   page,
   testId,
   optionName,
   sectionIndex = 0,
+  options = {},
 ) {
-  const sections = page.getByTestId('entity-section');
-  const targetSection = sections.nth(sectionIndex);
+  const { useSection = true, buttonTitle = 'Open' } = options;
 
-  await expect(targetSection).toBeVisible();
+  let element = page;
+  if (useSection) {
+    const sections = page.getByTestId('entity-section');
+    element = sections.nth(sectionIndex);
+  }
 
-  const button = targetSection
+  await element
     .getByTestId(testId)
-    .getByRole('button', { title: 'Open' })
-    .last();
+    .getByRole('button', { title: buttonTitle })
+    .last()
+    .click();
 
-  for (let i = 0; i < 3; i++) {
-    try {
-      await expect(button).toBeVisible({ timeout: 10000 });
-      await expect(button).toBeEnabled({ timeout: 10000 });
-      await button.scrollIntoViewIfNeeded();
-      await button.click({ timeout: 10000 });
-      break;
-    } catch (error) {
-      if (i === 2) throw error;
-      await page.waitForTimeout(1000);
-    }
-  }
+  await page
+    .getByRole('option', { name: optionName, exact: true })
+    .click({ force: true });
+}
 
-  for (let i = 0; i < 3; i++) {
-    try {
-      const option = page.getByRole('option', {
-        name: optionName,
-        exact: true,
-      });
-      await expect(option).toBeVisible({ timeout: 10000 });
-      await option.scrollIntoViewIfNeeded();
-      await option.click({ timeout: 10000, force: true });
-      break;
-    } catch (error) {
-      if (i === 2) throw error;
-      await page.waitForTimeout(1000);
-    }
-  }
+export async function selectFilterProperty(page, propertyName) {
+  await selectFromAutocomplete(
+    page,
+    'filter-property-autocomplete',
+    propertyName,
+    0,
+    { useSection: false },
+  );
 }
 
 export async function setupFilterCondition(
@@ -60,12 +48,7 @@ export async function setupFilterCondition(
   await targetSection.getByTestId('add-filter-button').click();
   await page.getByTestId('add-condition-button').first().click();
 
-  await page
-    .getByTestId('filter-property-autocomplete')
-    .getByRole('button', { title: 'Open' })
-    .last()
-    .click();
-  await page.getByRole('option', { name: propertyName, exact: true }).click();
+  await selectFilterProperty(page, propertyName);
 
   await page.getByTestId('filter-operator-dropdown').click();
   await page.getByRole('option', { name: operator }).click();
@@ -82,16 +65,11 @@ export async function setupFilterCondition(
 
 export async function setupComplexFilter(page, conditions) {
   await page.getByTestId('add-filter-button').click();
-
   await page.getByTestId('add-condition-group-button').click();
 
   for (const condition of conditions.groupConditions) {
     await page.getByTestId('add-condition-inside-group-button').click();
-    await selectFromAutocomplete(
-      page,
-      'filter-property-autocomplete',
-      condition.property,
-    );
+    await selectFilterProperty(page, condition.property);
     await page.getByTestId('filter-operator-dropdown').last().click();
     await page.getByRole('option', { name: condition.operator }).click();
     await page.getByPlaceholder('Enter a value').last().fill(condition.value);
@@ -103,11 +81,7 @@ export async function setupComplexFilter(page, conditions) {
       await page.getByTestId('logic-selector').last().click();
       await page.getByRole('option', { name: condition.logic }).click();
     }
-    await selectFromAutocomplete(
-      page,
-      'filter-property-autocomplete',
-      condition.property,
-    );
+    await selectFilterProperty(page, condition.property);
     await page.getByTestId('filter-operator-dropdown').last().click();
     await page.getByRole('option', { name: condition.operator }).click();
     await page.getByPlaceholder('Enter a value').last().fill(condition.value);
@@ -140,11 +114,12 @@ export async function setupNestedFilterCondition(
   await page.getByTestId('add-condition-button').first().click();
 
   for (const property of properties) {
-    await selectFromAutocomplete(
-      page,
-      'filter-property-autocomplete',
-      property,
-    );
+    await page
+      .getByTestId('filter-property-autocomplete')
+      .getByRole('button', { title: 'Open' })
+      .last()
+      .click();
+    await page.getByRole('option', { name: property, exact: true }).click();
   }
 
   await page.getByTestId('filter-operator-dropdown').click();
