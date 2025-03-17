@@ -100,6 +100,6 @@ test('use selected properties from one entity section as filter values in anothe
 
   for (const [name, count] of Object.entries(expectedNames)) {
     const elements = await page.locator(`text=lastName: ${name}`).all();
-    await expect(elements).toHaveLength(count);
+    expect(elements).toHaveLength(count);
   }
 });
