@@ -23,14 +23,21 @@ export async function selectFromAutocomplete(
 
   const option = page.getByRole('option', { name: optionName, exact: true });
 
-  await option.waitFor({ state: 'visible', timeout: 5000 });
-  await expect(option).toBeEnabled();
+  await page.waitForTimeout(500);
+
+  await option.waitFor({ state: 'attached', timeout: 5000 });
+  await expect(option).toBeVisible({ timeout: 5000 });
+  await expect(option).toBeEnabled({ timeout: 5000 });
 
   try {
-    await option.click({ force: true, timeout: 10000 });
+    await option.click({ force: true, timeout: 5000 });
   } catch (error) {
-    await page.waitForTimeout(1000);
-    await option.click({ force: true, timeout: 10000 });
+    console.log(
+      `First click attempt failed for option "${optionName}". Retrying...`,
+    );
+    await page.waitForTimeout(2000);
+    await option.scrollIntoViewIfNeeded();
+    await option.click({ force: true, timeout: 5000 });
   }
 }
 
