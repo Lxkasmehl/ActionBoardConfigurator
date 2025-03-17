@@ -1,10 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  IconButton,
-  CircularProgress,
-  Button,
-} from '@mui/joy';
+import { IconButton, CircularProgress, Button } from '@mui/joy';
 import useFetchEntities from './hooks/useFetchEntities.js';
 import { useSendRequest } from './hooks/useSendRequest';
 import { formatODataResult } from './utils/formatODataResult';
@@ -118,7 +114,12 @@ export default function App() {
             const filterObject =
               config[targetNodeId][selectedEntities[targetNodeId]].filter;
 
-            dispatch(removeEntityConfig({ id: targetNodeId }));
+            dispatch(
+              removeEntityConfig({
+                id: targetNodeId,
+                entityName: selectedEntities[targetNodeId],
+              }),
+            );
             dispatch(removeFormData({ id: targetNodeId }));
             dispatch(
               setSelectedProperties({

@@ -84,7 +84,9 @@ export default function EntitySection({ id }) {
 
   const handleRemove = () => {
     setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
-    dispatch(removeEntityConfig(id));
+    dispatch(
+      removeEntityConfig({ id, entityName: selectedEntity?.name || '' }),
+    );
     dispatch(removeFormData({ id }));
     console.log(config);
   };
