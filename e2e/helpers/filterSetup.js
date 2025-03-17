@@ -1,3 +1,5 @@
+import { expect } from '@playwright/test';
+
 export async function selectFromAutocomplete(
   page,
   testId,
@@ -7,12 +9,41 @@ export async function selectFromAutocomplete(
   const sections = page.getByTestId('entity-section');
   const targetSection = sections.nth(sectionIndex);
 
-  await targetSection
+  await expect(targetSection).toBeVisible();
+
+  const button = targetSection
     .getByTestId(testId)
     .getByRole('button', { title: 'Open' })
-    .last()
-    .click();
-  await page.getByRole('option', { name: optionName, exact: true }).click();
+    .last();
+
+  for (let i = 0; i < 3; i++) {
+    try {
+      await expect(button).toBeVisible({ timeout: 10000 });
+      await expect(button).toBeEnabled({ timeout: 10000 });
+      await button.scrollIntoViewIfNeeded();
+      await button.click({ timeout: 10000 });
+      break;
+    } catch (error) {
+      if (i === 2) throw error;
+      await page.waitForTimeout(1000);
+    }
+  }
+
+  for (let i = 0; i < 3; i++) {
+    try {
+      const option = page.getByRole('option', {
+        name: optionName,
+        exact: true,
+      });
+      await expect(option).toBeVisible({ timeout: 10000 });
+      await option.scrollIntoViewIfNeeded();
+      await option.click({ timeout: 10000, force: true });
+      break;
+    } catch (error) {
+      if (i === 2) throw error;
+      await page.waitForTimeout(1000);
+    }
+  }
 }
 
 export async function setupFilterCondition(
