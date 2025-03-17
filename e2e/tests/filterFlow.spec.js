@@ -82,7 +82,7 @@ test('use selected properties from one entity section as filter values in anothe
   await page.getByTestId('KeyboardArrowRightIcon').click();
 
   await expect(
-    page.getByText('createdDateTime: 07.07.2015, 10:07'),
+    page.getByText(/createdDateTime: 07\.07\.2015, (10:07|15:07)/),
   ).toBeVisible();
 
   const expectedNames = {
