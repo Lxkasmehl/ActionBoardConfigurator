@@ -74,7 +74,8 @@ const entitiesSlice = createSlice({
     },
 
     removeEntityConfig(state, action) {
-      const { id } = action.payload;
+      const { id, entityName } = action.payload;
+      initializeEntityConfig(state, id, entityName);
       if (state.config[id]) {
         delete state.config[id];
       }

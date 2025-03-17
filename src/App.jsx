@@ -114,7 +114,12 @@ export default function App() {
             const filterObject =
               config[targetNodeId][selectedEntities[targetNodeId]].filter;
 
-            dispatch(removeEntityConfig({ id: targetNodeId }));
+            dispatch(
+              removeEntityConfig({
+                id: targetNodeId,
+                entityName: selectedEntities[targetNodeId],
+              }),
+            );
             dispatch(removeFormData({ id: targetNodeId }));
             dispatch(
               setSelectedProperties({
