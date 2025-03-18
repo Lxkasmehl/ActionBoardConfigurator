@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
-import useFetchEntities from './hooks/useFetchEntities.js';
-import { useSendRequest } from './hooks/useSendRequest';
-import { formatODataResult } from './utils/formatODataResult';
+import useFetchEntities from './features/entityExplorer/hooks/useFetchEntities.js';
+import { useSendRequest } from './features/entityExplorer/hooks/useSendRequest';
+import { formatODataResult } from './features/entityExplorer/utils/formatODataResult.js';
 
 import { INITIAL_NODES, NODE_TYPES, EDGE_TYPES } from './app.constants.js';
 import {
@@ -26,7 +26,7 @@ import {
   addEdge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import ResultsModal from './components/ResultsModal';
+import ResultsModal from './features/entityExplorer/components/ResultsModal.jsx';
 
 export default function App() {
   const loading = useFetchEntities();

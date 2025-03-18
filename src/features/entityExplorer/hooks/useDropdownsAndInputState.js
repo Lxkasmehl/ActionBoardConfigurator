@@ -4,7 +4,7 @@ import {
   findMatchingEntity,
   getNavigationProperties,
 } from '../utils/navigationUtils';
-import { setMatchingEntityObjects } from '../redux/entitiesSlice';
+import { setMatchingEntityObjects } from '../../../redux/entitiesSlice';
 
 const initialState = {
   property: null,

@@ -5,7 +5,7 @@ import {
   removeFormData,
   setPropertyOptions,
   setSelectedEntity,
-} from '../redux/entitiesSlice';
+} from '../../../redux/entitiesSlice';
 
 export function useEntityChangeHandler(
   id,
