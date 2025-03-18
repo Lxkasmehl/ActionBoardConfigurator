@@ -18,7 +18,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run Playwright tests
-        run: npx playwright test --workers=4
+        run: npx playwright test
         env:
           VITE_API_USER: ${{ secrets.VITE_API_USER }}
           VITE_API_PASSWORD: ${{ secrets.VITE_API_PASSWORD }}

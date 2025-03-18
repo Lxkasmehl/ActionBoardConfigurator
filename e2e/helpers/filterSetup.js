@@ -19,6 +19,10 @@ export async function selectFromAutocomplete(
     .last()
     .click();
 
+  await page.getByRole('option', { name: optionName, exact: true }).waitFor({
+    state: 'visible',
+    timeout: 5000,
+  });
   await page.getByRole('option', { name: optionName, exact: true }).click();
 }
 
