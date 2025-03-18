@@ -7,6 +7,7 @@ import {
   useSensors,
   pointerWithin,
   rectIntersection,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -17,6 +18,7 @@ import { Box } from '@mui/joy';
 import ComponentLibrary from './ComponentLibrary';
 import PreviewArea from './PreviewArea';
 import { COMPONENT_CONFIGS } from './constants';
+import SortableComponent from './SortableComponent';
 
 const collisionDetectionStrategy = (args) => {
   const pointerCollisions = pointerWithin(args);
@@ -36,9 +38,14 @@ const collisionDetectionStrategy = (args) => {
 
 export default function UiBuilder() {
   const [components, setComponents] = useState([]);
+  const [activeDragData, setActiveDragData] = useState(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
     useSensor(KeyboardSensor),
   );
 
@@ -53,8 +60,23 @@ export default function UiBuilder() {
     };
   };
 
+  const handleDragStart = (event) => {
+    const { active } = event;
+    if (active.id.includes('library-')) {
+      const componentType = active.data.current.type;
+      const newComponent = createNewComponent(componentType);
+      setActiveDragData({ type: 'library', component: newComponent });
+    } else if (active.id.startsWith('component-')) {
+      const component = components.find((c) => c.id === active.id);
+      if (component) {
+        setActiveDragData({ type: 'preview', component });
+      }
+    }
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
+    setActiveDragData(null);
 
     if (!over) return;
 
@@ -74,11 +96,46 @@ export default function UiBuilder() {
     }
   };
 
+  const renderDragOverlay = () => {
+    if (!activeDragData) return null;
+
+    if (activeDragData.type === 'library') {
+      return (
+        <Box
+          sx={{
+            transform: 'scale(1.02)',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s ease',
+          }}
+        >
+          <SortableComponent component={activeDragData.component} />
+        </Box>
+      );
+    }
+
+    if (activeDragData.type === 'preview') {
+      return (
+        <Box
+          sx={{
+            transform: 'scale(1.02)',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s ease',
+          }}
+        >
+          <SortableComponent component={activeDragData.component} />
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <Box sx={{ display: 'flex', height: '100vh', p: 2, gap: 2 }}>
       <DndContext
         sensors={sensors}
         collisionDetection={collisionDetectionStrategy}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <ComponentLibrary />
@@ -88,6 +145,7 @@ export default function UiBuilder() {
         >
           <PreviewArea components={components} />
         </SortableContext>
+        <DragOverlay>{renderDragOverlay()}</DragOverlay>
       </DndContext>
     </Box>
   );
