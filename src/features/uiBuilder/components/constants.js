@@ -32,18 +32,11 @@ export const COMPONENT_CONFIGS = {
       color: 'primary',
     },
   },
-  [COMPONENT_TYPES.CARD]: {
-    label: 'Card',
-    icon: 'Rectangle',
-    defaultProps: {
-      content: 'Card content',
-    },
-  },
   [COMPONENT_TYPES.IMAGE]: {
     label: 'Image',
     icon: 'Image',
     defaultProps: {
-      src: 'https://via.placeholder.com/150',
+      src: 'https://placehold.co/500x200',
       alt: 'Placeholder image',
     },
   },

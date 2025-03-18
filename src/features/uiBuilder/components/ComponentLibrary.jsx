@@ -1,8 +1,28 @@
 import { Box, Card, Typography, Stack } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from './constants';
+import {
+  Title,
+  TextFields,
+  SmartButton,
+  Rectangle,
+  Image,
+  DynamicForm,
+} from '@mui/icons-material';
 
 export default function ComponentLibrary({ onAddComponent }) {
+  const renderIcon = (iconName) => {
+    const iconMap = {
+      Title: <Title />,
+      TextFields: <TextFields />,
+      SmartButton: <SmartButton />,
+      Rectangle: <Rectangle />,
+      Image: <Image />,
+      DynamicForm: <DynamicForm />,
+    };
+    return iconMap[iconName] || null;
+  };
+
   return (
     <Card
       sx={{
@@ -40,7 +60,7 @@ export default function ComponentLibrary({ onAddComponent }) {
                   borderRadius: 'sm',
                 }}
               >
-                <Typography>{config.icon}</Typography>
+                {renderIcon(config.icon)}
               </Box>
               <Typography>{config.label}</Typography>
             </Stack>
