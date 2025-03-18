@@ -37,12 +37,13 @@ test('create new entity section', async ({ page }) => {
   await expect(page.getByTestId('entity-section')).toHaveCount(2);
 });
 
-test.only('handle parallel request limit with multiple flows', async ({
+test('handle parallel request limit with multiple flows', async ({
   page,
   browserName,
 }) => {
-  test.skip(browserName !== 'chromium', 'Test runs only on Chromium');
+  test.skip(browserName !== 'chromium', 'Test runs only in Chromium');
   test.setTimeout(120000);
+
   await setupBasePage(page);
 
   for (let i = 0; i < 14; i++) {
