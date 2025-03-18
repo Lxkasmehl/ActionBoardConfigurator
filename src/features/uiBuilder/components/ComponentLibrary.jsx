@@ -1,28 +1,8 @@
-import { Box, Card, Typography, Stack } from '@mui/joy';
-import PropTypes from 'prop-types';
+import { Card, Typography, Stack } from '@mui/joy';
 import { COMPONENT_CONFIGS } from './constants';
-import {
-  Title,
-  TextFields,
-  SmartButton,
-  Rectangle,
-  Image,
-  DynamicForm,
-} from '@mui/icons-material';
+import DraggableComponent from './DraggableComponent';
 
-export default function ComponentLibrary({ onAddComponent }) {
-  const renderIcon = (iconName) => {
-    const iconMap = {
-      Title: <Title />,
-      TextFields: <TextFields />,
-      SmartButton: <SmartButton />,
-      Rectangle: <Rectangle />,
-      Image: <Image />,
-      DynamicForm: <DynamicForm />,
-    };
-    return iconMap[iconName] || null;
-  };
-
+export default function ComponentLibrary() {
   return (
     <Card
       sx={{
@@ -36,41 +16,15 @@ export default function ComponentLibrary({ onAddComponent }) {
         Components
       </Typography>
       <Stack spacing={2}>
-        {Object.entries(COMPONENT_CONFIGS).map(([type, config]) => (
-          <Card
+        {Object.entries(COMPONENT_CONFIGS).map(([type, config], index) => (
+          <DraggableComponent
             key={type}
-            sx={{
-              p: 2,
-              cursor: 'pointer',
-              '&:hover': {
-                bgcolor: 'background.level1',
-              },
-            }}
-            onClick={() => onAddComponent(type)}
-          >
-            <Stack direction='row' spacing={2} alignItems='center'>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: 'background.level1',
-                  borderRadius: 'sm',
-                }}
-              >
-                {renderIcon(config.icon)}
-              </Box>
-              <Typography>{config.label}</Typography>
-            </Stack>
-          </Card>
+            type={type}
+            config={config}
+            index={index}
+          />
         ))}
       </Stack>
     </Card>
   );
 }
-
-ComponentLibrary.propTypes = {
-  onAddComponent: PropTypes.func.isRequired,
-};

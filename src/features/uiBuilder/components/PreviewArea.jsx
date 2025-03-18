@@ -1,149 +1,28 @@
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Box, Card, Typography, Button, Stack } from '@mui/joy';
+import { Box, Card, Typography } from '@mui/joy';
 import PropTypes from 'prop-types';
-import { COMPONENT_CONFIGS } from './constants';
+import { useDroppable } from '@dnd-kit/core';
+import SortableComponent from './SortableComponent';
+import EmptyState from './EmptyState';
 
-function SortableComponent({ component }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: component.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    position: 'relative',
-    zIndex: isDragging ? 1 : 0,
-  };
-
-  const renderComponent = () => {
-    const config = COMPONENT_CONFIGS[component.type];
-    if (!config) return null;
-
-    switch (component.type) {
-      case 'heading':
-        return (
-          <Typography level={component.props.level || 'h2'}>
-            {component.props.text}
-          </Typography>
-        );
-      case 'paragraph':
-        return <Typography>{component.props.text}</Typography>;
-      case 'button':
-        return (
-          <Button
-            variant={component.props.variant}
-            color={component.props.color}
-          >
-            {component.props.text}
-          </Button>
-        );
-      case 'card':
-        return (
-          <Card>
-            <Typography>{component.props.content}</Typography>
-          </Card>
-        );
-      case 'image':
-        return (
-          <Box
-            component='img'
-            src={component.props.src}
-            alt={component.props.alt}
-            sx={{ maxWidth: '100%', height: 'auto' }}
-          />
-        );
-      case 'form':
-        return (
-          <Stack spacing={2}>
-            {component.props.fields.map((field, index) => (
-              <Box key={index}>
-                <Typography level='body-sm'>{field.label}</Typography>
-                <Box
-                  component='input'
-                  type={field.type}
-                  placeholder={field.placeholder}
-                  sx={{
-                    width: '100%',
-                    p: 1,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 'sm',
-                  }}
-                />
-              </Box>
-            ))}
-          </Stack>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <Card
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      sx={{
-        p: 2,
-        mb: 2,
-        cursor: 'grab',
-        '&:active': {
-          cursor: 'grabbing',
-        },
-        position: 'relative',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          borderRadius: 'inherit',
-          border: '2px dashed',
-          borderColor: 'primary.500',
-          opacity: isDragging ? 1 : 0,
-          transition: 'opacity 0.2s',
-        },
-      }}
-    >
-      {renderComponent()}
-    </Card>
-  );
-}
-
-SortableComponent.propTypes = {
-  component: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    type: PropTypes.string.isRequired,
-    props: PropTypes.shape({
-      text: PropTypes.string,
-      level: PropTypes.string,
-      variant: PropTypes.string,
-      color: PropTypes.string,
-      content: PropTypes.string,
-      src: PropTypes.string,
-      alt: PropTypes.string,
-      fields: PropTypes.arrayOf(
-        PropTypes.shape({
-          type: PropTypes.string,
-          label: PropTypes.string,
-          placeholder: PropTypes.string,
-        }),
-      ),
-    }),
-  }).isRequired,
+const BORDER_STYLES = {
+  DASHED: '2px dashed',
+  NONE: 'none',
 };
 
+const getContainerStyles = (hasComponents, isOver) => ({
+  height: '100%',
+  p: 2,
+  border: hasComponents && isOver ? BORDER_STYLES.DASHED : BORDER_STYLES.NONE,
+  borderColor: hasComponents && isOver ? 'primary.500' : BORDER_STYLES.NONE,
+  borderRadius: 'sm',
+});
+
 export default function PreviewArea({ components }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'preview-area',
+    data: { type: 'preview-area' },
+  });
+
   return (
     <Card
       sx={{
@@ -151,30 +30,19 @@ export default function PreviewArea({ components }) {
         height: '100%',
         overflowY: 'auto',
         p: 2,
-        bgcolor: 'background.level1',
+        transition: 'background-color 0.2s ease',
       }}
     >
       <Typography level='h4' mb={2}>
         Preview
       </Typography>
-      <Box>
+
+      <Box
+        ref={setNodeRef}
+        sx={getContainerStyles(components.length > 0, isOver)}
+      >
         {components.length === 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              minHeight: 200,
-              border: '2px dashed',
-              borderColor: 'divider',
-              borderRadius: 'sm',
-            }}
-          >
-            <Typography level='body-lg' color='neutral'>
-              Drag and drop components here
-            </Typography>
-          </Box>
+          <EmptyState isOver={isOver} />
         ) : (
           components.map((component) => (
             <SortableComponent key={component.id} component={component} />

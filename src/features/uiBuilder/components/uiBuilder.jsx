@@ -1,107 +1,93 @@
 import { useState } from 'react';
 import {
   DndContext,
-  DragOverlay,
-  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
+  pointerWithin,
+  rectIntersection,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   rectSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
-import { Box, Card, Typography } from '@mui/joy';
+import { Box } from '@mui/joy';
 import ComponentLibrary from './ComponentLibrary';
 import PreviewArea from './PreviewArea';
 import { COMPONENT_CONFIGS } from './constants';
 
+const collisionDetectionStrategy = (args) => {
+  const pointerCollisions = pointerWithin(args);
+
+  if (pointerCollisions.length > 0) {
+    const previewAreaCollision = pointerCollisions.find(
+      (collision) => collision.id === 'preview-area',
+    );
+
+    if (previewAreaCollision) {
+      return [previewAreaCollision];
+    }
+  }
+
+  return rectIntersection(args);
+};
+
 export default function UiBuilder() {
   const [components, setComponents] = useState([]);
-  const [activeId, setActiveId] = useState(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor),
   );
 
-  const handleDragStart = (event) => {
-    setActiveId(event.active.id);
+  const createNewComponent = (componentType) => {
+    const config = COMPONENT_CONFIGS[componentType];
+    if (!config) return null;
+
+    return {
+      id: `component-${Date.now()}`,
+      type: componentType,
+      props: { ...config.defaultProps },
+    };
   };
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
-    if (over && active.id !== over.id) {
+    if (!over) return;
+
+    if (active.id.startsWith('component-') && over.id === 'preview-area') {
       setComponents((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
         return arrayMove(items, oldIndex, newIndex);
       });
+      return;
     }
 
-    setActiveId(null);
-  };
-
-  const handleDragOver = (event) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      setComponents((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+    if (active.id.includes('library-') && over.id === 'preview-area') {
+      const componentType = active.data.current.type;
+      const newComponent = createNewComponent(componentType);
+      setComponents((prev) => [...prev, newComponent]);
     }
-  };
-
-  const addComponent = (type) => {
-    const config = COMPONENT_CONFIGS[type];
-    if (!config) return;
-
-    const newComponent = {
-      id: `component-${Date.now()}`,
-      type,
-      props: { ...config.defaultProps },
-    };
-    setComponents((prev) => [...prev, newComponent]);
   };
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', p: 2, gap: 2 }}>
-      <ComponentLibrary onAddComponent={addComponent} />
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
+        collisionDetection={collisionDetectionStrategy}
         onDragEnd={handleDragEnd}
-        onDragOver={handleDragOver}
       >
+        <ComponentLibrary />
         <SortableContext
           items={components.map((c) => c.id)}
           strategy={rectSortingStrategy}
         >
           <PreviewArea components={components} />
         </SortableContext>
-        <DragOverlay>
-          {activeId ? (
-            <Card
-              sx={{
-                width: 200,
-                height: 100,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'grabbing',
-                opacity: 0.8,
-              }}
-            >
-              <Typography>Dragging...</Typography>
-            </Card>
-          ) : null}
-        </DragOverlay>
       </DndContext>
     </Box>
   );
