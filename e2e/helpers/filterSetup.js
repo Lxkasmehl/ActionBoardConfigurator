@@ -58,6 +58,10 @@ export async function setupFilterCondition(
     await page.getByPlaceholder('Enter a value').fill(value);
   }
 
+  await page.getByTestId('filter-modal-save-button').waitFor({
+    state: 'visible',
+    timeout: 5000,
+  });
   await page.getByTestId('filter-modal-save-button').click();
 }
 
