@@ -10,7 +10,7 @@ import {
   removeGroupedEntityLogic,
   setCustomFilter,
   setMatchingEntityObjects,
-} from '../redux/entitiesSlice';
+} from '../../../redux/entitiesSlice';
 import { useReactFlow } from '@xyflow/react';
 
 const buildConditions = (obj) => {

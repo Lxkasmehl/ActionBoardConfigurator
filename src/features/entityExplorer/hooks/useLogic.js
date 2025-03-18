@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { setEntityLogic, setGroupedEntityLogic } from '../redux/entitiesSlice';
+import { setEntityLogic, setGroupedEntityLogic } from '../../../redux/entitiesSlice';
 import { useCallback } from 'react';
 
 export const useLogic = (id, groupIndex) => {

@@ -4,7 +4,7 @@ import {
   setSelectedProperties,
   setPropertySelection,
   setPropertiesBySection,
-} from '../redux/entitiesSlice';
+} from '../../../redux/entitiesSlice';
 import {
   findMatchingEntity,
   getNavigationProperties,
