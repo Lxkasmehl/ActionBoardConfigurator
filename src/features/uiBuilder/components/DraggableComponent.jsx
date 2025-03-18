@@ -43,6 +43,8 @@ function DraggableComponent({ type, config, index }) {
         '&:hover': {
           bgcolor: 'background.level1',
         },
+        transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+        transition: 'transform 0.2s ease',
       }}
     >
       <Stack direction='row' spacing={2} alignItems='center'>
