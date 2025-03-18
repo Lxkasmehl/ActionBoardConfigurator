@@ -16,9 +16,32 @@ function JsonViewer({ data, level = 0 }) {
 
   const isArray = Array.isArray(data);
   const isEmpty = Object.keys(data).length === 0;
+  const isSingleEntry = Object.keys(data).length === 1;
 
   if (isEmpty) {
     return <span>{isArray ? '[]' : '{}'}</span>;
+  }
+
+  if (isSingleEntry && level > 0) {
+    const [key, value] = Object.entries(data)[0];
+    return (
+      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+        {!isArray && (
+          <Typography
+            component='span'
+            sx={{
+              fontFamily: 'monospace',
+              color: '#24292e',
+              mr: 0.5,
+              fontWeight: level === 0 ? 600 : 400,
+            }}
+          >
+            {`${key}: `}
+          </Typography>
+        )}
+        <JsonViewer data={value} level={level} />
+      </div>
+    );
   }
 
   return (

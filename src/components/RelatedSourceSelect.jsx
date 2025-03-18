@@ -31,6 +31,7 @@ export default function RelatedSourceSelect({
     <Tooltip title={tooltipText} placement='top'>
       <span>
         <Select
+          data-testid='related-source-select'
           variant='plain'
           onChange={handleChange}
           value={null}

@@ -25,7 +25,7 @@ export default function ConditionGroup({
         showWhere={groupIndex === 0}
       />
 
-      <Card>
+      <Card data-testid='condition-group'>
         <div className='flex flex-row items-center justify-between'>
           <Typography>Any of the following are true...</Typography>
           <IconButton
@@ -51,6 +51,7 @@ export default function ConditionGroup({
         ))}
 
         <Button
+          data-testid='add-condition-inside-group-button'
           variant='plain'
           color='neutral'
           onClick={() => onAddCondition(conditionGroup)}

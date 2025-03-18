@@ -7,8 +7,8 @@ export default function LogicSelector({
   name,
   showWhere,
   isSubCondition,
-  id, 
-  groupIndex
+  id,
+  groupIndex,
 }) {
   const {
     selectedLogic,
@@ -30,6 +30,7 @@ export default function LogicSelector({
     >
       <div className='h-fit'>
         <Select
+          data-testid={'logic-selector'}
           sx={{ width: 90, mr: 3, height: 'fit-content' }}
           value={isSubCondition ? selectedSubLogic : selectedLogic}
           onChange={isSubCondition ? handleSubLogicChange : handleLogicChange}

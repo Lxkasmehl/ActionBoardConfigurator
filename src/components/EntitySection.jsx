@@ -94,6 +94,7 @@ export default function EntitySection({ id }) {
   return (
     <div>
       <Card
+        data-testid='entity-section'
         color={isTargetOfEdge ? 'primary' : 'neutral'}
         sx={{
           display: 'flex',
@@ -108,6 +109,7 @@ export default function EntitySection({ id }) {
       >
         <div className='flex flex-row gap-6 items-center'>
           <Autocomplete
+            data-testid='entity-autocomplete'
             options={sortedEntities}
             groupBy={(option) =>
               (option['sap:label'] || option.name || '').charAt(0).toUpperCase()
@@ -120,6 +122,7 @@ export default function EntitySection({ id }) {
           />
           <div className='flex items-center'>
             <Button
+              data-testid='add-filter-button'
               color='neutral'
               variant='outlined'
               onClick={openModal}
@@ -131,6 +134,7 @@ export default function EntitySection({ id }) {
 
           <div className='flex items-center flex-col gap-2'>
             <PropertySelector
+              data-testid='property-selector'
               options={uniqueSortedPropertyOptions}
               selectedOptions={selectedPropertiesSectionState.map((name) =>
                 uniqueSortedPropertyOptions.find(
@@ -189,6 +193,7 @@ export default function EntitySection({ id }) {
           >
             {matchingEntitiesState.map((entity) => (
               <Accordion
+                data-testid={`accordion-${entity.propertyPath}`}
                 key={entity.propertyPath}
                 sx={{ height: 'fit-content' }}
               >
@@ -205,6 +210,7 @@ export default function EntitySection({ id }) {
                 </AccordionSummary>
                 <AccordionDetails>
                   <PropertySelector
+                    data-testid={`accordion-${entity.propertyPath}-property-selector`}
                     options={[
                       ...entity.matchingEntity.properties.properties,
                       ...entity.matchingEntity.properties.navigationProperties,

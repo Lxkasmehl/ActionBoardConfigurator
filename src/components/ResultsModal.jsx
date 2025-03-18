@@ -14,6 +14,7 @@ export default function ResultsModal({ open, onClose, isLoading, results }) {
       }}
     >
       <Sheet
+        data-testid='results-modal'
         variant='outlined'
         sx={{
           borderRadius: 'md',
