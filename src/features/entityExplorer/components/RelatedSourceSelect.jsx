@@ -1,7 +1,7 @@
 import { Select, Option, Tooltip } from '@mui/joy';
 import PropTypes from 'prop-types';
-import { convertValueByType, formatValueByType } from '../utils/entityUtils';
 import useRelatedSourceData from '../hooks/useRelatedSourceData';
+import { typeUtils } from '../utils/entity/entityOperations';
 
 export default function RelatedSourceSelect({
   propertyType,
@@ -22,7 +22,7 @@ export default function RelatedSourceSelect({
 
   const handleChange = (e, newValue) => {
     if (newValue) {
-      const convertedValue = convertValueByType(newValue, propertyType);
+      const convertedValue = typeUtils.convertValue(newValue, propertyType);
       onChange(convertedValue, operator);
     }
   };
@@ -62,7 +62,7 @@ export default function RelatedSourceSelect({
                 placement='left'
               >
                 <Option value={item.value}>
-                  &nbsp;&nbsp;{formatValueByType(item.value, propertyType)}
+                  &nbsp;&nbsp;{typeUtils.formatValue(item.value, propertyType)}
                 </Option>
               </Tooltip>
             ))

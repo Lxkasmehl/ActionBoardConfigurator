@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
 import useFetchEntities from './features/entityExplorer/hooks/useFetchEntities.js';
 import { useSendRequest } from './features/entityExplorer/hooks/useSendRequest';
-import { formatODataResult } from './features/entityExplorer/utils/formatODataResult.js';
+import { formatUtils } from './features/entityExplorer/utils/odata/oDataQueries';
 
 import { INITIAL_NODES, NODE_TYPES, EDGE_TYPES } from './app.constants.js';
 import {
@@ -177,7 +177,7 @@ export default function App() {
     setModalOpen(true);
     try {
       const results = await handleSendRequest();
-      setResults(formatODataResult(results));
+      setResults(formatUtils.formatODataResult(results));
     } catch (error) {
       console.error('Error handling request:', error);
       setResults({ error: 'An error occurred' });

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useReactFlow } from '@xyflow/react';
 import { useSendRequest } from './useSendRequest';
-import { valueMatchesType, getBaseType } from '../utils/entityUtils';
+import { typeUtils } from '../utils/entity/entityOperations';
 
 export default function useRelatedSourceData(propertyOptionsId, propertyType) {
   const [relatedSourceData, setRelatedSourceData] = useState([]);
@@ -101,7 +101,7 @@ export default function useRelatedSourceData(propertyOptionsId, propertyType) {
 
       const propertyName = prop.Name;
       const propType = prop.Type || prop.type;
-      const baseType = getBaseType(propType);
+      const baseType = typeUtils.getBaseType(propType);
 
       if (!propertyValuesByType[baseType]) {
         propertyValuesByType[baseType] = [];
@@ -136,10 +136,10 @@ export default function useRelatedSourceData(propertyOptionsId, propertyType) {
       propertyValuesByType[baseType].push(...values);
     });
 
-    const currentBaseType = getBaseType(propertyType);
+    const currentBaseType = typeUtils.getBaseType(propertyType);
     const filteredValues =
       propertyValuesByType[currentBaseType]?.filter((item) =>
-        valueMatchesType(item.value, propertyType),
+        typeUtils.valueMatchesType(item.value, propertyType),
       ) || [];
 
     // Remove duplicates and sort
