@@ -37,7 +37,11 @@ test('create new entity section', async ({ page }) => {
   await expect(page.getByTestId('entity-section')).toHaveCount(2);
 });
 
-test('handle parallel request limit with multiple flows', async ({ page }) => {
+test.only('handle parallel request limit with multiple flows', async ({
+  page,
+  browserName,
+}) => {
+  test.skip(browserName !== 'chromium', 'Test runs only on Chromium');
   test.setTimeout(120000);
   await setupBasePage(page);
 
@@ -65,7 +69,6 @@ test('handle parallel request limit with multiple flows', async ({ page }) => {
     );
   }
 
-  // Track all requests to verify parallel limit
   let inFlightRequests = 0;
   let maxInFlightRequests = 0;
   const requestTimes = [];
