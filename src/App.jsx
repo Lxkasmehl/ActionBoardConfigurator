@@ -227,9 +227,9 @@ export default function App() {
       />
 
       <Button
+        data-testid='send-request-button'
         onClick={handleRequest}
         variant='solid'
-        aria-label='Send Request'
         color='neutral'
         size='lg'
         sx={{

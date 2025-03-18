@@ -23,6 +23,7 @@ export default function DropdownsAndInput({
   const sortedPropertyOptions = sortProperties(propertyOptions);
 
   const commonAutocompleteProps = {
+    'data-testid': `filter-property-autocomplete`,
     placeholder: 'Property',
     required: true,
     getOptionLabel: (option) => (option ? option.Name || '' : ''),
@@ -87,16 +88,7 @@ export default function DropdownsAndInput({
                   .flat()
                   .filter((prop) => prop['sap:filterable'] === 'true'),
               ].sort((a, b) => a.Name.localeCompare(b.Name))
-            : // : combinedOptions.flatMap(({ group, options }) =>
-              //     options
-              //       .filter((prop) => prop['sap:filterable'] === 'true')
-              //       .map((option) => ({
-              //         ...option,
-              //         group,
-              //         key: `${group}-${option.Name || option.type || Math.random()}`,
-              //       })),
-              //   )
-              sortedPropertyOptions.filter(
+            : sortedPropertyOptions.filter(
                 (prop) => prop['sap:filterable'] === 'true',
               )
         }
@@ -112,6 +104,7 @@ export default function DropdownsAndInput({
         }}
       />
       <Select
+        data-testid='filter-operator-dropdown'
         name={`operator_${fieldIdentifierId}`}
         value={state.operator || ''}
         onChange={(e, newValue) =>

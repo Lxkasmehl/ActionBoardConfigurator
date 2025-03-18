@@ -177,7 +177,7 @@ export default function FilterModal({ open, onClose, entity, id }) {
   return (
     <Modal open={open} onClose={onClose}>
       <form onSubmit={saveAndClose}>
-        <ModalDialog variant='plain'>
+        <ModalDialog variant='plain' data-testid='filter-modal'>
           <ModalClose />
           <Typography level='h4'>Build your filter for {entity}</Typography>
           <div className='flex flex-col gap-4'>
@@ -208,18 +208,26 @@ export default function FilterModal({ open, onClose, entity, id }) {
           </div>
           <div className='flex flex-row justify-between'>
             <div className='flex flex-row gap-2 mt-2'>
-              <Button variant='plain' color='neutral' onClick={addCondition}>
+              <Button
+                variant='plain'
+                color='neutral'
+                onClick={addCondition}
+                data-testid='add-condition-button'
+              >
                 + Add condition
               </Button>
               <Button
                 variant='plain'
                 color='neutral'
                 onClick={addConditionGroup}
+                data-testid='add-condition-group-button'
               >
                 + Add condition group
               </Button>
             </div>
-            <Button type='submit'>Save</Button>
+            <Button type='submit' data-testid='filter-modal-save-button'>
+              Save
+            </Button>
           </div>
         </ModalDialog>
       </form>
