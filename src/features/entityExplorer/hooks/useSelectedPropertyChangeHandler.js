@@ -8,7 +8,7 @@ import {
 import {
   findMatchingEntity,
   getNavigationProperties,
-} from '../utils/navigationUtils';
+} from '../utils/entity/entityNavigation';
 
 export function useSelectedPropertyChangeHandler(
   isTargetOfEdge,

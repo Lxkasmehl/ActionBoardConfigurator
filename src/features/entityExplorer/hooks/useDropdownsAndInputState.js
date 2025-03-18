@@ -1,10 +1,8 @@
 import { useReducer } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  findMatchingEntity,
-  getNavigationProperties,
-} from '../utils/navigationUtils';
+import { getNavigationProperties } from '../utils/entity/entityNavigation';
 import { setMatchingEntityObjects } from '../../../redux/entitiesSlice';
+import { findMatchingEntity } from '../utils/entity/entityNavigation';
 
 const initialState = {
   property: null,

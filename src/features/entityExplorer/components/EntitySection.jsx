@@ -16,7 +16,10 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 
 import { selectPropertyOptions } from '../../../redux/selectors/entitySelectors';
-import { removeEntityConfig, removeFormData } from '../../../redux/entitiesSlice';
+import {
+  removeEntityConfig,
+  removeFormData,
+} from '../../../redux/entitiesSlice';
 import { useEntityChangeHandler } from '../hooks/useEntityChangeHandler';
 import { useModalState } from '../hooks/useModalState';
 import { useSelectedPropertyChangeHandler } from '../hooks/useSelectedPropertyChangeHandler';
@@ -24,7 +27,7 @@ import {
   sortEntities,
   sortProperties,
   filterUniqueProperties,
-} from '../utils/entityUtils';
+} from '../utils/entity/entityOperations';
 
 import FilterModal from './FilterModal';
 import PropertySelector from './PropertySelector';

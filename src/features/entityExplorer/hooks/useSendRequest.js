@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
-import { requestManager } from '../utils/requestManager';
-import { convertFilterToOData, generateExpandParam } from '../utils/oDataUtils';
-import { fixedEncodeURIComponent } from '../utils/sendRequestUtils';
+import { requestManager, urlUtils } from '../utils/network/requestHandler';
+import { queryUtils } from '../utils/odata/oDataQueries';
 import { useSelector } from 'react-redux';
 
 const API_USER = import.meta.env.VITE_API_USER;
@@ -98,25 +97,29 @@ export const useSendRequest = (config) => {
                 if (selectProperties.length > 0) {
                   queryString +=
                     '&$select=' +
-                    fixedEncodeURIComponent(selectProperties.join(','));
+                    urlUtils.fixedEncodeURIComponent(
+                      selectProperties.join(','),
+                    );
                 }
 
-                const expandParam = generateExpandParam(
+                const expandParam = queryUtils.generateExpandParam(
                   allProperties,
                   entityName,
                   allEntities,
                 );
                 if (expandParam) {
                   queryString +=
-                    '&$expand=' + fixedEncodeURIComponent(expandParam);
+                    '&$expand=' + urlUtils.fixedEncodeURIComponent(expandParam);
                 }
               }
             }
 
-            const filterString = convertFilterToOData(entityConfig.filter);
+            const filterString = queryUtils.convertFilterToOData(
+              entityConfig.filter,
+            );
             if (filterString) {
               queryString +=
-                '&$filter=' + fixedEncodeURIComponent(filterString);
+                '&$filter=' + urlUtils.fixedEncodeURIComponent(filterString);
             }
 
             await requestManager.waitForOpenSlot();

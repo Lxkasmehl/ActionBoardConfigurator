@@ -1,6 +1,6 @@
 import { Box, Chip, ChipDelete } from '@mui/joy';
 import PropTypes from 'prop-types';
-import { formatValueByType } from '../utils/entityUtils';
+import { typeUtils } from '../utils/entity/entityOperations';
 
 export default function ValueChips({ values, propertyType, onDelete }) {
   if (values.length === 0) return null;
@@ -17,10 +17,7 @@ export default function ValueChips({ values, propertyType, onDelete }) {
       }}
     >
       {values.map((value, index) => {
-        const displayValue =
-          typeof value === 'string' && value.startsWith('/Date(')
-            ? formatValueByType(value, propertyType)
-            : value;
+        const formattedValue = typeUtils.formatValue(value, propertyType);
 
         return (
           <Chip
@@ -35,7 +32,7 @@ export default function ValueChips({ values, propertyType, onDelete }) {
               />
             }
           >
-            {displayValue}
+            {formattedValue}
           </Chip>
         );
       })}

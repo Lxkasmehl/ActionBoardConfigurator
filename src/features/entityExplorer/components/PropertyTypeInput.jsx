@@ -2,9 +2,9 @@ import { useState, useMemo } from 'react';
 import { Input, Select, Option, Box } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { COMMON_INPUT_STYLES } from './PropertyTypeInput.constants';
-import { convertValueByType } from '../utils/entityUtils';
 import ValueChips from './ValueChips';
 import RelatedSourceSelect from './RelatedSourceSelect';
+import { typeUtils } from '../utils/entity/entityOperations';
 
 export default function PropertyTypeInput({
   propertyType,
@@ -82,7 +82,7 @@ export default function PropertyTypeInput({
       typeof props.value === 'string' &&
       props.value.startsWith('/Date(')
     ) {
-      return convertValueByType(props.value, propertyType);
+      return typeUtils.convertValue(props.value, propertyType);
     }
     return props.value;
   }, [inputType, props.value, propertyType]);
