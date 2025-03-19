@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Box, Card, Typography, Button, Stack } from '@mui/joy';
+import { Box, Card, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from './constants';
 import FilterArea from './FilterArea';
@@ -59,28 +59,6 @@ export default function SortableComponent({ component }) {
             alt={component.props.alt}
             sx={{ maxWidth: '100%', height: 'auto' }}
           />
-        );
-      case 'form':
-        return (
-          <Stack spacing={2}>
-            {component.props.fields.map((field, index) => (
-              <Box key={index}>
-                <Typography level='body-sm'>{field.label}</Typography>
-                <Box
-                  component='input'
-                  type={field.type}
-                  placeholder={field.placeholder}
-                  sx={{
-                    width: '100%',
-                    p: 1,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 'sm',
-                  }}
-                />
-              </Box>
-            ))}
-          </Stack>
         );
       case 'filterArea':
         return <FilterArea />;
