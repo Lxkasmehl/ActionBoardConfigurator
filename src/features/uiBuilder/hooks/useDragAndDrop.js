@@ -25,12 +25,19 @@ export const useDragAndDrop = (components, setComponents) => {
 
     if (!over) return;
 
-    if (active.id.startsWith('component-') && over.id === 'preview-area') {
-      setComponents((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+    if (active.id.startsWith('component-')) {
+      if (over.id === 'preview-area') {
+        setComponents((items) => {
+          const oldIndex = items.findIndex((item) => item.id === active.id);
+          return arrayMove(items, oldIndex, items.length);
+        });
+      } else if (over.id.startsWith('component-')) {
+        setComponents((items) => {
+          const oldIndex = items.findIndex((item) => item.id === active.id);
+          const newIndex = items.findIndex((item) => item.id === over.id);
+          return arrayMove(items, oldIndex, newIndex);
+        });
+      }
       return;
     }
 
