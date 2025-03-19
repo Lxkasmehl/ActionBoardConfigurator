@@ -5,6 +5,13 @@ export const collisionDetectionStrategy = (args) => {
   const rectCollisions = rectIntersection(args);
 
   if (pointerCollisions.length > 0) {
+    const trashBinCollision = pointerCollisions.find(
+      (collision) => collision.id === 'trash-bin',
+    );
+    if (trashBinCollision) {
+      return [trashBinCollision];
+    }
+
     const previewAreaCollision = pointerCollisions.find(
       (collision) => collision.id === 'preview-area',
     );

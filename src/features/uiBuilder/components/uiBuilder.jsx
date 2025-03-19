@@ -17,6 +17,7 @@ import { useDragAndDrop } from '../hooks/useDragAndDrop';
 
 export default function UiBuilder() {
   const [components, setComponents] = useState([]);
+  const [isOverTrash, setIsOverTrash] = useState(false);
   const { activeDragData, handleDragStart, handleDragEnd } = useDragAndDrop(
     components,
     setComponents,
@@ -44,10 +45,17 @@ export default function UiBuilder() {
           items={components.map((c) => c.id)}
           strategy={rectSortingStrategy}
         >
-          <PreviewArea components={components} />
+          <PreviewArea
+            components={components}
+            activeDragData={activeDragData}
+            onTrashOver={(isOver) => setIsOverTrash(isOver)}
+          />
         </SortableContext>
         <DragOverlay>
-          <DragOverlayComponent activeDragData={activeDragData} />
+          <DragOverlayComponent
+            activeDragData={activeDragData}
+            isOverTrash={isOverTrash}
+          />
         </DragOverlay>
       </DndContext>
     </Box>

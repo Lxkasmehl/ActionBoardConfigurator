@@ -94,7 +94,6 @@ export default function SortableComponent({ component }) {
       {...listeners}
       sx={{
         p: 2,
-        mb: 2,
         cursor: 'grab',
         '&:active': {
           cursor: 'grabbing',
@@ -102,19 +101,6 @@ export default function SortableComponent({ component }) {
         position: 'relative',
         transform: isDragging ? 'scale(1.02)' : 'scale(1)',
         transition: 'transform 0.2s ease',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          borderRadius: 'inherit',
-          border: '2px dashed',
-          borderColor: 'primary.500',
-          opacity: isDragging ? 1 : 0,
-          transition: 'opacity 0.2s',
-        },
       }}
     >
       {renderComponent()}
