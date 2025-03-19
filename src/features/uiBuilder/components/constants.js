@@ -5,6 +5,7 @@ export const COMPONENT_TYPES = {
   CARD: 'card',
   IMAGE: 'image',
   FORM: 'form',
+  FILTER_AREA: 'filterArea',
 };
 
 export const COMPONENT_CONFIGS = {
@@ -47,6 +48,30 @@ export const COMPONENT_CONFIGS = {
       fields: [
         { type: 'text', label: 'Name', placeholder: 'Enter your name' },
         { type: 'email', label: 'Email', placeholder: 'Enter your email' },
+      ],
+    },
+  },
+  [COMPONENT_TYPES.FILTER_AREA]: {
+    label: 'FilterArea',
+    icon: 'FilterList',
+    defaultProps: {
+      fields: [
+        {
+          type: 'select',
+          label: 'External Title',
+          placeholder: 'External Title',
+        },
+        { type: 'select', label: 'Country', placeholder: 'Country' },
+        {
+          type: 'select',
+          label: 'State / Region / Province',
+          placeholder: 'State / Region / Province',
+        },
+        {
+          type: 'select',
+          label: 'Hiring Manager',
+          placeholder: 'Hiring Manager',
+        },
       ],
     },
   },

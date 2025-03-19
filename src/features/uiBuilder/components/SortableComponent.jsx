@@ -3,6 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Box, Card, Typography, Button, Stack } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from './constants';
+import FilterArea from './FilterArea';
 
 export default function SortableComponent({ component }) {
   const {
@@ -81,6 +82,8 @@ export default function SortableComponent({ component }) {
             ))}
           </Stack>
         );
+      case 'filterArea':
+        return <FilterArea />;
       default:
         return null;
     }
