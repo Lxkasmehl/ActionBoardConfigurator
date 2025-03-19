@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 
 export async function setupBasePage(page) {
-  await page.goto('http://localhost:5173/');
+  await page.goto('http://localhost:5173/entity-explorer');
 
   await expect(page.getByTestId('entity-section')).toBeVisible({
     timeout: 20000,
