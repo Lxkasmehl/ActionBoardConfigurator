@@ -8,11 +8,15 @@ export const DragOverlayComponent = ({ activeDragData, isOverTrash }) => {
   return (
     <Box
       sx={{
-        transform: isOverTrash ? 'scale(0.9)' : 'scale(1.02)',
+        transform: isOverTrash ? 'scale(0.9)' : 'scale(1)',
         boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
         transition: 'all 0.2s ease',
         border: isOverTrash ? '2px solid red' : 'none',
         borderRadius: 'sm',
+        maxWidth: '100%',
+        width: 'fit-content',
+        position: 'relative',
+        zIndex: 1000,
       }}
     >
       <SortableComponent component={activeDragData.component} />

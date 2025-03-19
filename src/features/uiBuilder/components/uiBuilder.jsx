@@ -7,7 +7,10 @@ import {
   useSensors,
   DragOverlay,
 } from '@dnd-kit/core';
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { Box } from '@mui/joy';
 import ComponentLibrary from './ComponentLibrary';
 import PreviewArea from './PreviewArea';
@@ -26,7 +29,8 @@ export default function UiBuilder() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
+        distance: 8,
+        delay: 0,
       },
     }),
     useSensor(KeyboardSensor),
@@ -43,7 +47,7 @@ export default function UiBuilder() {
         <ComponentLibrary />
         <SortableContext
           items={components.map((c) => c.id)}
-          strategy={rectSortingStrategy}
+          strategy={verticalListSortingStrategy}
         >
           <PreviewArea
             components={components}
@@ -51,7 +55,7 @@ export default function UiBuilder() {
             onTrashOver={(isOver) => setIsOverTrash(isOver)}
           />
         </SortableContext>
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           <DragOverlayComponent
             activeDragData={activeDragData}
             isOverTrash={isOverTrash}

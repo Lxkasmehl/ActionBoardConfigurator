@@ -11,23 +11,29 @@ export const collisionDetectionStrategy = (args) => {
     if (trashBinCollision) {
       return [trashBinCollision];
     }
+  }
 
+  const componentCollisions = rectCollisions.filter((collision) =>
+    collision.id.startsWith('component-'),
+  );
+
+  if (componentCollisions.length > 0) {
+    const bestCollision = componentCollisions.reduce((best, current) => {
+      const bestRatio = best?.data?.current?.intersectionRatio ?? 0;
+      const currentRatio = current?.data?.current?.intersectionRatio ?? 0;
+      return currentRatio > bestRatio ? current : best;
+    });
+    return [bestCollision];
+  }
+
+  if (pointerCollisions.length > 0) {
     const previewAreaCollision = pointerCollisions.find(
       (collision) => collision.id === 'preview-area',
     );
-
-    const componentCollisions = pointerCollisions.filter((collision) =>
-      collision.id.startsWith('component-'),
-    );
-
-    if (componentCollisions.length > 0) {
-      return [componentCollisions[componentCollisions.length - 1]];
-    }
-
     if (previewAreaCollision) {
       return [previewAreaCollision];
     }
   }
 
-  return rectCollisions;
+  return [];
 };
