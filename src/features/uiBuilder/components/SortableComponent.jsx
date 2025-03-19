@@ -45,12 +45,6 @@ export default function SortableComponent({ component }) {
             {component.props.text}
           </Button>
         );
-      case 'card':
-        return (
-          <Card>
-            <Typography>{component.props.content}</Typography>
-          </Card>
-        );
       case 'image':
         return (
           <Box
