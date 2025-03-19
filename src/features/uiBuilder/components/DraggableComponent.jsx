@@ -7,6 +7,7 @@ import {
   Rectangle,
   Image,
   DynamicForm,
+  FilterList,
 } from '@mui/icons-material';
 import { useDraggable } from '@dnd-kit/core';
 
@@ -24,6 +25,7 @@ function DraggableComponent({ type, config, index }) {
       Rectangle: <Rectangle />,
       Image: <Image />,
       DynamicForm: <DynamicForm />,
+      FilterList: <FilterList />,
     };
     return iconMap[iconName] || null;
   };
