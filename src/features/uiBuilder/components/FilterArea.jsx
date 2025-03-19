@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { Autocomplete, FormLabel, IconButton, Input } from '@mui/joy';
 import { Add, Delete, Edit } from '@mui/icons-material';
+import { COMPONENT_CONFIGS } from './constants';
 
 export default function FilterArea() {
-  const [filters, setFilters] = useState([
-    { id: 1, label: 'Filter 1', options: [] },
-  ]);
+  const [filters, setFilters] = useState(
+    COMPONENT_CONFIGS.filterArea.defaultProps.fields.map((field, index) => ({
+      id: index + 1,
+      label: field.label,
+      options: [],
+    })),
+  );
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
 
