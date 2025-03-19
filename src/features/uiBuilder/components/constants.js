@@ -41,16 +41,6 @@ export const COMPONENT_CONFIGS = {
       alt: 'Placeholder image',
     },
   },
-  [COMPONENT_TYPES.FORM]: {
-    label: 'Form',
-    icon: 'DynamicForm',
-    defaultProps: {
-      fields: [
-        { type: 'text', label: 'Name', placeholder: 'Enter your name' },
-        { type: 'email', label: 'Email', placeholder: 'Enter your email' },
-      ],
-    },
-  },
   [COMPONENT_TYPES.FILTER_AREA]: {
     label: 'FilterArea',
     icon: 'FilterList',
