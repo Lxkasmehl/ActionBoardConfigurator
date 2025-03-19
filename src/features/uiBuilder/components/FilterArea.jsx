@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Autocomplete, FormLabel, IconButton } from '@mui/joy';
-import { Add, Delete } from '@mui/icons-material';
+import { Autocomplete, FormLabel, IconButton, Input } from '@mui/joy';
+import { Add, Delete, Edit } from '@mui/icons-material';
 
 export default function FilterArea() {
   const [filters, setFilters] = useState([
@@ -21,7 +21,9 @@ export default function FilterArea() {
   };
 
   const handleRemoveFilter = (id) => {
-    setFilters(filters.filter((filter) => filter.id !== id));
+    if (filters.length > 1) {
+      setFilters(filters.filter((filter) => filter.id !== id));
+    }
   };
 
   const handleEditStart = (filter) => {
@@ -54,19 +56,28 @@ export default function FilterArea() {
         <div key={filter.id} className='flex flex-col gap-1 relative group'>
           <div className='flex items-center gap-2'>
             {editingId === filter.id ? (
-              <input
+              <Input
+                size='sm'
                 value={editingValue}
                 onChange={(e) => setEditingValue(e.target.value)}
                 onBlur={handleEditComplete}
                 onKeyDown={handleKeyDown}
                 autoFocus
-                className='text-sm p-1 border rounded'
+                sx={{ maxWidth: '150px' }}
               />
             ) : (
               <FormLabel
                 size='sm'
-                className='cursor-pointer'
-                onClick={() => handleEditStart(filter)}
+                className='cursor-default'
+                sx={{
+                  maxWidth: '140px',
+                  wordWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'block',
+                  lineHeight: '1.2',
+                }}
               >
                 {filter.label}
               </FormLabel>
@@ -74,12 +85,23 @@ export default function FilterArea() {
             <IconButton
               size='sm'
               variant='plain'
-              color='danger'
-              onClick={() => handleRemoveFilter(filter.id)}
+              color='neutral'
+              onClick={() => handleEditStart(filter)}
               className='opacity-0 group-hover:opacity-100 transition-opacity'
             >
-              <Delete />
+              <Edit />
             </IconButton>
+            {filters.length > 1 && (
+              <IconButton
+                size='sm'
+                variant='plain'
+                color='danger'
+                onClick={() => handleRemoveFilter(filter.id)}
+                className='opacity-0 group-hover:opacity-100 transition-opacity'
+              >
+                <Delete />
+              </IconButton>
+            )}
           </div>
           <Autocomplete
             size='sm'
