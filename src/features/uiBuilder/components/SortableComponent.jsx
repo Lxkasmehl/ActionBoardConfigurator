@@ -100,6 +100,8 @@ export default function SortableComponent({ component }) {
           cursor: 'grabbing',
         },
         position: 'relative',
+        transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+        transition: 'transform 0.2s ease',
         '&::before': {
           content: '""',
           position: 'absolute',
