@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import App from '../App';
 import Layout from '../shared/components/Layout';
 import UiBuilder from '../features/uiBuilder/components/uiBuilder';
-import EntityExplorer from '../features/entityExplorer/components/EntityExplorer';
+import DataPicker from '../features/dataPicker/components/DataPicker';
 
 export const router = createBrowserRouter([
   {
@@ -14,8 +14,8 @@ export const router = createBrowserRouter([
         element: <App />,
       },
       {
-        path: '/entity-explorer',
-        element: <EntityExplorer />,
+        path: '/data-picker',
+        element: <DataPicker />,
       },
       {
         path: '/ui-builder',

@@ -11,9 +11,9 @@ export default function App() {
           size='lg'
           variant='solid'
           color='primary'
-          onClick={() => navigate('/entity-explorer')}
+          onClick={() => navigate('/data-picker')}
         >
-          Entity Explorer
+          Data Picker
         </Button>
         <Button
           size='lg'
