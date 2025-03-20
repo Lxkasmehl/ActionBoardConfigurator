@@ -1,5 +1,5 @@
 import { useSortable } from '@dnd-kit/sortable';
-import { Box, Card, Typography, Button } from '@mui/joy';
+import { Box, Card, Typography, Button, Divider } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from './constants';
 import FilterArea from './FilterArea';
@@ -88,22 +88,19 @@ export default function SortableComponent({ component, isOver, isLast }) {
       <Box
         ref={setGapRef}
         sx={{
-          height: '16px',
-          width: '100%',
+          py: 1,
           position: 'relative',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: '50%',
-            height: '2px',
+        }}
+      >
+        <Divider
+          sx={{
             backgroundColor:
               isGapOver || (isLast && isOver) ? 'primary.500' : 'transparent',
             transition: 'background-color 0.2s ease',
-          },
-        }}
-      />
+            height: '2px',
+          }}
+        />
+      </Box>
     </>
   );
 }
