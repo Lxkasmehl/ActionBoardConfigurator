@@ -47,20 +47,17 @@ export const COMPONENT_CONFIGS = {
     defaultProps: {
       fields: [
         {
-          type: 'select',
-          label: 'External Title',
-          placeholder: 'External Title',
+          type: 'autocomplete',
+          label: 'Gender',
         },
-        { type: 'select', label: 'Country', placeholder: 'Country' },
+        { type: 'autocomplete', label: 'Country' },
         {
-          type: 'select',
-          label: 'State / Region / Province',
-          placeholder: 'State / Region / Province',
+          type: 'autocomplete',
+          label: 'Division',
         },
         {
-          type: 'select',
-          label: 'Hiring Manager',
-          placeholder: 'Hiring Manager',
+          type: 'dataTimePicker',
+          label: 'Hire Date',
         },
       ],
     },

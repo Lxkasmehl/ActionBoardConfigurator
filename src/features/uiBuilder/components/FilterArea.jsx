@@ -56,10 +56,16 @@ export default function FilterArea() {
   };
 
   return (
-    <div className='flex flex-row gap-1 flex-wrap'>
+    <div
+      className='grid gap-y-2 gap-x-10'
+      style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}
+    >
       {filters.map((filter) => (
-        <div key={filter.id} className='flex flex-col gap-1 relative group'>
-          <div className='flex items-center gap-2'>
+        <div
+          key={filter.id}
+          className='grid gap-1 relative group max-w-[300px]'
+        >
+          <div className='grid grid-cols-[1fr,auto,auto] items-center gap-2'>
             {editingId === filter.id ? (
               <Input
                 size='sm'
@@ -68,7 +74,6 @@ export default function FilterArea() {
                 onBlur={handleEditComplete}
                 onKeyDown={handleKeyDown}
                 autoFocus
-                sx={{ maxWidth: '150px' }}
               />
             ) : (
               <FormLabel
@@ -112,7 +117,6 @@ export default function FilterArea() {
             size='sm'
             placeholder='Select an option'
             options={filter.options}
-            sx={{ width: '90%' }}
           />
         </div>
       ))}
