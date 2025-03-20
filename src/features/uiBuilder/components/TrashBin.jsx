@@ -19,10 +19,12 @@ export default function TrashBin({ isVisible, onOverChange }) {
   return (
     <IconButton
       ref={setNodeRef}
+      color='danger'
+      variant='solid'
       sx={{
-        position: 'absolute',
-        bottom: 20,
-        left: '50%',
+        position: 'fixed',
+        bottom: 40,
+        left: 'calc(50% + 150px)',
         transform: 'translateX(-50%)',
         display: 'flex',
         alignItems: 'center',
@@ -30,10 +32,6 @@ export default function TrashBin({ isVisible, onOverChange }) {
         width: 60,
         height: 60,
         borderRadius: '50%',
-        bgcolor: 'danger.500',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        transition: 'all 0.2s ease',
-        color: 'white',
       }}
     >
       <Delete />

@@ -5,17 +5,6 @@ import SortableComponent from './SortableComponent';
 import EmptyState from './EmptyState';
 import TrashBin from './TrashBin';
 
-const getContainerStyles = () => ({
-  height: '100%',
-  pt: 0,
-  px: 2,
-  pb: 2,
-  display: 'flex',
-  flexDirection: 'column',
-  borderRadius: 'sm',
-  position: 'relative',
-});
-
 export default function PreviewArea({
   components,
   activeDragData,
@@ -42,7 +31,6 @@ export default function PreviewArea({
       sx={{
         flex: 1,
         height: '100%',
-        overflowY: 'auto',
         p: 2,
         transition: 'background-color 0.2s ease',
         position: 'relative',
@@ -55,7 +43,17 @@ export default function PreviewArea({
       <Box
         id='preview-area'
         ref={setNodeRef}
-        sx={getContainerStyles(components.length > 0, isOver)}
+        sx={{
+          height: '100%',
+          pt: 0,
+          px: 2,
+          pb: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: 'sm',
+          position: 'relative',
+          overflowY: 'auto',
+        }}
       >
         {components.length === 0 ? (
           <EmptyState isOver={isOver} />
