@@ -4,7 +4,7 @@ A modern enterprise data visualization and UI builder platform that combines pow
 
 ## 📋 About the Project
 
-The Entity Explorer is an advanced web application designed to visually represent and analyze enterprise data and their relationships. The application consists of two main features:
+The WebAppConfigurator is an advanced web application designed to visually represent and analyze enterprise data and their relationships. The application consists of two main features:
 
 ### Data Picker
 
