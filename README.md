@@ -1,4 +1,4 @@
-# Entity Explorer
+# WebAppConfigurator
 
 A modern enterprise data visualization and UI builder platform that combines powerful data querying capabilities with an intuitive drag-and-drop interface. Features include interactive flow diagrams for data relationships, advanced filtering, real-time JSON results, and a component-based UI builder.
 
@@ -6,7 +6,7 @@ A modern enterprise data visualization and UI builder platform that combines pow
 
 The Entity Explorer is an advanced web application designed to visually represent and analyze enterprise data and their relationships. The application consists of two main features:
 
-### Entity Explorer
+### Data Picker
 
 - **Interactive Flow Diagrams**: Create and connect entity sections to build complex data queries
 - **Dynamic Entity Selection**: Choose from a predefined set of enterprise entities (User, Employee, Job, etc.)
@@ -41,8 +41,8 @@ The Entity Explorer is an advanced web application designed to visually represen
 src/
 ├── assets/         # Static assets (images, fonts, etc.)
 ├── features/       # Feature-specific components and logic
-│   ├── entityExplorer/  # Entity Explorer feature
-│   └── uiBuilder/       # UI Builder feature
+│   ├── dataPicker/  # Entity Explorer feature
+│   └── uiBuilder/   # UI Builder feature
 ├── redux/          # Redux store, slices, and selectors
 ├── routes/         # Route definitions
 ├── shared/         # Shared components and utilities
