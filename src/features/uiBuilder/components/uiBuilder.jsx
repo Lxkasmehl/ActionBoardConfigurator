@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   DndContext,
   KeyboardSensor,
-  PointerSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -18,6 +17,7 @@ import { DragOverlayComponent } from './DragOverlayComponent';
 import { collisionDetectionStrategy } from '../utils/collisionDetection';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
+import { myPointerSensor } from '../utils/myPointerSensor';
 
 export default function UiBuilder() {
   const [components, setComponents] = useState([]);
@@ -28,7 +28,7 @@ export default function UiBuilder() {
   );
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(myPointerSensor, {
       activationConstraint: {
         distance: 8,
         delay: 0,
