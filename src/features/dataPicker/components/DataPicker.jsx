@@ -2,8 +2,8 @@ import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
 import useFetchEntities from '../hooks/useFetchEntities.js';
-import { useSendRequest } from '../hooks/useSendRequest';
-import { formatUtils } from '../utils/odata/oDataQueries';
+import { useSendRequest } from '../hooks/useSendRequest.js';
+import { formatUtils } from '../utils/odata/oDataQueries.js';
 
 import {
   INITIAL_NODES,
@@ -32,7 +32,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import ResultsModal from './ResultsModal.jsx';
 
-export default function EntityExplorer() {
+export default function DataPicker() {
   const loading = useFetchEntities();
   const dispatch = useDispatch();
 

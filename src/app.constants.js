@@ -1,6 +1,6 @@
-import EntitySection from './features/entityExplorer/components/EntitySection.jsx';
-import FlowStart from './features/entityExplorer/components/FlowStart.jsx';
-import ButtonEdge from './features/entityExplorer/components/ButtonEdge.jsx';
+import EntitySection from './features/dataPicker/components/EntitySection.jsx';
+import FlowStart from './features/dataPicker/components/FlowStart.jsx';
+import ButtonEdge from './features/dataPicker/components/ButtonEdge.jsx';
 
 export const INITIAL_NODES = [
   {
