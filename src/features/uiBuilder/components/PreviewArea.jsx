@@ -5,19 +5,13 @@ import SortableComponent from './SortableComponent';
 import EmptyState from './EmptyState';
 import TrashBin from './TrashBin';
 
-const BORDER_STYLES = {
-  DASHED: '2px dashed',
-  NONE: 'none',
-};
-
-const getContainerStyles = (hasComponents, isOver) => ({
+const getContainerStyles = () => ({
   height: '100%',
-  p: 2,
+  pt: 0,
+  px: 2,
+  pb: 2,
   display: 'flex',
   flexDirection: 'column',
-  gap: '16px',
-  border: hasComponents && isOver ? BORDER_STYLES.DASHED : BORDER_STYLES.NONE,
-  borderColor: hasComponents && isOver ? 'primary.500' : BORDER_STYLES.NONE,
   borderRadius: 'sm',
   position: 'relative',
 });
@@ -31,6 +25,15 @@ export default function PreviewArea({
     id: 'preview-area',
     data: { type: 'preview-area' },
   });
+
+  const { setNodeRef: setInitialGapRef, isOver: isInitialGapOver } =
+    useDroppable({
+      id: 'initial-gap',
+      data: {
+        type: 'gap',
+        componentId: components[0]?.id,
+      },
+    });
 
   const isDraggingExistingComponent = activeDragData?.type === 'preview';
 
@@ -57,18 +60,36 @@ export default function PreviewArea({
         {components.length === 0 ? (
           <EmptyState isOver={isOver} />
         ) : (
-          components.map((component) => (
-            <SortableComponent key={component.id} component={component} />
-          ))
-        )}
-        {isOver && (
-          <Box
-            sx={{
-              height: '2px',
-              backgroundColor: 'primary.500',
-              width: '100%',
-            }}
-          />
+          <>
+            <Box
+              ref={setInitialGapRef}
+              sx={{
+                height: '16px',
+                width: '100%',
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  top: '50%',
+                  height: '2px',
+                  backgroundColor: isInitialGapOver
+                    ? 'primary.500'
+                    : 'transparent',
+                  transition: 'background-color 0.2s ease',
+                },
+              }}
+            />
+            {components.map((component, index) => (
+              <SortableComponent
+                key={component.id}
+                component={component}
+                isOver={isOver}
+                isLast={index === components.length - 1}
+              />
+            ))}
+          </>
         )}
         <TrashBin
           isVisible={isDraggingExistingComponent}

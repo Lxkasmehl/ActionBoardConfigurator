@@ -19,46 +19,81 @@ export const useDragAndDrop = (components, setComponents) => {
     }
   };
 
+  const insertNewComponent = (targetIndex, componentType) => {
+    const newComponent = createNewComponent(componentType);
+    setComponents((items) => {
+      const newItems = [...items];
+      newItems.splice(targetIndex, 0, newComponent);
+      return newItems;
+    });
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveDragData(null);
 
     if (!over) return;
 
-    if (active.id.startsWith('component-')) {
-      if (over.id === 'trash-bin') {
-        setComponents((items) => items.filter((item) => item.id !== active.id));
+    // Handle component deletion
+    if (active.id.startsWith('component-') && over.id === 'trash-bin') {
+      setComponents((items) => items.filter((item) => item.id !== active.id));
+      return;
+    }
+
+    // Handle library component drag
+    if (active.id.includes('library-')) {
+      const componentType = active.data.current.type;
+
+      if (over.id === 'preview-area') {
+        setComponents((prev) => [...prev, createNewComponent(componentType)]);
         return;
       }
 
+      if (over.id.startsWith('component-') || over.id.includes('gap')) {
+        const targetIndex = components.findIndex(
+          (item) => item.id === over.data.current.componentId,
+        );
+        const insertIndex =
+          over.id === 'initial-gap' ? targetIndex : targetIndex + 1;
+        insertNewComponent(insertIndex, componentType);
+      }
+      return;
+    }
+
+    // Handle existing component reordering
+    if (active.id.startsWith('component-')) {
       if (over.id === 'preview-area') {
         setComponents((items) => {
           const oldIndex = items.findIndex((item) => item.id === active.id);
           return arrayMove(items, oldIndex, items.length);
         });
-      } else if (over.id.startsWith('component-')) {
+        return;
+      }
+
+      if (over.id.startsWith('component-')) {
         setComponents((items) => {
           const oldIndex = items.findIndex((item) => item.id === active.id);
           const newIndex = items.findIndex((item) => item.id === over.id);
           return arrayMove(items, oldIndex, newIndex);
         });
+        return;
       }
-      return;
-    }
 
-    if (active.id.includes('library-')) {
-      if (over.id === 'preview-area') {
-        const componentType = active.data.current.type;
-        const newComponent = createNewComponent(componentType);
-        setComponents((prev) => [...prev, newComponent]);
-      } else if (over.id.startsWith('component-')) {
-        const componentType = active.data.current.type;
-        const newComponent = createNewComponent(componentType);
+      if (over.id.includes('gap')) {
         setComponents((items) => {
-          const insertIndex = items.findIndex((item) => item.id === over.id);
-          const newItems = [...items];
-          newItems.splice(insertIndex, 0, newComponent);
-          return newItems;
+          const oldIndex = items.findIndex((item) => item.id === active.id);
+          const targetIndex = items.findIndex(
+            (item) => item.id === over.data.current.componentId,
+          );
+          return arrayMove(
+            items,
+            oldIndex,
+            over.id === 'initial-gap'
+              ? targetIndex
+              : oldIndex > targetIndex
+                ? targetIndex + 1
+                : targetIndex,
+          );
         });
       }
     }
