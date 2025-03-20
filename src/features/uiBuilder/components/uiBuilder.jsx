@@ -17,6 +17,7 @@ import PreviewArea from './PreviewArea';
 import { DragOverlayComponent } from './DragOverlayComponent';
 import { collisionDetectionStrategy } from '../utils/collisionDetection';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
+import { snapCenterToCursor } from '@dnd-kit/modifiers';
 
 export default function UiBuilder() {
   const [components, setComponents] = useState([]);
@@ -48,6 +49,9 @@ export default function UiBuilder() {
         <SortableContext
           items={components.map((c) => c.id)}
           strategy={verticalListSortingStrategy}
+          data={{
+            isDragging: !!activeDragData,
+          }}
         >
           <PreviewArea
             components={components}
@@ -55,7 +59,7 @@ export default function UiBuilder() {
             onTrashOver={(isOver) => setIsOverTrash(isOver)}
           />
         </SortableContext>
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]}>
           <DragOverlayComponent
             activeDragData={activeDragData}
             isOverTrash={isOverTrash}
