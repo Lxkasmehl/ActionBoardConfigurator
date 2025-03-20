@@ -1,24 +1,20 @@
 import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { Box, Card, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from './constants';
 import FilterArea from './FilterArea';
 
 export default function SortableComponent({ component }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: component.id });
+  const { attributes, listeners, setNodeRef, transition, isDragging, isOver } =
+    useSortable({
+      id: component.id,
+      data: {
+        isDragging: false,
+      },
+    });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
     position: 'relative',
     zIndex: isDragging ? 1 : 0,
   };
@@ -62,24 +58,35 @@ export default function SortableComponent({ component }) {
   };
 
   return (
-    <Card
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      sx={{
-        p: 2,
-        cursor: 'grab',
-        '&:active': {
-          cursor: 'grabbing',
-        },
-        position: 'relative',
-        transform: isDragging ? 'scale(1.02)' : 'scale(1)',
-        transition: 'transform 0.2s ease',
-      }}
-    >
-      {renderComponent()}
-    </Card>
+    <>
+      {isOver && (
+        <Box
+          sx={{
+            height: '2px',
+            backgroundColor: 'primary.500',
+            width: '100%',
+            my: 1,
+          }}
+        />
+      )}
+      <Card
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        sx={{
+          p: 2,
+          cursor: 'grab',
+          '&:active': {
+            cursor: 'grabbing',
+          },
+          position: 'relative',
+          transition: 'transform 0.2s ease',
+        }}
+      >
+        {renderComponent()}
+      </Card>
+    </>
   );
 }
 

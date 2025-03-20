@@ -1,25 +1,57 @@
 import PropTypes from 'prop-types';
 import { Box } from '@mui/joy';
-import SortableComponent from './SortableComponent';
+import {
+  Title,
+  TextFields,
+  SmartButton,
+  Rectangle,
+  Image,
+  DynamicForm,
+  FilterList,
+} from '@mui/icons-material';
+import { COMPONENT_CONFIGS } from './constants';
 
 export const DragOverlayComponent = ({ activeDragData, isOverTrash }) => {
   if (!activeDragData) return null;
 
+  const renderIcon = (iconName) => {
+    const iconMap = {
+      Title: <Title />,
+      TextFields: <TextFields />,
+      SmartButton: <SmartButton />,
+      Rectangle: <Rectangle />,
+      Image: <Image />,
+      DynamicForm: <DynamicForm />,
+      FilterList: <FilterList />,
+    };
+    return iconMap[iconName] || null;
+  };
+
+  const config = COMPONENT_CONFIGS[activeDragData.component.type];
+  if (!config) return null;
+
   return (
     <Box
       sx={{
-        transform: isOverTrash ? 'scale(0.9)' : 'scale(1)',
+        transform: isOverTrash
+          ? 'translate(-50%, -50%) scale(0.9)'
+          : 'translate(-50%, -50%) scale(1)',
         boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
         transition: 'all 0.2s ease',
         border: isOverTrash ? '2px solid red' : 'none',
         borderRadius: 'sm',
-        maxWidth: '100%',
-        width: 'fit-content',
-        position: 'relative',
+        width: 40,
+        height: 40,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'background.level1',
+        position: 'fixed',
+        pointerEvents: 'none',
         zIndex: 1000,
       }}
     >
-      <SortableComponent component={activeDragData.component} />
+      {renderIcon(config.icon)}
     </Box>
   );
 };

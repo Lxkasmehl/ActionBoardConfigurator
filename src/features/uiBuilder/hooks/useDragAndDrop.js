@@ -46,10 +46,21 @@ export const useDragAndDrop = (components, setComponents) => {
       return;
     }
 
-    if (active.id.includes('library-') && over.id === 'preview-area') {
-      const componentType = active.data.current.type;
-      const newComponent = createNewComponent(componentType);
-      setComponents((prev) => [...prev, newComponent]);
+    if (active.id.includes('library-')) {
+      if (over.id === 'preview-area') {
+        const componentType = active.data.current.type;
+        const newComponent = createNewComponent(componentType);
+        setComponents((prev) => [...prev, newComponent]);
+      } else if (over.id.startsWith('component-')) {
+        const componentType = active.data.current.type;
+        const newComponent = createNewComponent(componentType);
+        setComponents((items) => {
+          const insertIndex = items.findIndex((item) => item.id === over.id);
+          const newItems = [...items];
+          newItems.splice(insertIndex, 0, newComponent);
+          return newItems;
+        });
+      }
     }
   };
 

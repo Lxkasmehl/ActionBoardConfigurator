@@ -18,12 +18,7 @@ export const collisionDetectionStrategy = (args) => {
   );
 
   if (componentCollisions.length > 0) {
-    const bestCollision = componentCollisions.reduce((best, current) => {
-      const bestRatio = best?.data?.current?.intersectionRatio ?? 0;
-      const currentRatio = current?.data?.current?.intersectionRatio ?? 0;
-      return currentRatio > bestRatio ? current : best;
-    });
-    return [bestCollision];
+    return [componentCollisions[0]];
   }
 
   if (pointerCollisions.length > 0) {

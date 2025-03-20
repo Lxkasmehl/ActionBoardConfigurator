@@ -50,6 +50,7 @@ export default function PreviewArea({
       </Typography>
 
       <Box
+        id='preview-area'
         ref={setNodeRef}
         sx={getContainerStyles(components.length > 0, isOver)}
       >
@@ -59,6 +60,15 @@ export default function PreviewArea({
           components.map((component) => (
             <SortableComponent key={component.id} component={component} />
           ))
+        )}
+        {isOver && (
+          <Box
+            sx={{
+              height: '2px',
+              backgroundColor: 'primary.500',
+              width: '100%',
+            }}
+          />
         )}
         <TrashBin
           isVisible={isDraggingExistingComponent}
