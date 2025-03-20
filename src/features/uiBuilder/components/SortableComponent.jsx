@@ -3,15 +3,24 @@ import { Box, Card, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from './constants';
 import FilterArea from './FilterArea';
+import { useDroppable } from '@dnd-kit/core';
 
-export default function SortableComponent({ component }) {
-  const { attributes, listeners, setNodeRef, transition, isDragging, isOver } =
+export default function SortableComponent({ component, isOver, isLast }) {
+  const { attributes, listeners, setNodeRef, transition, isDragging } =
     useSortable({
       id: component.id,
       data: {
         isDragging: false,
       },
     });
+
+  const { setNodeRef: setGapRef, isOver: isGapOver } = useDroppable({
+    id: `gap-${component.id}`,
+    data: {
+      type: 'gap',
+      componentId: component.id,
+    },
+  });
 
   const style = {
     transition,
@@ -59,16 +68,6 @@ export default function SortableComponent({ component }) {
 
   return (
     <>
-      {isOver && (
-        <Box
-          sx={{
-            height: '2px',
-            backgroundColor: 'primary.500',
-            width: '100%',
-            my: 1,
-          }}
-        />
-      )}
       <Card
         ref={setNodeRef}
         style={style}
@@ -86,6 +85,25 @@ export default function SortableComponent({ component }) {
       >
         {renderComponent()}
       </Card>
+      <Box
+        ref={setGapRef}
+        sx={{
+          height: '16px',
+          width: '100%',
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: '50%',
+            height: '2px',
+            backgroundColor:
+              isGapOver || (isLast && isOver) ? 'primary.500' : 'transparent',
+            transition: 'background-color 0.2s ease',
+          },
+        }}
+      />
     </>
   );
 }
@@ -111,4 +129,6 @@ SortableComponent.propTypes = {
       ),
     }),
   }).isRequired,
+  isOver: PropTypes.bool,
+  isLast: PropTypes.bool,
 };
