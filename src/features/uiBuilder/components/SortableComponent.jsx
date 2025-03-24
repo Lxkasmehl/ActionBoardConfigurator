@@ -5,7 +5,7 @@ import { COMPONENT_CONFIGS } from './constants';
 import FilterArea from './FilterArea';
 import { useDroppable } from '@dnd-kit/core';
 import ButtonBar from './ButtonBar';
-
+import TableComponent from './TableComponent';
 export default function SortableComponent({ component, isOver, isLast }) {
   const { attributes, listeners, setNodeRef, transition, isDragging } =
     useSortable({
@@ -64,6 +64,8 @@ export default function SortableComponent({ component, isOver, isLast }) {
         return <FilterArea />;
       case 'buttonBar':
         return <ButtonBar />;
+      case 'table':
+        return <TableComponent />;
       default:
         return null;
     }
