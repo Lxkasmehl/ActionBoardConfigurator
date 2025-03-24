@@ -82,6 +82,7 @@ export default function EditFieldModal({
               groupBy={(option) => option[0].toUpperCase()}
               isOptionEqualToValue={(option, value) => option === value}
               filterSelectedOptions
+              placeholder='Select Icon'
               sx={{ minWidth: 200 }}
             />
           ) : (
