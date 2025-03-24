@@ -7,6 +7,7 @@ export const COMPONENT_TYPES = {
   FORM: 'form',
   FILTER_AREA: 'filterArea',
   BUTTON_BAR: 'buttonBar',
+  TABLE: 'table',
 };
 
 export const COMPONENT_CONFIGS = {
@@ -80,6 +81,30 @@ export const COMPONENT_CONFIGS = {
         {
           type: 'autocomplete',
           'text/icon': 'Templates',
+        },
+      ],
+    },
+  },
+  [COMPONENT_TYPES.TABLE]: {
+    label: 'Table',
+    icon: 'TableChart',
+    defaultProps: {
+      columns: [
+        {
+          label: 'User id',
+          type: 'number',
+        },
+        {
+          label: 'Employee Name',
+          type: 'text',
+        },
+        {
+          label: 'Gender',
+          type: 'char',
+        },
+        {
+          label: 'Country',
+          type: 'text',
         },
       ],
     },

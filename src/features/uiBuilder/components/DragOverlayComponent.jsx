@@ -9,6 +9,7 @@ import {
   DynamicForm,
   FilterList,
   ViewSidebar,
+  TableChart,
 } from '@mui/icons-material';
 import { COMPONENT_CONFIGS } from './constants';
 
@@ -25,6 +26,7 @@ export const DragOverlayComponent = ({ activeDragData, isOverTrash }) => {
       DynamicForm: <DynamicForm />,
       FilterList: <FilterList />,
       ViewSidebar: <ViewSidebar />,
+      TableChart: <TableChart />,
     };
     return iconMap[iconName] || null;
   };

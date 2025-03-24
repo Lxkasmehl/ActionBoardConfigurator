@@ -9,6 +9,7 @@ import {
   DynamicForm,
   FilterList,
   ViewSidebar,
+  TableChart,
 } from '@mui/icons-material';
 import { useDraggable } from '@dnd-kit/core';
 
@@ -28,6 +29,7 @@ function DraggableComponent({ type, config, index }) {
       DynamicForm: <DynamicForm />,
       FilterList: <FilterList />,
       ViewSidebar: <ViewSidebar />,
+      TableChart: <TableChart />,
     };
     return iconMap[iconName] || null;
   };
