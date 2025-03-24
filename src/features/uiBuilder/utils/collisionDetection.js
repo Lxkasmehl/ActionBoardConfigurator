@@ -1,16 +1,18 @@
-import { pointerWithin } from '@dnd-kit/core';
+import { pointerWithin, rectIntersection } from '@dnd-kit/core';
 
 export const collisionDetectionStrategy = (args) => {
   const pointerCollisions = pointerWithin(args);
-  // const rectCollisions = rectIntersection(args);
+  const rectCollisions = rectIntersection(args);
+  
+  const trashBinPointerCollision = pointerCollisions.find(
+    (collision) => collision.id === 'trash-bin',
+  );
+  const trashBinRectCollision = rectCollisions.find(
+    (collision) => collision.id === 'trash-bin',
+  );
 
-  if (pointerCollisions.length > 0) {
-    const trashBinCollision = pointerCollisions.find(
-      (collision) => collision.id === 'trash-bin',
-    );
-    if (trashBinCollision) {
-      return [trashBinCollision];
-    }
+  if (trashBinPointerCollision || trashBinRectCollision) {
+    return [trashBinPointerCollision || trashBinRectCollision];
   }
 
   const componentCollisions = pointerCollisions.filter((collision) =>
