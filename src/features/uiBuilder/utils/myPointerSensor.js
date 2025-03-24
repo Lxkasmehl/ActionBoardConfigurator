@@ -18,7 +18,16 @@ function isInteractiveElement(element) {
     if (
       currentElement.classList &&
       (currentElement.classList.contains('MuiIconButton-root') ||
-        currentElement.classList.contains('MuiIconButton-base'))
+        currentElement.classList.contains('MuiIconButton-base') ||
+        currentElement.classList.contains('MuiModal-root') ||
+        currentElement.classList.contains('MuiDialog-root') ||
+        currentElement.classList.contains('MuiOption-root') ||
+        currentElement.classList.contains('MuiSelect-root') ||
+        currentElement.classList.contains('MuiAutocompleteOption-root') ||
+        currentElement.classList.contains('MuiAutocompleteListbox-root') ||
+        currentElement.classList.contains('MuiAutocomplete-root') ||
+        currentElement.classList.contains('MuiAutocomplete-listbox') ||
+        currentElement.classList.contains('MuiAutocomplete-option'))
     ) {
       return true;
     }
