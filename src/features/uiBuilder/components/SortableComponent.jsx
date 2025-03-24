@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from './constants';
 import FilterArea from './FilterArea';
 import { useDroppable } from '@dnd-kit/core';
+import ButtonBar from './ButtonBar';
 
 export default function SortableComponent({ component, isOver, isLast }) {
   const { attributes, listeners, setNodeRef, transition, isDragging } =
@@ -61,6 +62,8 @@ export default function SortableComponent({ component, isOver, isLast }) {
         );
       case 'filterArea':
         return <FilterArea />;
+      case 'buttonBar':
+        return <ButtonBar />;
       default:
         return null;
     }
