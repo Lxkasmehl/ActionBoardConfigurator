@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Modal,
@@ -10,22 +10,24 @@ import {
   Select,
   Option,
   Button,
-  Autocomplete,
   Input,
+  Autocomplete,
 } from '@mui/joy';
 import * as Icons from '@mui/icons-material';
 
-export default function EditFieldModal({
+export default function EditModal({
   open,
   onClose,
-  field,
+  item,
   onSave,
   onDelete,
+  type,
+  title,
 }) {
-  const [editedField, setEditedField] = useState(field);
+  const [editedItem, setEditedItem] = useState(item);
   const [inputValue, setInputValue] = useState('');
 
-  const iconOptions = useMemo(() => Object.keys(Icons), []);
+  const iconOptions = Object.keys(Icons);
 
   const filterOptions = (options, { inputValue }) => {
     if (!inputValue) return options.slice(0, 50);
@@ -37,26 +39,56 @@ export default function EditFieldModal({
   };
 
   const handleSave = () => {
-    onSave(editedField);
+    onSave(editedItem);
     onClose();
   };
 
   const handleDelete = () => {
-    onDelete(field.id);
+    onDelete(type === 'column' ? item.label : item.id);
     onClose();
   };
 
-  return (
-    <Modal open={open} onClose={onClose}>
-      <ModalDialog>
-        <ModalClose onClick={onClose} />
-        <Typography level='h4'>Edit Field</Typography>
+  const renderFormFields = () => {
+    if (type === 'column') {
+      return (
+        <>
+          <FormControl>
+            <FormLabel>Label</FormLabel>
+            <Input
+              value={editedItem.label}
+              onChange={(e) =>
+                setEditedItem({ ...editedItem, label: e.target.value })
+              }
+              placeholder='Enter column label'
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel>Type</FormLabel>
+            <Select
+              value={editedItem.type}
+              onChange={(_, value) =>
+                setEditedItem({ ...editedItem, type: value })
+              }
+              sx={{ minWidth: 200 }}
+            >
+              <Option value='text'>Text</Option>
+              <Option value='number'>Number</Option>
+              <Option value='date'>Date</Option>
+              <Option value='boolean'>Boolean</Option>
+            </Select>
+          </FormControl>
+        </>
+      );
+    }
+
+    return (
+      <>
         <FormControl>
           <FormLabel>Type</FormLabel>
           <Select
-            value={editedField.type}
+            value={editedItem.type}
             onChange={(_, value) =>
-              setEditedField({ ...editedField, type: value, 'text/icon': null })
+              setEditedItem({ ...editedItem, type: value, 'text/icon': null })
             }
             sx={{ minWidth: 200 }}
           >
@@ -67,11 +99,11 @@ export default function EditFieldModal({
         </FormControl>
         <FormControl>
           <FormLabel>Text/Icon</FormLabel>
-          {editedField.type === 'iconButton' ? (
+          {editedItem.type === 'iconButton' ? (
             <Autocomplete
-              value={editedField['text/icon']}
+              value={editedItem['text/icon']}
               onChange={(_, value) =>
-                setEditedField({ ...editedField, 'text/icon': value })
+                setEditedItem({ ...editedItem, 'text/icon': value })
               }
               inputValue={inputValue}
               onInputChange={(_, newInputValue) => {
@@ -88,14 +120,24 @@ export default function EditFieldModal({
           ) : (
             <Input
               type='text'
-              value={editedField['text/icon']}
+              value={editedItem['text/icon']}
               onChange={(e) =>
-                setEditedField({ ...editedField, 'text/icon': e.target.value })
+                setEditedItem({ ...editedItem, 'text/icon': e.target.value })
               }
               className='w-full p-2 border rounded'
             />
           )}
         </FormControl>
+      </>
+    );
+  };
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <ModalDialog>
+        <ModalClose onClick={onClose} />
+        <Typography level='h4'>{title}</Typography>
+        {renderFormFields()}
         <div className='flex flex-col gap-4 mt-3'>
           <Button
             variant='outlined'
@@ -103,7 +145,7 @@ export default function EditFieldModal({
             onClick={handleDelete}
             className='w-full'
           >
-            Delete Field
+            Delete {type === 'column' ? 'Column' : 'Field'}
           </Button>
           <div className='flex justify-end gap-2'>
             <Button variant='plain' color='neutral' onClick={onClose}>
@@ -117,14 +159,17 @@ export default function EditFieldModal({
   );
 }
 
-EditFieldModal.propTypes = {
+EditModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  field: PropTypes.shape({
-    id: PropTypes.number.isRequired,
+  item: PropTypes.shape({
+    id: PropTypes.number,
+    label: PropTypes.string,
     type: PropTypes.string.isRequired,
-    'text/icon': PropTypes.string.isRequired,
+    'text/icon': PropTypes.string,
   }).isRequired,
   onSave: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
+  type: PropTypes.oneOf(['column', 'field']).isRequired,
+  title: PropTypes.string.isRequired,
 };

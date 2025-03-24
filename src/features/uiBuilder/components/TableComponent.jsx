@@ -1,7 +1,8 @@
-import { Table, IconButton, Input } from '@mui/joy';
+import { Table, IconButton } from '@mui/joy';
 import { COMPONENT_TYPES, COMPONENT_CONFIGS } from './constants';
-import { Add, Edit, Check } from '@mui/icons-material';
+import { Add, Edit } from '@mui/icons-material';
 import { useState } from 'react';
+import EditModal from './EditModal';
 
 export default function TableComponent() {
   const [columns, setColumns] = useState(
@@ -9,7 +10,6 @@ export default function TableComponent() {
   );
   const [hoveredColumn, setHoveredColumn] = useState(null);
   const [editingColumn, setEditingColumn] = useState(null);
-  const [editValue, setEditValue] = useState('');
   const [dummyData, setDummyData] = useState([
     {
       'User id': 1001,
@@ -42,32 +42,34 @@ export default function TableComponent() {
     );
   };
 
-  const handleEditColumn = (columnLabel) => {
-    setEditingColumn(columnLabel);
-    setEditValue(columnLabel);
+  const handleEditColumn = (column) => {
+    setEditingColumn(column);
   };
 
-  const handleSaveEdit = () => {
-    if (!editValue.trim()) return;
-
+  const handleSaveColumn = (editedColumn) => {
     const newColumns = columns.map((col) =>
-      col.label === editingColumn ? { ...col, label: editValue } : col,
+      col.label === editingColumn.label ? editedColumn : col,
     );
     setColumns(newColumns);
 
     const newData = dummyData.map((row) => {
       const newRow = { ...row };
-      newRow[editValue] = newRow[editingColumn];
-      delete newRow[editingColumn];
+      newRow[editedColumn.label] = newRow[editingColumn.label];
+      delete newRow[editingColumn.label];
       return newRow;
     });
     setDummyData(newData);
-
-    setEditingColumn(null);
   };
 
-  const handleCancelEdit = () => {
-    setEditingColumn(null);
+  const handleDeleteColumn = (columnLabel) => {
+    setColumns(columns.filter((col) => col.label !== columnLabel));
+    setDummyData(
+      dummyData.map((row) => {
+        const newRow = { ...row };
+        delete newRow[columnLabel];
+        return newRow;
+      }),
+    );
   };
 
   return (
@@ -87,65 +89,26 @@ export default function TableComponent() {
                 onMouseEnter={() => setHoveredColumn(column.label)}
                 onMouseLeave={() => setHoveredColumn(null)}
               >
-                {editingColumn === column.label ? (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
+                {column.label}
+                {hoveredColumn === column.label && (
+                  <IconButton
+                    size='sm'
+                    variant='plain'
+                    color='neutral'
+                    onClick={() => handleEditColumn(column)}
+                    sx={{
+                      position: 'absolute',
+                      right: '4px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      opacity: 0.7,
+                      '&:hover': {
+                        opacity: 1,
+                      },
                     }}
                   >
-                    <Input
-                      size='sm'
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleSaveEdit();
-                        }
-                        if (e.key === 'Escape') {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleCancelEdit();
-                        }
-                      }}
-                    />
-                    <IconButton
-                      size='sm'
-                      variant='plain'
-                      color='success'
-                      onClick={handleSaveEdit}
-                    >
-                      <Check fontSize='small' />
-                    </IconButton>
-                  </div>
-                ) : (
-                  <>
-                    {column.label}
-                    {hoveredColumn === column.label && (
-                      <IconButton
-                        size='sm'
-                        variant='plain'
-                        color='neutral'
-                        onClick={() => handleEditColumn(column.label)}
-                        sx={{
-                          position: 'absolute',
-                          right: '4px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          opacity: 0.7,
-                          '&:hover': {
-                            opacity: 1,
-                          },
-                        }}
-                      >
-                        <Edit fontSize='small' />
-                      </IconButton>
-                    )}
-                  </>
+                    <Edit fontSize='small' />
+                  </IconButton>
                 )}
               </th>
             ))}
@@ -174,6 +137,17 @@ export default function TableComponent() {
       >
         <Add />
       </IconButton>
+      {editingColumn && (
+        <EditModal
+          open={!!editingColumn}
+          onClose={() => setEditingColumn(null)}
+          item={editingColumn}
+          onSave={handleSaveColumn}
+          onDelete={handleDeleteColumn}
+          type='column'
+          title='Edit Column'
+        />
+      )}
     </>
   );
 }
