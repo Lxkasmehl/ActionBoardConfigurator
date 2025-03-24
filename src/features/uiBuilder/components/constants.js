@@ -6,6 +6,7 @@ export const COMPONENT_TYPES = {
   IMAGE: 'image',
   FORM: 'form',
   FILTER_AREA: 'filterArea',
+  BUTTON_BAR: 'buttonBar',
 };
 
 export const COMPONENT_CONFIGS = {
@@ -58,6 +59,27 @@ export const COMPONENT_CONFIGS = {
         {
           type: 'dataTimePicker',
           label: 'Hire Date',
+        },
+      ],
+    },
+  },
+  [COMPONENT_TYPES.BUTTON_BAR]: {
+    label: 'ButtonBar',
+    icon: 'ViewSidebar',
+    defaultProps: {
+      fields: [
+        {
+          type: 'button',
+          'text/icon': 'Apply filter',
+        },
+        { type: 'button', 'text/icon': 'Clear all filter' },
+        {
+          type: 'iconButton',
+          'text/icon': 'Settings',
+        },
+        {
+          type: 'autocomplete',
+          'text/icon': 'Templates',
         },
       ],
     },

@@ -8,6 +8,7 @@ import {
   Image,
   DynamicForm,
   FilterList,
+  ViewSidebar,
 } from '@mui/icons-material';
 import { COMPONENT_CONFIGS } from './constants';
 
@@ -23,6 +24,7 @@ export const DragOverlayComponent = ({ activeDragData, isOverTrash }) => {
       Image: <Image />,
       DynamicForm: <DynamicForm />,
       FilterList: <FilterList />,
+      ViewSidebar: <ViewSidebar />,
     };
     return iconMap[iconName] || null;
   };
