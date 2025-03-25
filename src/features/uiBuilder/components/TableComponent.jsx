@@ -27,6 +27,7 @@ export default function TableComponent() {
     COMPONENT_CONFIGS[COMPONENT_TYPES.TABLE].defaultProps.columns,
   );
   const [hoveredColumn, setHoveredColumn] = useState(null);
+  const [hoveredColumnHeader, setHoveredColumnHeader] = useState(null);
   const [editingColumn, setEditingColumn] = useState(null);
   const [activeColumn, setActiveColumn] = useState(null);
   const [dummyData, setDummyData] = useState([
@@ -155,7 +156,15 @@ export default function TableComponent() {
     if (!activeColumn) return null;
 
     return (
-      <Table borderAxis='bothBetween' color='neutral' variant='outlined'>
+      <Table
+        borderAxis='bothBetween'
+        color='neutral'
+        variant='outlined'
+        sx={{
+          borderRadius: 0,
+          border: '2px solid #ced8e2',
+        }}
+      >
         <thead>
           <tr>
             <th
@@ -173,7 +182,23 @@ export default function TableComponent() {
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                <div style={{ cursor: 'grabbing' }}>
+                <div
+                  style={{
+                    cursor: 'grab',
+                    position: 'absolute',
+                    top: '-4px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    rotate: '90deg',
+                    zIndex: 1000,
+                    borderRadius: '4px',
+                    backgroundColor: '#ced8e2',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px 0px',
+                  }}
+                >
                   <DragIndicator fontSize='small' />
                 </div>
                 {activeColumn.label}
@@ -212,9 +237,14 @@ export default function TableComponent() {
                     key={column.label}
                     column={column}
                     onEdit={handleEditColumn}
-                    isHovered={hoveredColumn === column.label}
+                    isHovered={hoveredColumnHeader === column.label}
+                    isColumnHovered={hoveredColumn === column.label}
                     onMouseEnter={() => setHoveredColumn(column.label)}
                     onMouseLeave={() => setHoveredColumn(null)}
+                    onHeaderMouseEnter={(label) =>
+                      setHoveredColumnHeader(label)
+                    }
+                    onHeaderMouseLeave={() => setHoveredColumnHeader(null)}
                     data={dummyData}
                   />
                 ))}

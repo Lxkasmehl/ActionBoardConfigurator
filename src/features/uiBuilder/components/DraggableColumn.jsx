@@ -8,9 +8,12 @@ export default function DraggableColumn({
   column,
   onEdit,
   isHovered,
+  isColumnHovered,
   onMouseEnter,
   onMouseLeave,
   data,
+  onHeaderMouseEnter,
+  onHeaderMouseLeave,
 }) {
   const {
     attributes,
@@ -29,10 +32,16 @@ export default function DraggableColumn({
     opacity: isDragging ? 0.5 : 1,
     display: 'table-cell',
     position: 'relative',
+    border: isColumnHovered && '2px solid #ced8e2',
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       <th
         style={{
           whiteSpace: 'normal',
@@ -40,9 +49,10 @@ export default function DraggableColumn({
           position: 'relative',
           cursor: 'grab',
           width: '100vw',
+          overflow: 'visible',
         }}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
+        onMouseEnter={() => onHeaderMouseEnter(column.label)}
+        onMouseLeave={() => onHeaderMouseLeave()}
       >
         <div
           style={{
@@ -51,7 +61,25 @@ export default function DraggableColumn({
             gap: 8,
           }}
         >
-          <div {...attributes} {...listeners} style={{ cursor: 'grab' }}>
+          <div
+            {...attributes}
+            {...listeners}
+            style={{
+              cursor: 'grab',
+              position: 'absolute',
+              top: '-4px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              rotate: '90deg',
+              zIndex: 1000,
+              borderRadius: '4px',
+              backgroundColor: '#ced8e2',
+              display: isColumnHovered ? 'flex' : 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '4px 0px',
+            }}
+          >
             <DragIndicator fontSize='small' />
           </div>
           {column.label}
@@ -70,7 +98,12 @@ export default function DraggableColumn({
         </div>
       </th>
       {data.map((row, index) => (
-        <td key={index} style={{ display: 'block' }}>
+        <td
+          key={index}
+          style={{
+            display: 'block',
+          }}
+        >
           {row[column.label]}
         </td>
       ))}
@@ -85,7 +118,10 @@ DraggableColumn.propTypes = {
   }).isRequired,
   onEdit: PropTypes.func.isRequired,
   isHovered: PropTypes.bool.isRequired,
+  isColumnHovered: PropTypes.bool.isRequired,
   onMouseEnter: PropTypes.func.isRequired,
   onMouseLeave: PropTypes.func.isRequired,
   data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onHeaderMouseEnter: PropTypes.func.isRequired,
+  onHeaderMouseLeave: PropTypes.func.isRequired,
 };
