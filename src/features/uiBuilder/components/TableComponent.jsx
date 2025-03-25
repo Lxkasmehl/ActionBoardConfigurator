@@ -46,6 +46,35 @@ export default function TableComponent() {
     setEditingColumn(column);
   };
 
+  const generateNewValue = (type) => {
+    let start, end, texts;
+    switch (type) {
+      case 'number':
+        return Math.floor(Math.random() * 1000);
+      case 'boolean':
+        return Math.random() > 0.5;
+      case 'date':
+        start = new Date(2020, 0, 1);
+        end = new Date();
+        return new Date(
+          start.getTime() + Math.random() * (end.getTime() - start.getTime()),
+        )
+          .toISOString()
+          .split('T')[0];
+      case 'text':
+        texts = [
+          'Sample Text',
+          'Example Data',
+          'Random Value',
+          'Test Entry',
+          'Demo Content',
+        ];
+        return texts[Math.floor(Math.random() * texts.length)];
+      default:
+        return '';
+    }
+  };
+
   const handleSaveColumn = (editedColumn) => {
     const newColumns = columns.map((col) =>
       col.label === editingColumn.label ? editedColumn : col,
@@ -54,8 +83,7 @@ export default function TableComponent() {
 
     const newData = dummyData.map((row) => {
       const newRow = { ...row };
-      newRow[editedColumn.label] = newRow[editingColumn.label];
-      delete newRow[editingColumn.label];
+      newRow[editedColumn.label] = generateNewValue(editedColumn.type);
       return newRow;
     });
     setDummyData(newData);

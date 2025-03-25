@@ -60,6 +60,12 @@ export default function EditModal({
                 setEditedItem({ ...editedItem, label: e.target.value })
               }
               placeholder='Enter column label'
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSave();
+                }
+              }}
             />
           </FormControl>
           <FormControl>
@@ -116,6 +122,12 @@ export default function EditModal({
               filterSelectedOptions
               placeholder='Select Icon'
               sx={{ minWidth: 200 }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSave();
+                }
+              }}
             />
           ) : (
             <Input
@@ -125,6 +137,12 @@ export default function EditModal({
                 setEditedItem({ ...editedItem, 'text/icon': e.target.value })
               }
               className='w-full p-2 border rounded'
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSave();
+                }
+              }}
             />
           )}
         </FormControl>
