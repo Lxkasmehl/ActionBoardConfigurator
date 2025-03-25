@@ -1,8 +1,26 @@
 import { Table, IconButton } from '@mui/joy';
 import { COMPONENT_TYPES, COMPONENT_CONFIGS } from './constants';
-import { Add, Edit } from '@mui/icons-material';
+import { Add } from '@mui/icons-material';
 import { useState } from 'react';
 import EditModal from './EditModal';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import DraggableColumn from './DraggableColumn';
+import { DragIndicator } from '@mui/icons-material';
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 
 export default function TableComponent() {
   const [columns, setColumns] = useState(
@@ -10,6 +28,7 @@ export default function TableComponent() {
   );
   const [hoveredColumn, setHoveredColumn] = useState(null);
   const [editingColumn, setEditingColumn] = useState(null);
+  const [activeColumn, setActiveColumn] = useState(null);
   const [dummyData, setDummyData] = useState([
     {
       'User id': 1001,
@@ -24,6 +43,38 @@ export default function TableComponent() {
       Country: 'Canada',
     },
   ]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragStart = (event) => {
+    const { active } = event;
+    const column = columns.find((col) => col.label === active.id);
+    if (column) {
+      setActiveColumn(column);
+    }
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    setActiveColumn(null);
+
+    if (active.id !== over.id) {
+      setColumns((items) => {
+        const oldIndex = items.findIndex((item) => item.label === active.id);
+        const newIndex = items.findIndex((item) => item.label === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   const handleAddColumn = () => {
     const newColumnLabel = `Column ${columns.length + 1}`;
@@ -100,58 +151,81 @@ export default function TableComponent() {
     );
   };
 
-  return (
-    <>
+  const ColumnDragOverlay = () => {
+    if (!activeColumn) return null;
+
+    return (
       <Table borderAxis='bothBetween' color='neutral' variant='outlined'>
         <thead>
           <tr>
-            {columns.map((column) => (
-              <th
-                key={column.label}
-                style={{
-                  whiteSpace: 'normal',
-                  wordWrap: 'break-word',
-                  verticalAlign: 'middle',
-                  position: 'relative',
-                }}
-                onMouseEnter={() => setHoveredColumn(column.label)}
-                onMouseLeave={() => setHoveredColumn(null)}
+            <th
+              style={{
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+                verticalAlign: 'middle',
+                position: 'relative',
+                cursor: 'grabbing',
+                backgroundColor: 'background.level1',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                opacity: 0.8,
+              }}
+            >
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                {column.label}
-                {hoveredColumn === column.label && (
-                  <IconButton
-                    size='sm'
-                    variant='plain'
-                    color='neutral'
-                    onClick={() => handleEditColumn(column)}
-                    sx={{
-                      position: 'absolute',
-                      right: '4px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      opacity: 0.7,
-                      '&:hover': {
-                        opacity: 1,
-                      },
-                    }}
-                  >
-                    <Edit fontSize='small' />
-                  </IconButton>
-                )}
-              </th>
-            ))}
+                <div style={{ cursor: 'grabbing' }}>
+                  <DragIndicator fontSize='small' />
+                </div>
+                {activeColumn.label}
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
           {dummyData.map((row, index) => (
             <tr key={index}>
-              {columns.map((column) => (
-                <td key={column.label}>{row[column.label]}</td>
-              ))}
+              <td>{row[activeColumn.label]}</td>
             </tr>
           ))}
         </tbody>
       </Table>
+    );
+  };
+
+  return (
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <Table borderAxis='bothBetween' color='neutral' variant='outlined'>
+          <thead>
+            <tr>
+              <SortableContext
+                items={columns.map((col) => col.label)}
+                strategy={horizontalListSortingStrategy}
+              >
+                {columns.map((column) => (
+                  <DraggableColumn
+                    key={column.label}
+                    column={column}
+                    onEdit={handleEditColumn}
+                    isHovered={hoveredColumn === column.label}
+                    onMouseEnter={() => setHoveredColumn(column.label)}
+                    onMouseLeave={() => setHoveredColumn(null)}
+                    data={dummyData}
+                  />
+                ))}
+              </SortableContext>
+            </tr>
+          </thead>
+        </Table>
+        <DragOverlay modifiers={[restrictToHorizontalAxis]}>
+          <ColumnDragOverlay />
+        </DragOverlay>
+      </DndContext>
       <IconButton
         variant='solid'
         color='primary'
