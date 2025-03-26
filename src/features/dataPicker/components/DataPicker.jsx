@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
-import useFetchEntities from '../hooks/useFetchEntities.js';
+import useFetchEntities from '../../../shared/hooks/useFetchEntities.js';
 import { useSendRequest } from '../hooks/useSendRequest.js';
 import { formatUtils } from '../utils/odata/oDataQueries.js';
 

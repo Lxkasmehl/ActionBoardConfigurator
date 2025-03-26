@@ -1,6 +1,6 @@
 import { Table, IconButton } from '@mui/joy';
 import { Add } from '@mui/icons-material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EditModal from './EditModal';
 import PropTypes from 'prop-types';
 import {
@@ -21,6 +21,7 @@ import {
 import DraggableColumn from './DraggableColumn';
 import { DragIndicator } from '@mui/icons-material';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
+import { useSendRequest } from '../hooks/useSendRequest';
 
 export default function TableComponent({ component }) {
   const [columns, setColumns] = useState(component.props.columns);
@@ -42,6 +43,67 @@ export default function TableComponent({ component }) {
       Country: 'Canada',
     },
   ]);
+
+  const handleSendRequest = useSendRequest();
+
+  useEffect(() => {
+    const fetchEntityData = async () => {
+      const entityColumns = columns.filter(
+        (col) => col.type === 'entity' && col.entity && col.property,
+      );
+      if (entityColumns.length === 0) return;
+
+      try {
+        const results = await Promise.all(
+          entityColumns.map((col) =>
+            handleSendRequest({
+              entity: col.entity.name,
+              property: col.property.name,
+            }),
+          ),
+        );
+
+        const newEntityData = {};
+        results.forEach((result, index) => {
+          const column = entityColumns[index];
+          newEntityData[column.label] = result.d.results
+            .map((item) => item[column.property.name])
+            .filter((value) => value !== null);
+        });
+
+        // Find the maximum number of rows needed
+        const maxRows = Math.max(
+          dummyData.length,
+          ...Object.values(newEntityData).map((data) => data.length),
+        );
+
+        // Create new dummy data with all necessary rows
+        const updatedDummyData = Array.from({ length: maxRows }, (_, index) => {
+          // Start with existing row data if available, otherwise empty object
+          const newRow =
+            index < dummyData.length ? { ...dummyData[index] } : {};
+
+          // Add entity data for each column
+          entityColumns.forEach((column) => {
+            if (
+              newEntityData[column.label] &&
+              newEntityData[column.label][index]
+            ) {
+              newRow[column.label] = newEntityData[column.label][index];
+            }
+          });
+
+          return newRow;
+        });
+
+        setDummyData(updatedDummyData);
+      } catch (error) {
+        console.error('Error fetching entity data:', error);
+      }
+    };
+
+    fetchEntityData();
+  }, [columns, handleSendRequest, dummyData]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -96,6 +158,35 @@ export default function TableComponent({ component }) {
     setEditingColumn(column);
   };
 
+  const handleSaveColumn = (editedColumn) => {
+    const newColumns = columns.map((col) =>
+      col.label === editingColumn.label ? editedColumn : col,
+    );
+    setColumns(newColumns);
+
+    if (editedColumn.type === 'entity') {
+      return;
+    }
+
+    const newData = dummyData.map((row) => {
+      const newRow = { ...row };
+      newRow[editedColumn.label] = generateNewValue(editedColumn.type);
+      return newRow;
+    });
+    setDummyData(newData);
+  };
+
+  const handleDeleteColumn = (columnLabel) => {
+    setColumns(columns.filter((col) => col.label !== columnLabel));
+    setDummyData(
+      dummyData.map((row) => {
+        const newRow = { ...row };
+        delete newRow[columnLabel];
+        return newRow;
+      }),
+    );
+  };
+
   const generateNewValue = (type) => {
     let start, end, texts;
     switch (type) {
@@ -123,31 +214,6 @@ export default function TableComponent({ component }) {
       default:
         return '';
     }
-  };
-
-  const handleSaveColumn = (editedColumn) => {
-    const newColumns = columns.map((col) =>
-      col.label === editingColumn.label ? editedColumn : col,
-    );
-    setColumns(newColumns);
-
-    const newData = dummyData.map((row) => {
-      const newRow = { ...row };
-      newRow[editedColumn.label] = generateNewValue(editedColumn.type);
-      return newRow;
-    });
-    setDummyData(newData);
-  };
-
-  const handleDeleteColumn = (columnLabel) => {
-    setColumns(columns.filter((col) => col.label !== columnLabel));
-    setDummyData(
-      dummyData.map((row) => {
-        const newRow = { ...row };
-        delete newRow[columnLabel];
-        return newRow;
-      }),
-    );
   };
 
   const ColumnDragOverlay = () => {
@@ -289,6 +355,8 @@ TableComponent.propTypes = {
         PropTypes.shape({
           label: PropTypes.string.isRequired,
           type: PropTypes.string.isRequired,
+          entity: PropTypes.string,
+          property: PropTypes.string,
         }),
       ).isRequired,
     }).isRequired,

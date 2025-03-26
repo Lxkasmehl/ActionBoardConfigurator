@@ -33,10 +33,11 @@ export default function DraggableColumn({
     display: 'table-cell',
     position: 'relative',
     border: isColumnHovered && '2px solid #ced8e2',
+    padding: 0,
   };
 
   return (
-    <div
+    <td
       ref={setNodeRef}
       style={style}
       onMouseEnter={onMouseEnter}
@@ -103,14 +104,15 @@ export default function DraggableColumn({
           </tr>
         </thead>
         <tbody>
-          {data.map((row, index) => (
+          {console.log('data', data)}
+          {(data || []).map((row, index) => (
             <tr key={index}>
               <td>{row[column.label]}</td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </td>
   );
 }
 
