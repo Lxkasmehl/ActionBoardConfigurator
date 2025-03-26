@@ -8,6 +8,7 @@ export const COMPONENT_TYPES = {
   FILTER_AREA: 'filterArea',
   BUTTON_BAR: 'buttonBar',
   TABLE: 'table',
+  CHART: 'chart',
 };
 
 export const COMPONENT_CONFIGS = {
@@ -107,6 +108,13 @@ export const COMPONENT_CONFIGS = {
           type: 'text',
         },
       ],
+    },
+  },
+  [COMPONENT_TYPES.CHART]: {
+    label: 'Chart',
+    icon: 'Addchart',
+    defaultProps: {
+      type: 'lines',
     },
   },
 };

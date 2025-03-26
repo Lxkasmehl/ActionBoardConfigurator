@@ -10,6 +10,7 @@ import {
   FilterList,
   ViewSidebar,
   TableChart,
+  Addchart,
 } from '@mui/icons-material';
 import { useDraggable } from '@dnd-kit/core';
 
@@ -31,6 +32,7 @@ function DraggableComponent({ type, config, index, disabled = false }) {
       FilterList: <FilterList />,
       ViewSidebar: <ViewSidebar />,
       TableChart: <TableChart />,
+      Addchart: <Addchart />,
     };
     return iconMap[iconName] || null;
   };

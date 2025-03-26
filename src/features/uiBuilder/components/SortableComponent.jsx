@@ -8,6 +8,7 @@ import ButtonBar from './ButtonBar';
 import TableComponent from './TableComponent';
 import HeadingComponent from './HeadingComponent';
 import ParagraphComponent from './ParagraphComponent';
+import ChartComponent from './ChartComponent';
 
 export default function SortableComponent({ component, isOver, isLast }) {
   const { attributes, listeners, setNodeRef, transition, isDragging } =
@@ -65,6 +66,8 @@ export default function SortableComponent({ component, isOver, isLast }) {
         return <ButtonBar component={component} />;
       case 'table':
         return <TableComponent component={component} />;
+      case 'chart':
+        return <ChartComponent component={component} />;
       default:
         return null;
     }
