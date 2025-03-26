@@ -3,7 +3,7 @@ import { COMPONENT_CONFIGS } from './constants';
 import { Button, IconButton, Autocomplete } from '@mui/joy';
 import * as Icons from '@mui/icons-material';
 import { Add } from '@mui/icons-material';
-import EditFieldModal from './EditFieldModal';
+import EditModal from './EditModal';
 import EditButton from './EditButton';
 
 export default function ButtonBar() {
@@ -109,12 +109,14 @@ export default function ButtonBar() {
         <Add />
       </IconButton>
       {editingField && (
-        <EditFieldModal
+        <EditModal
           open={!!editingField}
           onClose={() => setEditingField(null)}
-          field={editingField}
+          item={editingField}
           onSave={handleSaveField}
           onDelete={handleDeleteField}
+          type='field'
+          title='Edit Field'
         />
       )}
     </>
