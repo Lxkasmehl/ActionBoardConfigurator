@@ -10,6 +10,7 @@ import {
   FilterList,
   ViewSidebar,
   TableChart,
+  Addchart,
 } from '@mui/icons-material';
 import { COMPONENT_CONFIGS } from './constants';
 
@@ -27,6 +28,7 @@ export const DragOverlayComponent = ({ activeDragData, isOverTrash }) => {
       FilterList: <FilterList />,
       ViewSidebar: <ViewSidebar />,
       TableChart: <TableChart />,
+      Addchart: <Addchart />,
     };
     return iconMap[iconName] || null;
   };
