@@ -3,6 +3,8 @@ import { COMPONENT_CONFIGS } from './constants';
 import DraggableComponent from './DraggableComponent';
 
 export default function ComponentLibrary() {
+  const disabledComponents = ['Image', 'Button'];
+
   return (
     <Card
       sx={{
@@ -22,6 +24,7 @@ export default function ComponentLibrary() {
             type={type}
             config={config}
             index={index}
+            disabled={disabledComponents.includes(config.label)}
           />
         ))}
       </Stack>

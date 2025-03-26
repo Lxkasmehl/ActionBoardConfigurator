@@ -13,10 +13,11 @@ import {
 } from '@mui/icons-material';
 import { useDraggable } from '@dnd-kit/core';
 
-function DraggableComponent({ type, config, index }) {
+function DraggableComponent({ type, config, index, disabled = false }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `library-${type}-${index}`,
     data: { type },
+    disabled: disabled,
   });
 
   const renderIcon = (iconName) => {
@@ -37,17 +38,16 @@ function DraggableComponent({ type, config, index }) {
   return (
     <Card
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
+      {...(disabled ? {} : { ...attributes, ...listeners })}
       sx={{
         p: 2,
-        cursor: 'grab',
+        cursor: disabled ? 'not-allowed' : 'grab',
         '&:active': {
-          cursor: 'grabbing',
+          cursor: disabled ? 'not-allowed' : 'grabbing',
         },
-        opacity: isDragging ? 0.5 : 1,
+        opacity: isDragging ? 0.5 : disabled ? 0.5 : 1,
         '&:hover': {
-          bgcolor: 'background.level1',
+          bgcolor: disabled ? 'background.level2' : 'background.level1',
         },
         transform: isDragging ? 'scale(1.02)' : 'scale(1)',
         transition: 'transform 0.2s ease',
@@ -67,7 +67,9 @@ function DraggableComponent({ type, config, index }) {
         >
           {renderIcon(config.icon)}
         </Box>
-        <Typography>{config.label}</Typography>
+        <Typography sx={{ opacity: disabled ? 0.5 : 1 }}>
+          {config.label}
+        </Typography>
       </Stack>
     </Card>
   );
@@ -77,6 +79,7 @@ DraggableComponent.propTypes = {
   type: PropTypes.string.isRequired,
   config: PropTypes.object.isRequired,
   index: PropTypes.number.isRequired,
+  disabled: PropTypes.bool,
 };
 
 export default DraggableComponent;
