@@ -6,6 +6,7 @@ import FilterArea from './FilterArea';
 import { useDroppable } from '@dnd-kit/core';
 import ButtonBar from './ButtonBar';
 import TableComponent from './TableComponent';
+import HeadingComponent from './HeadingComponent';
 export default function SortableComponent({ component, isOver, isLast }) {
   const { attributes, listeners, setNodeRef, transition, isDragging } =
     useSortable({
@@ -35,11 +36,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
 
     switch (component.type) {
       case 'heading':
-        return (
-          <Typography level={component.props.level || 'h2'}>
-            {component.props.text}
-          </Typography>
-        );
+        return <HeadingComponent component={component} />;
       case 'paragraph':
         return <Typography>{component.props.text}</Typography>;
       case 'button':
