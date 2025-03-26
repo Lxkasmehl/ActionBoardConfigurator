@@ -58,11 +58,11 @@ export default function SortableComponent({ component, isOver, isLast }) {
           />
         );
       case 'filterArea':
-        return <FilterArea />;
+        return <FilterArea component={component} />;
       case 'buttonBar':
-        return <ButtonBar />;
+        return <ButtonBar component={component} />;
       case 'table':
-        return <TableComponent />;
+        return <TableComponent component={component} />;
       default:
         return null;
     }
