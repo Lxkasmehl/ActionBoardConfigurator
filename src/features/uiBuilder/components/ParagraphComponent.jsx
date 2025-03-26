@@ -1,21 +1,20 @@
-import { Input } from '@mui/joy';
+import { Textarea } from '@mui/joy';
 import PropTypes from 'prop-types';
 import EditableTextComponent from './EditableTextComponent';
 
-export default function HeadingComponent({ component }) {
+export default function ParagraphComponent({ component }) {
   return (
     <EditableTextComponent
       component={component}
-      InputComponent={Input}
-      typographyProps={{ level: component.props.level || 'h2' }}
+      InputComponent={Textarea}
+      inputProps={{ minRows: 3 }}
     />
   );
 }
 
-HeadingComponent.propTypes = {
+ParagraphComponent.propTypes = {
   component: PropTypes.shape({
     props: PropTypes.shape({
-      level: PropTypes.string,
       text: PropTypes.string.isRequired,
     }).isRequired,
   }).isRequired,
