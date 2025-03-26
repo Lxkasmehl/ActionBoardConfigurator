@@ -1,5 +1,5 @@
 import { useSortable } from '@dnd-kit/sortable';
-import { Box, Card, Typography, Button, Divider } from '@mui/joy';
+import { Box, Card, Button, Divider } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from './constants';
 import FilterArea from './FilterArea';
@@ -7,6 +7,8 @@ import { useDroppable } from '@dnd-kit/core';
 import ButtonBar from './ButtonBar';
 import TableComponent from './TableComponent';
 import HeadingComponent from './HeadingComponent';
+import ParagraphComponent from './ParagraphComponent';
+
 export default function SortableComponent({ component, isOver, isLast }) {
   const { attributes, listeners, setNodeRef, transition, isDragging } =
     useSortable({
@@ -38,7 +40,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
       case 'heading':
         return <HeadingComponent component={component} />;
       case 'paragraph':
-        return <Typography>{component.props.text}</Typography>;
+        return <ParagraphComponent component={component} />;
       case 'button':
         return (
           <Button
