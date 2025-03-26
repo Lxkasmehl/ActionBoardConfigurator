@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Autocomplete, FormLabel, IconButton, Input } from '@mui/joy';
 import { Add, Delete, Edit } from '@mui/icons-material';
-import { COMPONENT_CONFIGS } from './constants';
+import PropTypes from 'prop-types';
 
-export default function FilterArea() {
+export default function FilterArea({ component }) {
   const [filters, setFilters] = useState(
-    COMPONENT_CONFIGS.filterArea.defaultProps.fields.map((field, index) => ({
+    component.props.fields.map((field, index) => ({
       id: index + 1,
       label: field.label,
       options: [],
@@ -137,3 +137,15 @@ export default function FilterArea() {
     </div>
   );
 }
+
+FilterArea.propTypes = {
+  component: PropTypes.shape({
+    props: PropTypes.shape({
+      fields: PropTypes.arrayOf(
+        PropTypes.shape({
+          label: PropTypes.string.isRequired,
+        }),
+      ).isRequired,
+    }).isRequired,
+  }).isRequired,
+};
