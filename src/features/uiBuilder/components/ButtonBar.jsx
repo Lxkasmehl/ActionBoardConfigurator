@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { COMPONENT_CONFIGS } from './constants';
 import { Button, IconButton, Autocomplete } from '@mui/joy';
 import * as Icons from '@mui/icons-material';
 import { Add } from '@mui/icons-material';
 import EditModal from './EditModal';
 import EditButton from './EditButton';
+import PropTypes from 'prop-types';
 
-export default function ButtonBar() {
+export default function ButtonBar({ component }) {
   const [fields, setFields] = useState(
-    COMPONENT_CONFIGS.buttonBar.defaultProps.fields.map((field, index) => ({
+    component.props.fields.map((field, index) => ({
       id: index + 1,
       type: field.type,
       'text/icon': field['text/icon'],
@@ -122,3 +122,16 @@ export default function ButtonBar() {
     </>
   );
 }
+
+ButtonBar.propTypes = {
+  component: PropTypes.shape({
+    props: PropTypes.shape({
+      fields: PropTypes.arrayOf(
+        PropTypes.shape({
+          type: PropTypes.string.isRequired,
+          'text/icon': PropTypes.string.isRequired,
+        }),
+      ).isRequired,
+    }).isRequired,
+  }).isRequired,
+};

@@ -1,8 +1,8 @@
 import { Table, IconButton } from '@mui/joy';
-import { COMPONENT_TYPES, COMPONENT_CONFIGS } from './constants';
 import { Add } from '@mui/icons-material';
 import { useState } from 'react';
 import EditModal from './EditModal';
+import PropTypes from 'prop-types';
 import {
   DndContext,
   closestCenter,
@@ -22,10 +22,8 @@ import DraggableColumn from './DraggableColumn';
 import { DragIndicator } from '@mui/icons-material';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 
-export default function TableComponent() {
-  const [columns, setColumns] = useState(
-    COMPONENT_CONFIGS[COMPONENT_TYPES.TABLE].defaultProps.columns,
-  );
+export default function TableComponent({ component }) {
+  const [columns, setColumns] = useState(component.props.columns);
   const [hoveredColumn, setHoveredColumn] = useState(null);
   const [hoveredColumnHeader, setHoveredColumnHeader] = useState(null);
   const [editingColumn, setEditingColumn] = useState(null);
@@ -283,3 +281,16 @@ export default function TableComponent() {
     </>
   );
 }
+
+TableComponent.propTypes = {
+  component: PropTypes.shape({
+    props: PropTypes.shape({
+      columns: PropTypes.arrayOf(
+        PropTypes.shape({
+          label: PropTypes.string.isRequired,
+          type: PropTypes.string.isRequired,
+        }),
+      ).isRequired,
+    }).isRequired,
+  }).isRequired,
+};
