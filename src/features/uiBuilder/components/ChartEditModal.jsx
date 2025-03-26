@@ -12,6 +12,7 @@ import {
   Button,
   Input,
   Stack,
+  FormHelperText,
 } from '@mui/joy';
 
 export default function ChartEditModal({ open, onClose, component, onSave }) {
@@ -114,9 +115,10 @@ export default function ChartEditModal({ open, onClose, component, onSave }) {
               value={dataInput}
               onChange={(e) => setDataInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder='Enter numbers separated by commas (e.g., 1, 2, 3, 4, 5)'
-              helperText='Leave empty to use sample data'
+              placeholder='z.B.: 1, 2, 3, 4, 5'
+              sx={{ minWidth: 300 }}
             />
+            <FormHelperText>Leave empty to use sample data</FormHelperText>
           </FormControl>
 
           <Stack direction='row' spacing={1} justifyContent='flex-end'>
