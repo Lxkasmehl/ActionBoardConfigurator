@@ -27,7 +27,7 @@ import {
   sortEntities,
   sortProperties,
   filterUniqueProperties,
-} from '../utils/entity/entityOperations';
+} from '../../../shared/utils/entityOperations';
 
 import FilterModal from './FilterModal';
 import PropertySelector from './PropertySelector';

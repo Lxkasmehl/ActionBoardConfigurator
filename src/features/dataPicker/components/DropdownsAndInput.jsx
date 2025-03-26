@@ -8,7 +8,7 @@ import {
 import PropertyTypeInput from './PropertyTypeInput';
 import useDropdownsAndInputState from '../hooks/useDropdownsAndInputState';
 import { useSelector } from 'react-redux';
-import { sortProperties } from '../utils/entity/entityOperations';
+import { sortProperties } from '../../../shared/utils/entityOperations';
 
 export default function DropdownsAndInput({
   propertyOptionsId,

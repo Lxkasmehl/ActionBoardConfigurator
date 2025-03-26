@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { COMMON_INPUT_STYLES } from './PropertyTypeInput.constants';
 import ValueChips from './ValueChips';
 import RelatedSourceSelect from './RelatedSourceSelect';
-import { typeUtils } from '../utils/entity/entityOperations';
+import { typeUtils } from '../../../shared/utils/entityOperations';
 
 export default function PropertyTypeInput({
   propertyType,

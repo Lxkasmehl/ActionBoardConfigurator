@@ -1,7 +1,7 @@
 import { Select, Option, Tooltip } from '@mui/joy';
 import PropTypes from 'prop-types';
 import useRelatedSourceData from '../hooks/useRelatedSourceData';
-import { typeUtils } from '../utils/entity/entityOperations';
+import { typeUtils } from '../../../shared/utils/entityOperations';
 
 export default function RelatedSourceSelect({
   propertyType,

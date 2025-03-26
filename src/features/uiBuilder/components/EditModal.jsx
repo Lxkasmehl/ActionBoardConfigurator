@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Modal,
@@ -14,6 +14,9 @@ import {
   Autocomplete,
 } from '@mui/joy';
 import * as Icons from '@mui/icons-material';
+import { useSelector } from 'react-redux';
+import { sortEntities } from '../../../shared/utils/entityOperations';
+import useFetchEntities from '../../../shared/hooks/useFetchEntities';
 
 export default function EditModal({
   open,
@@ -26,6 +29,45 @@ export default function EditModal({
 }) {
   const [editedItem, setEditedItem] = useState(item);
   const [inputValue, setInputValue] = useState('');
+  const [selectedEntity, setSelectedEntity] = useState('');
+  const [selectedProperty, setSelectedProperty] = useState('');
+  const [propertyOptions, setPropertyOptions] = useState([]);
+  const filteredEntities = useSelector(
+    (state) => state.entities.filteredEntities,
+  );
+  const sortedEntities = sortEntities(filteredEntities);
+  const loading = useFetchEntities();
+
+  useEffect(() => {
+    if (selectedEntity) {
+      if (selectedEntity?.properties) {
+        const properties = [];
+
+        if (Array.isArray(selectedEntity.properties.properties)) {
+          properties.push(
+            ...selectedEntity.properties.properties.map((p) => ({
+              name: p.Name || p.name,
+              type: p.Type || p.type,
+            })),
+          );
+        }
+
+        if (Array.isArray(selectedEntity.properties.navigationProperties)) {
+          properties.push(
+            ...selectedEntity.properties.navigationProperties.map((p) => ({
+              name: p.Name || p.name,
+              type: p.Type || p.type,
+            })),
+          );
+        }
+
+        setPropertyOptions(properties);
+      } else {
+        setPropertyOptions([]);
+      }
+      setSelectedProperty('');
+    }
+  }, [selectedEntity, filteredEntities]);
 
   const iconOptions = Object.keys(Icons);
 
@@ -81,8 +123,39 @@ export default function EditModal({
               <Option value='number'>Number</Option>
               <Option value='date'>Date</Option>
               <Option value='boolean'>Boolean</Option>
+              <Option value='entity'>Entity</Option>
             </Select>
           </FormControl>
+          {editedItem.type === 'entity' && (
+            <>
+              <FormControl>
+                <FormLabel>Entity</FormLabel>
+                <Autocomplete
+                  value={selectedEntity}
+                  onChange={(_, value) => {
+                    setSelectedEntity(value);
+                    setEditedItem({ ...editedItem, entity: value });
+                  }}
+                  options={sortedEntities}
+                  getOptionLabel={(option) => option?.name || ''}
+                  loading={loading}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Property</FormLabel>
+                <Autocomplete
+                  value={selectedProperty}
+                  onChange={(_, value) => {
+                    setSelectedProperty(value);
+                    setEditedItem({ ...editedItem, property: value });
+                  }}
+                  options={propertyOptions}
+                  getOptionLabel={(option) => option?.name || ''}
+                  loading={loading}
+                />
+              </FormControl>
+            </>
+          )}
         </>
       );
     }
