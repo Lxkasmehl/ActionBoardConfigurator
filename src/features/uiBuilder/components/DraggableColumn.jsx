@@ -104,7 +104,6 @@ export default function DraggableColumn({
           </tr>
         </thead>
         <tbody>
-          {console.log('data', data)}
           {(data || []).map((row, index) => (
             <tr key={index}>
               <td>{row[column.label]}</td>
