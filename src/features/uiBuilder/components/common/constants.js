@@ -93,19 +93,15 @@ export const COMPONENT_CONFIGS = {
       columns: [
         {
           label: 'User id',
-          type: 'number',
         },
         {
           label: 'Employee Name',
-          type: 'text',
         },
         {
           label: 'Gender',
-          type: 'char',
         },
         {
           label: 'Country',
-          type: 'text',
         },
       ],
     },

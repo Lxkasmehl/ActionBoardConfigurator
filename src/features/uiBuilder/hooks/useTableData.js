@@ -7,9 +7,7 @@ export const useTableData = (columns, initialDummyData) => {
 
   useEffect(() => {
     const fetchEntityData = async () => {
-      const entityColumns = columns.filter(
-        (col) => col.type === 'entity' && col.entity && col.property,
-      );
+      const entityColumns = columns.filter((col) => col.entity && col.property);
       if (entityColumns.length === 0) return;
 
       try {
