@@ -1,4 +1,4 @@
-import { Table, IconButton } from '@mui/joy';
+import { Table, IconButton, Sheet } from '@mui/joy';
 import { Add } from '@mui/icons-material';
 import { useState } from 'react';
 import EditModal from '../common/EditModal';
@@ -106,33 +106,48 @@ export default function TableComponent({ component }) {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <Table borderAxis='bothBetween' color='neutral' variant='outlined'>
-          <thead>
-            <tr>
-              <SortableContext
-                items={columns.map((col) => col.label)}
-                strategy={horizontalListSortingStrategy}
-              >
-                {columns.map((column) => (
-                  <DraggableColumn
-                    key={column.label}
-                    column={column}
-                    onEdit={handleEditColumn}
-                    isHovered={hoveredColumnHeader === column.label}
-                    isColumnHovered={hoveredColumn === column.label}
-                    onMouseEnter={() => setHoveredColumn(column.label)}
-                    onMouseLeave={() => setHoveredColumn(null)}
-                    onHeaderMouseEnter={(label) =>
-                      setHoveredColumnHeader(label)
-                    }
-                    onHeaderMouseLeave={() => setHoveredColumnHeader(null)}
-                    data={tableData}
-                  />
-                ))}
-              </SortableContext>
-            </tr>
-          </thead>
-        </Table>
+        <Sheet sx={{ overflow: 'auto', maxHeight: '500px' }}>
+          <Table
+            borderAxis='bothBetween'
+            color='neutral'
+            variant='outlined'
+            sx={{
+              '& thead': {
+                position: 'sticky',
+                top: 0,
+                backgroundColor: 'background.surface',
+                zIndex: 10,
+              },
+            }}
+          >
+            <thead>
+              <tr>
+                <SortableContext
+                  items={columns.map((col) => col.label)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  {columns.map((column) => (
+                    <DraggableColumn
+                      key={column.label}
+                      column={column}
+                      onEdit={handleEditColumn}
+                      isHovered={hoveredColumnHeader === column.label}
+                      isColumnHovered={hoveredColumn === column.label}
+                      onMouseEnter={() => setHoveredColumn(column.label)}
+                      onMouseLeave={() => setHoveredColumn(null)}
+                      onHeaderMouseEnter={(label) =>
+                        setHoveredColumnHeader(label)
+                      }
+                      onHeaderMouseLeave={() => setHoveredColumnHeader(null)}
+                      data={tableData}
+                    />
+                  ))}
+                </SortableContext>
+              </tr>
+            </thead>
+          </Table>
+        </Sheet>
+
         <DragOverlay modifiers={[restrictToHorizontalAxis]}>
           <ColumnDragOverlay
             activeColumn={activeColumn}
@@ -149,6 +164,7 @@ export default function TableComponent({ component }) {
           top: '-10px',
           right: '-10px',
           borderRadius: '50%',
+          zIndex: 1000,
         }}
       >
         <Add />

@@ -32,7 +32,7 @@ export default function DraggableColumn({
     opacity: isDragging ? 0.5 : 1,
     display: 'table-cell',
     position: 'relative',
-    border: isColumnHovered && '2px solid #ced8e2',
+    // outline: isColumnHovered && '2px solid #ced8e2',
     padding: 0,
   };
 
@@ -43,7 +43,13 @@ export default function DraggableColumn({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table
+        style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          height: '100%',
+        }}
+      >
         <thead>
           <tr>
             <th
