@@ -100,25 +100,25 @@ export default function ChartComponent({ component }) {
     case 'bars':
       return (
         <ChartWrapper>
-          <BarChart {...chartData} height={300} />
+          <BarChart {...chartData} height={300} skipAnimation />
         </ChartWrapper>
       );
     case 'lines':
       return (
         <ChartWrapper>
-          <LineChart {...chartData} height={300} />
+          <LineChart {...chartData} height={300} skipAnimation />
         </ChartWrapper>
       );
     case 'pie':
       return (
         <ChartWrapper>
-          <PieChart {...chartData} height={300} />
+          <PieChart {...chartData} height={300} skipAnimation />
         </ChartWrapper>
       );
     case 'scatter':
       return (
         <ChartWrapper>
-          <ScatterChart {...chartData} height={300} />
+          <ScatterChart {...chartData} height={300} skipAnimation />
         </ChartWrapper>
       );
     default:
