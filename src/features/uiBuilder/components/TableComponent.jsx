@@ -71,19 +71,15 @@ export default function TableComponent({ component }) {
             .filter((value) => value !== null);
         });
 
-        // Find the maximum number of rows needed
         const maxRows = Math.max(
           dummyData.length,
           ...Object.values(newEntityData).map((data) => data.length),
         );
 
-        // Create new dummy data with all necessary rows
         const updatedDummyData = Array.from({ length: maxRows }, (_, index) => {
-          // Start with existing row data if available, otherwise empty object
           const newRow =
             index < dummyData.length ? { ...dummyData[index] } : {};
 
-          // Add entity data for each column
           entityColumns.forEach((column) => {
             if (
               newEntityData[column.label] &&
