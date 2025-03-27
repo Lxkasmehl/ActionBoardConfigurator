@@ -1,35 +1,30 @@
-import { Table } from '@mui/joy';
-import { DragIndicator } from '@mui/icons-material';
 import PropTypes from 'prop-types';
+import { Table } from '@mui/joy';
 
-export const ColumnDragOverlay = ({ activeColumn, dummyData }) => {
+export const ColumnDragOverlay = ({ activeColumn, tableData }) => {
   if (!activeColumn) return null;
 
   return (
-    <Table
-      borderAxis='bothBetween'
-      color='neutral'
-      variant='outlined'
-      sx={{
-        borderRadius: 0,
-        border: '2px solid #ced8e2',
-      }}
-    >
+    <Table borderAxis='bothBetween' color='neutral' variant='outlined'>
       <thead>
         <tr>
           <th
             style={{
               whiteSpace: 'normal',
               wordWrap: 'break-word',
-              verticalAlign: 'middle',
               position: 'relative',
-              cursor: 'grabbing',
-              backgroundColor: 'background.level1',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-              opacity: 0.8,
+              cursor: 'grab',
+              width: '100%',
+              overflow: 'visible',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
               <div
                 style={{
                   cursor: 'grab',
@@ -47,7 +42,7 @@ export const ColumnDragOverlay = ({ activeColumn, dummyData }) => {
                   padding: '4px 0px',
                 }}
               >
-                <DragIndicator fontSize='small' />
+                <span style={{ fontSize: 'small' }}>⋮</span>
               </div>
               {activeColumn.label}
             </div>
@@ -55,7 +50,7 @@ export const ColumnDragOverlay = ({ activeColumn, dummyData }) => {
         </tr>
       </thead>
       <tbody>
-        {dummyData.map((row, index) => (
+        {(tableData || []).map((row, index) => (
           <tr key={index}>
             <td>{row[activeColumn.label]}</td>
           </tr>
@@ -68,6 +63,7 @@ export const ColumnDragOverlay = ({ activeColumn, dummyData }) => {
 ColumnDragOverlay.propTypes = {
   activeColumn: PropTypes.shape({
     label: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
   }),
-  dummyData: PropTypes.arrayOf(PropTypes.object).isRequired,
+  tableData: PropTypes.arrayOf(PropTypes.object).isRequired,
 };

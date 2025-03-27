@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSendRequest } from './useSendRequest';
 
 export const useTableData = (columns, initialDummyData) => {
-  const [dummyData, setDummyData] = useState(initialDummyData);
+  const [tableData, setTableData] = useState(initialDummyData);
   const handleSendRequest = useSendRequest();
 
   useEffect(() => {
@@ -31,13 +31,13 @@ export const useTableData = (columns, initialDummyData) => {
         });
 
         const maxRows = Math.max(
-          dummyData.length,
+          tableData.length,
           ...Object.values(newEntityData).map((data) => data.length),
         );
 
-        const updatedDummyData = Array.from({ length: maxRows }, (_, index) => {
+        const updatedTableData = Array.from({ length: maxRows }, (_, index) => {
           const newRow =
-            index < dummyData.length ? { ...dummyData[index] } : {};
+            index < tableData.length ? { ...tableData[index] } : {};
 
           entityColumns.forEach((column) => {
             if (
@@ -51,14 +51,14 @@ export const useTableData = (columns, initialDummyData) => {
           return newRow;
         });
 
-        setDummyData(updatedDummyData);
+        setTableData(updatedTableData);
       } catch (error) {
         console.error('Error fetching entity data:', error);
       }
     };
 
     fetchEntityData();
-  }, [columns, handleSendRequest, dummyData]);
+  }, [columns, handleSendRequest, tableData]);
 
-  return [dummyData, setDummyData];
+  return [tableData, setTableData];
 };

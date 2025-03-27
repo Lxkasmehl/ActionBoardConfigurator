@@ -30,7 +30,7 @@ export default function TableComponent({ component }) {
   const [hoveredColumnHeader, setHoveredColumnHeader] = useState(null);
   const [editingColumn, setEditingColumn] = useState(null);
   const [activeColumn, setActiveColumn] = useState(null);
-  const [dummyData, setDummyData] = useTableData(
+  const [tableData, setTableData] = useTableData(
     columns,
     getInitialDummyData(),
   );
@@ -76,8 +76,8 @@ export default function TableComponent({ component }) {
 
     setColumns([...columns, newColumn]);
 
-    setDummyData(
-      dummyData.map((row) => ({
+    setTableData(
+      tableData.map((row) => ({
         ...row,
         [newColumnLabel]: '',
       })),
@@ -98,18 +98,18 @@ export default function TableComponent({ component }) {
       return;
     }
 
-    const newData = dummyData.map((row) => {
+    const newData = tableData.map((row) => {
       const newRow = { ...row };
       newRow[editedColumn.label] = generateNewValue(editedColumn.type);
       return newRow;
     });
-    setDummyData(newData);
+    setTableData(newData);
   };
 
   const handleDeleteColumn = (columnLabel) => {
     setColumns(columns.filter((col) => col.label !== columnLabel));
-    setDummyData(
-      dummyData.map((row) => {
+    setTableData(
+      tableData.map((row) => {
         const newRow = { ...row };
         delete newRow[columnLabel];
         return newRow;
@@ -145,7 +145,7 @@ export default function TableComponent({ component }) {
                       setHoveredColumnHeader(label)
                     }
                     onHeaderMouseLeave={() => setHoveredColumnHeader(null)}
-                    data={dummyData}
+                    data={tableData}
                   />
                 ))}
               </SortableContext>
@@ -155,7 +155,7 @@ export default function TableComponent({ component }) {
         <DragOverlay modifiers={[restrictToHorizontalAxis]}>
           <ColumnDragOverlay
             activeColumn={activeColumn}
-            dummyData={dummyData}
+            tableData={tableData}
           />
         </DragOverlay>
       </DndContext>
