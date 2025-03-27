@@ -65,6 +65,7 @@ export default function PreviewArea({
                 height: '16px',
                 width: '100%',
                 position: 'relative',
+                flexShrink: 0,
                 '&::after': {
                   content: '""',
                   position: 'absolute',
