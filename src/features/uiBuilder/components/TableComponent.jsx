@@ -1,6 +1,6 @@
 import { Table, IconButton } from '@mui/joy';
 import { Add } from '@mui/icons-material';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import EditModal from './EditModal';
 import PropTypes from 'prop-types';
 import {
@@ -19,9 +19,10 @@ import {
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import DraggableColumn from './DraggableColumn';
-import { DragIndicator } from '@mui/icons-material';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
-import { useSendRequest } from '../hooks/useSendRequest';
+import { useTableData } from '../hooks/useTableData';
+import { generateNewValue, getInitialDummyData } from '../utils/tableUtils';
+import { ColumnDragOverlay } from './ColumnDragOverlay';
 
 export default function TableComponent({ component }) {
   const [columns, setColumns] = useState(component.props.columns);
@@ -29,77 +30,10 @@ export default function TableComponent({ component }) {
   const [hoveredColumnHeader, setHoveredColumnHeader] = useState(null);
   const [editingColumn, setEditingColumn] = useState(null);
   const [activeColumn, setActiveColumn] = useState(null);
-  const [dummyData, setDummyData] = useState([
-    {
-      'User id': 1001,
-      'Employee Name': 'John Smith',
-      Gender: 'M',
-      Country: 'USA',
-    },
-    {
-      'User id': 1002,
-      'Employee Name': 'Sarah Johnson',
-      Gender: 'F',
-      Country: 'Canada',
-    },
-  ]);
-
-  const handleSendRequest = useSendRequest();
-
-  useEffect(() => {
-    const fetchEntityData = async () => {
-      const entityColumns = columns.filter(
-        (col) => col.type === 'entity' && col.entity && col.property,
-      );
-      if (entityColumns.length === 0) return;
-
-      try {
-        const results = await Promise.all(
-          entityColumns.map((col) =>
-            handleSendRequest({
-              entity: col.entity.name,
-              property: col.property.name,
-            }),
-          ),
-        );
-
-        const newEntityData = {};
-        results.forEach((result, index) => {
-          const column = entityColumns[index];
-          newEntityData[column.label] = result.d.results
-            .map((item) => item[column.property.name])
-            .filter((value) => value !== null);
-        });
-
-        const maxRows = Math.max(
-          dummyData.length,
-          ...Object.values(newEntityData).map((data) => data.length),
-        );
-
-        const updatedDummyData = Array.from({ length: maxRows }, (_, index) => {
-          const newRow =
-            index < dummyData.length ? { ...dummyData[index] } : {};
-
-          entityColumns.forEach((column) => {
-            if (
-              newEntityData[column.label] &&
-              newEntityData[column.label][index]
-            ) {
-              newRow[column.label] = newEntityData[column.label][index];
-            }
-          });
-
-          return newRow;
-        });
-
-        setDummyData(updatedDummyData);
-      } catch (error) {
-        console.error('Error fetching entity data:', error);
-      }
-    };
-
-    fetchEntityData();
-  }, [columns, handleSendRequest, dummyData]);
+  const [dummyData, setDummyData] = useTableData(
+    columns,
+    getInitialDummyData(),
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -183,100 +117,6 @@ export default function TableComponent({ component }) {
     );
   };
 
-  const generateNewValue = (type) => {
-    let start, end, texts;
-    switch (type) {
-      case 'number':
-        return Math.floor(Math.random() * 1000);
-      case 'boolean':
-        return Math.random() > 0.5;
-      case 'date':
-        start = new Date(2020, 0, 1);
-        end = new Date();
-        return new Date(
-          start.getTime() + Math.random() * (end.getTime() - start.getTime()),
-        )
-          .toISOString()
-          .split('T')[0];
-      case 'text':
-        texts = [
-          'Sample Text',
-          'Example Data',
-          'Random Value',
-          'Test Entry',
-          'Demo Content',
-        ];
-        return texts[Math.floor(Math.random() * texts.length)];
-      default:
-        return '';
-    }
-  };
-
-  const ColumnDragOverlay = () => {
-    if (!activeColumn) return null;
-
-    return (
-      <Table
-        borderAxis='bothBetween'
-        color='neutral'
-        variant='outlined'
-        sx={{
-          borderRadius: 0,
-          border: '2px solid #ced8e2',
-        }}
-      >
-        <thead>
-          <tr>
-            <th
-              style={{
-                whiteSpace: 'normal',
-                wordWrap: 'break-word',
-                verticalAlign: 'middle',
-                position: 'relative',
-                cursor: 'grabbing',
-                backgroundColor: 'background.level1',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                opacity: 0.8,
-              }}
-            >
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                <div
-                  style={{
-                    cursor: 'grab',
-                    position: 'absolute',
-                    top: '-4px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    rotate: '90deg',
-                    zIndex: 1000,
-                    borderRadius: '4px',
-                    backgroundColor: '#ced8e2',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '4px 0px',
-                  }}
-                >
-                  <DragIndicator fontSize='small' />
-                </div>
-                {activeColumn.label}
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {dummyData.map((row, index) => (
-            <tr key={index}>
-              <td>{row[activeColumn.label]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    );
-  };
-
   return (
     <>
       <DndContext
@@ -313,7 +153,10 @@ export default function TableComponent({ component }) {
           </thead>
         </Table>
         <DragOverlay modifiers={[restrictToHorizontalAxis]}>
-          <ColumnDragOverlay />
+          <ColumnDragOverlay
+            activeColumn={activeColumn}
+            dummyData={dummyData}
+          />
         </DragOverlay>
       </DndContext>
       <IconButton
