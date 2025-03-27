@@ -45,7 +45,11 @@ export default function EntityPropertyFields({
           value={selectedEntity}
           onChange={(_, value) => {
             setSelectedEntity(value);
-            setEditedItem({ ...editedItem, entity: value });
+            setEditedItem({
+              ...editedItem,
+              entity: value,
+              label: value?.name || editedItem.label,
+            });
           }}
           options={sortedEntities}
           getOptionLabel={(option) => option?.name || ''}
@@ -60,11 +64,19 @@ export default function EntityPropertyFields({
           value={selectedProperty}
           onChange={(_, value) => {
             setSelectedProperty(value);
-            setEditedItem({ ...editedItem, property: value });
+            setEditedItem({
+              ...editedItem,
+              property: value,
+              label:
+                editedItem.entity?.name && value?.name
+                  ? `${editedItem.entity.name} -> ${value.name}`
+                  : editedItem.label,
+            });
           }}
           options={propertyOptions}
           getOptionLabel={(option) => option?.name || ''}
           loading={loading}
+          disabled={!selectedEntity}
           isOptionEqualToValue={(option, value) => {
             if (!option || !value) return false;
             return option.name === value.name;
@@ -80,6 +92,7 @@ EntityPropertyFields.propTypes = {
   editedItem: PropTypes.shape({
     entity: PropTypes.object,
     property: PropTypes.object,
+    label: PropTypes.string,
   }).isRequired,
   setEditedItem: PropTypes.func.isRequired,
   sortedEntities: PropTypes.array.isRequired,

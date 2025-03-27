@@ -21,7 +21,7 @@ import {
 import DraggableColumn from './DraggableColumn';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import { useTableData } from '../../hooks/useTableData';
-import { generateNewValue, getInitialDummyData } from '../../utils/tableUtils';
+import { getInitialDummyData } from '../../utils/tableUtils';
 import { ColumnDragOverlay } from './ColumnDragOverlay';
 
 export default function TableComponent({ component }) {
@@ -71,17 +71,9 @@ export default function TableComponent({ component }) {
     const newColumnLabel = `Column ${columns.length + 1}`;
     const newColumn = {
       label: newColumnLabel,
-      type: 'text',
     };
 
     setColumns([...columns, newColumn]);
-
-    setTableData(
-      tableData.map((row) => ({
-        ...row,
-        [newColumnLabel]: '',
-      })),
-    );
   };
 
   const handleEditColumn = (column) => {
@@ -93,17 +85,6 @@ export default function TableComponent({ component }) {
       col.label === editingColumn.label ? editedColumn : col,
     );
     setColumns(newColumns);
-
-    if (editedColumn.type === 'entity') {
-      return;
-    }
-
-    const newData = tableData.map((row) => {
-      const newRow = { ...row };
-      newRow[editedColumn.label] = generateNewValue(editedColumn.type);
-      return newRow;
-    });
-    setTableData(newData);
   };
 
   const handleDeleteColumn = (columnLabel) => {
