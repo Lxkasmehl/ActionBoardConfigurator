@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
-import ColumnFormFields from './ColumnFormFields';
-import FieldFormFields from './FieldFormFields';
+import ColumnFormFields from '../table/ColumnFormFields';
+import FieldFormFields from '../table/FieldFormFields';
 
 export default function EditModal({
   open,

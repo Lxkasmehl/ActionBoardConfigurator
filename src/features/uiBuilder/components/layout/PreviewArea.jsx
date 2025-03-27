@@ -1,8 +1,8 @@
 import { Box, Card, Typography } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { useDroppable } from '@dnd-kit/core';
-import SortableComponent from './SortableComponent';
-import EmptyState from './EmptyState';
+import SortableComponent from '../dragAndDrop/SortableComponent';
+import EmptyState from '../layout/EmptyState';
 import TrashBin from './TrashBin';
 
 export default function PreviewArea({

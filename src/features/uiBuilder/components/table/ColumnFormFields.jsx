@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
 import { FormControl, FormLabel, Input, Select, Option } from '@mui/joy';
-import useFetchEntities from '../../../shared/hooks/useFetchEntities';
-import { sortEntities } from '../../../shared/utils/entityOperations';
-import { useSelector, useMemo } from 'react-redux';
+import useFetchEntities from '../../../../shared/hooks/useFetchEntities';
+import { sortEntities } from '../../../../shared/utils/entityOperations';
+import { useSelector } from 'react-redux';
+import { useMemo } from 'react';
 import EntityPropertyFields from './EntityPropertyFields';
 
 export default function ColumnFormFields({ editedItem, setEditedItem }) {

@@ -11,9 +11,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { Box } from '@mui/joy';
-import ComponentLibrary from './ComponentLibrary';
-import PreviewArea from './PreviewArea';
-import { DragOverlayComponent } from './DragOverlayComponent';
+import ComponentLibrary from './layout/ComponentLibrary';
+import PreviewArea from './layout/PreviewArea';
+import { DragOverlayComponent } from './dragAndDrop/DragOverlayComponent';
 import { collisionDetectionStrategy } from '../utils/collisionDetection';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';

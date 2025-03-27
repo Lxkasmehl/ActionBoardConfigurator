@@ -12,7 +12,7 @@ import {
   TableChart,
   Addchart,
 } from '@mui/icons-material';
-import { COMPONENT_CONFIGS } from './constants';
+import { COMPONENT_CONFIGS } from '../common/constants';
 
 export const DragOverlayComponent = ({ activeDragData, isOverTrash }) => {
   if (!activeDragData) return null;
