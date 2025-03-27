@@ -1,6 +1,6 @@
 import { Card, Typography, Stack } from '@mui/joy';
-import { COMPONENT_CONFIGS } from './constants';
-import DraggableComponent from './DraggableComponent';
+import { COMPONENT_CONFIGS } from '../common/constants';
+import DraggableComponent from '../dragAndDrop/DraggableComponent';
 
 export default function ComponentLibrary() {
   const disabledComponents = ['Image', 'Button'];

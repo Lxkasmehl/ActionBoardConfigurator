@@ -1,7 +1,7 @@
 import { Table, IconButton } from '@mui/joy';
 import { Add } from '@mui/icons-material';
 import { useState } from 'react';
-import EditModal from './EditModal';
+import EditModal from '../common/EditModal';
 import PropTypes from 'prop-types';
 import {
   DndContext,
@@ -20,8 +20,8 @@ import {
 } from '@dnd-kit/sortable';
 import DraggableColumn from './DraggableColumn';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
-import { useTableData } from '../hooks/useTableData';
-import { generateNewValue, getInitialDummyData } from '../utils/tableUtils';
+import { useTableData } from '../../hooks/useTableData';
+import { generateNewValue, getInitialDummyData } from '../../utils/tableUtils';
 import { ColumnDragOverlay } from './ColumnDragOverlay';
 
 export default function TableComponent({ component }) {

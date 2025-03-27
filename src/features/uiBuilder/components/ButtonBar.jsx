@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Button, IconButton, Autocomplete } from '@mui/joy';
 import * as Icons from '@mui/icons-material';
 import { Add } from '@mui/icons-material';
-import EditModal from './EditModal';
-import EditButton from './EditButton';
+import EditModal from './common/EditModal';
+import EditButton from './common/EditButton';
 import PropTypes from 'prop-types';
 
 export default function ButtonBar({ component }) {
