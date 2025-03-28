@@ -107,19 +107,7 @@ export default function TableComponent({ component }) {
         onDragEnd={handleDragEnd}
       >
         <Sheet sx={{ overflow: 'auto', maxHeight: '500px' }}>
-          <Table
-            borderAxis='bothBetween'
-            color='neutral'
-            variant='outlined'
-            sx={{
-              '& thead': {
-                position: 'sticky',
-                top: 0,
-                backgroundColor: 'background.surface',
-                zIndex: 10,
-              },
-            }}
-          >
+          <Table borderAxis='bothBetween' color='neutral' variant='outlined'>
             <thead>
               <tr>
                 <SortableContext
