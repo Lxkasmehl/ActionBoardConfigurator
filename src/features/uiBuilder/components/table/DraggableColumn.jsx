@@ -32,92 +32,83 @@ export default function DraggableColumn({
     opacity: isDragging ? 0.5 : 1,
     display: 'table-cell',
     position: 'relative',
-    // outline: isColumnHovered && '2px solid #ced8e2',
-    padding: 0,
+    border: isColumnHovered && '2px solid #ced8e2',
   };
 
   return (
-    <td
+    <div
       ref={setNodeRef}
       style={style}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <table
+      <th
         style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          height: '100%',
+          whiteSpace: 'normal',
+          wordWrap: 'break-word',
+          position: 'relative',
+          cursor: 'grab',
+          width: '100vw',
         }}
+        onMouseEnter={() => onHeaderMouseEnter(column.label)}
+        onMouseLeave={() => onHeaderMouseLeave()}
       >
-        <thead>
-          <tr>
-            <th
-              style={{
-                whiteSpace: 'normal',
-                wordWrap: 'break-word',
-                position: 'relative',
-                cursor: 'grab',
-                width: '100%',
-                overflow: 'visible',
-              }}
-              onMouseEnter={() => onHeaderMouseEnter(column.label)}
-              onMouseLeave={() => onHeaderMouseLeave()}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            overflow: 'visible',
+          }}
+        >
+          <div
+            {...attributes}
+            {...listeners}
+            style={{
+              cursor: 'grab',
+              position: 'absolute',
+              top: '-4px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              rotate: '90deg',
+              zIndex: 1000,
+              borderRadius: '4px',
+              backgroundColor: '#ced8e2',
+              display: isColumnHovered ? 'flex' : 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '4px 0px',
+            }}
+          >
+            <DragIndicator fontSize='small' />
+          </div>
+          {column.label}
+          <div style={{ width: '32px', height: '32px' }}>
+            {isHovered && (
+              <IconButton
+                size='sm'
+                variant='plain'
+                color='neutral'
+                onClick={() => onEdit(column)}
               >
-                <div
-                  {...attributes}
-                  {...listeners}
-                  style={{
-                    cursor: 'grab',
-                    position: 'absolute',
-                    top: '-4px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    rotate: '90deg',
-                    zIndex: 1000,
-                    borderRadius: '4px',
-                    backgroundColor: '#ced8e2',
-                    display: isColumnHovered ? 'flex' : 'none',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '4px 0px',
-                  }}
-                >
-                  <DragIndicator fontSize='small' />
-                </div>
-                {column.label}
-                <div style={{ width: '32px', height: '32px' }}>
-                  {isHovered && (
-                    <IconButton
-                      size='sm'
-                      variant='plain'
-                      color='neutral'
-                      onClick={() => onEdit(column)}
-                    >
-                      <Edit fontSize='small' />
-                    </IconButton>
-                  )}
-                </div>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {(data || []).map((row, index) => (
-            <tr key={index}>
-              <td>{row[column.label]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </td>
+                <Edit fontSize='small' />
+              </IconButton>
+            )}
+          </div>
+        </div>
+      </th>
+      {data.map((row, index) => (
+        <tr key={index}>
+          <td
+            style={{
+              display: 'block',
+            }}
+          >
+            {row[column.label]}
+          </td>
+        </tr>
+      ))}
+    </div>
   );
 }
 
