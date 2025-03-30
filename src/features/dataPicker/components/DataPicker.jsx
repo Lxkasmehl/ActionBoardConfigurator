@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
 import useFetchEntities from '../../../shared/hooks/useFetchEntities.js';
@@ -39,6 +39,8 @@ export default function DataPicker() {
   const { config, selectedEntities, selectedProperties, customFilters } =
     useSelector((state) => state.entities);
 
+  console.log('config', config);
+
   const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [renderKey, setRenderKey] = useState(0);
@@ -50,6 +52,68 @@ export default function DataPicker() {
 
   const forceRerenderEntitySection = useCallback(() => {
     setRenderKey((prevKey) => prevKey + 1);
+  }, []);
+
+  useEffect(() => {
+    if (config && Object.keys(config).length > 0) {
+      console.log('executed');
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      setNodes((prevNodes) => {
+        const occupiedPositions = prevNodes.map((s) => s.position);
+        const configKeys = Object.keys(config);
+
+        const entityNodes = configKeys.map((id, index) => {
+          let nodeX = windowWidth / 2 - 320 + index * 400;
+          let nodeY = windowHeight / 2 - 55;
+
+          while (
+            occupiedPositions.some(
+              (pos) =>
+                Math.abs(pos.x - nodeX) < 700 && Math.abs(pos.y - nodeY) < 150,
+            )
+          ) {
+            nodeX += 20;
+            nodeY += 20;
+          }
+
+          return {
+            id: id,
+            position: {
+              x: nodeX,
+              y: nodeY,
+            },
+            type: 'EntitySection',
+          };
+        });
+
+        return [
+          {
+            id: '0',
+            position: {
+              x: window.innerWidth / 2 - 100,
+              y: 50,
+            },
+            type: 'FlowStart',
+            draggable: false,
+          },
+          ...entityNodes,
+        ];
+      });
+      
+      setEdges((prevEdges) => {
+        const configKeys = Object.keys(config);
+        const newEdges = configKeys.map((id) => ({
+          id: createNodeId(),
+          source: '0',
+          target: id,
+          type: 'ButtonEdge',
+        }));
+        return [...prevEdges, ...newEdges];
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onConnect = useCallback(
