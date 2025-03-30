@@ -249,10 +249,12 @@ export default function DataPicker() {
         onClick={addSection}
         variant='solid'
         aria-label='Add new entity section'
+        size='lg'
         sx={{
           position: 'fixed',
           bottom: '40px',
           right: '40px',
+          borderRadius: '50%',
         }}
       >
         <AddIcon />
