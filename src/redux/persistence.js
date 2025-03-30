@@ -12,12 +12,19 @@ export const loadState = () => {
     const state = {
       entities: {
         config: savedData.config || {},
+        selectedEntities:
+          Object.keys(savedData.config).reduce(
+            (acc, key) => ({
+              ...acc,
+              [key]: Object.keys(savedData.config[key])[0],
+            }),
+            {},
+          ) || {},
         associationSets: [],
         propertyOptions: {},
         formData: {},
         entityLogic: {},
         groupedEntityLogic: {},
-        selectedEntities: {},
         selectedProperties: {},
         customFilters: {},
         propertiesBySection: {},

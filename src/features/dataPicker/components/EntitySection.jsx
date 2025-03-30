@@ -114,13 +114,15 @@ export default function EntitySection({ id }) {
           <Autocomplete
             data-testid='entity-autocomplete'
             options={sortedEntities}
-            groupBy={(option) =>
-              (option['sap:label'] || option.name || '').charAt(0).toUpperCase()
-            }
-            getOptionLabel={(option) => option['sap:label'] || option.name}
+            groupBy={(option) => (option.name || '').charAt(0).toUpperCase()}
+            getOptionLabel={(option) => option?.name || option || ''}
             placeholder='Select an entity'
             onChange={handleEntityChange}
-            isOptionEqualToValue={(option, value) => option.name === value.name}
+            isOptionEqualToValue={(option, value) => {
+              if (!option || !value) return false;
+              return option.name === value || option?.name === value?.name;
+            }}
+            value={selectedEntity}
             sx={{ width: '14rem', height: 'fit-content' }}
           />
           <div className='flex items-center'>
