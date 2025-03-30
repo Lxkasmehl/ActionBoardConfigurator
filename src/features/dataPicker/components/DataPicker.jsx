@@ -60,23 +60,12 @@ export default function DataPicker() {
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
 
-      setNodes((prevNodes) => {
-        const occupiedPositions = prevNodes.map((s) => s.position);
+      setNodes(() => {
         const configKeys = Object.keys(config);
 
         const entityNodes = configKeys.map((id, index) => {
-          let nodeX = windowWidth / 2 - 320 + index * 400;
-          let nodeY = windowHeight / 2 - 55;
-
-          while (
-            occupiedPositions.some(
-              (pos) =>
-                Math.abs(pos.x - nodeX) < 700 && Math.abs(pos.y - nodeY) < 150,
-            )
-          ) {
-            nodeX += 20;
-            nodeY += 20;
-          }
+          let nodeX = windowWidth / 2 - 320 + index * 120;
+          let nodeY = windowHeight / 2 - 55 + index * 120;
 
           return {
             id: id,
@@ -101,7 +90,7 @@ export default function DataPicker() {
           ...entityNodes,
         ];
       });
-      
+
       setEdges((prevEdges) => {
         const configKeys = Object.keys(config);
         const newEdges = configKeys.map((id) => ({
