@@ -81,6 +81,7 @@ const buildFilterObject = (obj) => {
 
 export default function FilterModal({ open, onClose, entity, id }) {
   const [conditions, setConditions] = useState([]);
+  console.log('conditions', conditions);
   const dispatch = useDispatch();
 
   const addCondition = useCallback(() => {
