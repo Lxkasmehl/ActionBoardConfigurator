@@ -7,7 +7,7 @@ const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
 
 export const useSendRequest = (config) => {
-  const allEntities = useSelector((state) => state.entities.allEntities);
+  const allEntities = useSelector((state) => state.fetchedData.allEntities);
 
   const handleSendRequest = useCallback(async () => {
     try {

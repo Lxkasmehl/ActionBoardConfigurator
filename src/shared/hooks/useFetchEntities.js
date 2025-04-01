@@ -4,7 +4,7 @@ import {
   setFilteredEntities,
   setAllEntities,
   setAssociationSets,
-} from '../../redux/entitiesSlice';
+} from '../../redux/fetchedDataSlice';
 import { RELEVANT_ENTITY_NAMES } from './useFetchEntities.constants';
 
 const API_USER = import.meta.env.VITE_API_USER;

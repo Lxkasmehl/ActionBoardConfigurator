@@ -10,12 +10,12 @@ export default function useDropdownsAndInputState(
 ) {
   // Redux selectors
   const formData = useSelector((state) => state.entities.formData);
-  const allEntities = useSelector((state) => state.entities.allEntities);
+  const allEntities = useSelector((state) => state.fetchedData.allEntities);
   const associationSets = useSelector(
-    (state) => state.entities.associationSets,
+    (state) => state.fetchedData.associationSets,
   );
   const filteredEntities = useSelector(
-    (state) => state.entities.filteredEntities,
+    (state) => state.fetchedData.filteredEntities,
   );
   const matchingEntityObjects = useSelector(
     (state) => state.entities.matchingEntityObjects,

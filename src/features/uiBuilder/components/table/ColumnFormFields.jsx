@@ -10,7 +10,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 export default function ColumnFormFields({ editedItem, setEditedItem }) {
   const filteredEntities = useSelector(
-    (state) => state.entities.filteredEntities,
+    (state) => state.fetchedData.filteredEntities,
   );
   const sortedEntities = useMemo(
     () => sortEntities(filteredEntities),

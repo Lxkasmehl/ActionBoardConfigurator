@@ -1,9 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  filteredEntities: [],
-  allEntities: [],
-  associationSets: [],
   config: {},
   propertyOptions: {},
   formData: {},
@@ -34,18 +31,6 @@ const entitiesSlice = createSlice({
   name: 'entities',
   initialState,
   reducers: {
-    setFilteredEntities(state, action) {
-      state.filteredEntities = action.payload;
-    },
-
-    setAllEntities(state, action) {
-      state.allEntities = action.payload;
-    },
-
-    setAssociationSets(state, action) {
-      state.associationSets = action.payload;
-    },
-
     addEntity(state, action) {
       const { id, entityName } = action.payload;
       initializeEntityConfig(state, id, entityName);
