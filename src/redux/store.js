@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import entitiesReducer from './entitiesSlice';
+import fetchedDataReducer from './fetchedDataSlice';
 import { loadState, saveState } from './persistence';
 
 const preloadedState = loadState();
@@ -7,6 +8,7 @@ const preloadedState = loadState();
 const store = configureStore({
   reducer: {
     entities: entitiesReducer,
+    fetchedData: fetchedDataReducer,
   },
   preloadedState,
 });

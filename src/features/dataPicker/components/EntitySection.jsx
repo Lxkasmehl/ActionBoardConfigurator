@@ -67,7 +67,7 @@ export default function EntitySection({ id }) {
   const isTargetOfEdge = edges.some((edge) => edge.target === id);
 
   const filteredEntities = useSelector(
-    (state) => state.entities.filteredEntities,
+    (state) => state.fetchedData.filteredEntities,
   );
   const formData = useSelector((state) => state.entities.formData);
   const selectedEntities = useSelector(

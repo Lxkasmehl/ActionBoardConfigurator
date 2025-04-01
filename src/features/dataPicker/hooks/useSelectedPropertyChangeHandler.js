@@ -50,12 +50,12 @@ export function useSelectedPropertyChangeHandler(
   });
   const [previousKeys, setPreviousKeys] = useState([]);
 
-  const allEntities = useSelector((state) => state.entities.allEntities);
+  const allEntities = useSelector((state) => state.fetchedData.allEntities);
   const associationSets = useSelector(
-    (state) => state.entities.associationSets,
+    (state) => state.fetchedData.associationSets,
   );
   const filteredEntities = useSelector(
-    (state) => state.entities.filteredEntities,
+    (state) => state.fetchedData.filteredEntities,
   );
   const selectedEntities = useSelector(
     (state) => state.entities.selectedEntities,
