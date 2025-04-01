@@ -91,7 +91,7 @@ export default function EntitySection({ id }) {
         accordionSelectedProperties,
       }),
     );
-  }, [accordionSelectedProperties, dispatch, id]);
+  }, [dispatch, id, accordionSelectedProperties]);
 
   const handleEntityChange = useEntityChangeHandler(
     id,

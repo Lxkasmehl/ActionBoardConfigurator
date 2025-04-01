@@ -25,9 +25,9 @@ export const loadState = () => {
           savedData.matchingEntitiesForAccordions || {},
         selectedPropertiesInAccordions:
           savedData.selectedPropertiesInAccordions || {},
+        propertyOptions: savedData.propertyOptions || {},
         matchingEntityObjects: {},
         associationSets: [],
-        propertyOptions: savedData.propertyOptions || {},
         formData: {},
         entityLogic: {},
         groupedEntityLogic: {},
