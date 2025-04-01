@@ -3,7 +3,6 @@ import entitiesReducer from './entitiesSlice';
 import { loadState, saveState } from './persistence';
 
 const preloadedState = loadState();
-console.log('Preloaded state:', preloadedState);
 
 const store = configureStore({
   reducer: {

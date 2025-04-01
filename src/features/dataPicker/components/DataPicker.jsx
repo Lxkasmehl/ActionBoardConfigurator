@@ -39,8 +39,6 @@ export default function DataPicker() {
   const { config, selectedEntities, selectedProperties, customFilters } =
     useSelector((state) => state.entities);
 
-  console.log('config', config);
-
   const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [renderKey, setRenderKey] = useState(0);
@@ -56,7 +54,6 @@ export default function DataPicker() {
 
   useEffect(() => {
     if (config && Object.keys(config).length > 0) {
-      console.log('executed');
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
 

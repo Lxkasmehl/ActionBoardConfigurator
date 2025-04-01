@@ -20,15 +20,19 @@ export const loadState = () => {
             }),
             {},
           ) || {},
+        propertiesBySection: savedData.propertiesBySection || {},
+        matchingEntitiesForAccordions:
+          savedData.matchingEntitiesForAccordions || {},
+        selectedPropertiesInAccordions:
+          savedData.selectedPropertiesInAccordions || {},
+        matchingEntityObjects: {},
         associationSets: [],
-        propertyOptions: {},
+        propertyOptions: savedData.propertyOptions || {},
         formData: {},
         entityLogic: {},
         groupedEntityLogic: {},
         selectedProperties: {},
         customFilters: {},
-        propertiesBySection: {},
-        matchingEntityObjects: {},
       },
     };
 
@@ -43,6 +47,12 @@ export const saveState = (state) => {
   try {
     const serializedState = JSON.stringify({
       config: state.entities.config,
+      propertyOptions: state.entities.propertyOptions,
+      propertiesBySection: state.entities.propertiesBySection,
+      matchingEntitiesForAccordions:
+        state.entities.matchingEntitiesForAccordions,
+      selectedPropertiesInAccordions:
+        state.entities.selectedPropertiesInAccordions,
     });
 
     try {

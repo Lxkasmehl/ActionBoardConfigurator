@@ -4,6 +4,7 @@ import {
   setSelectedProperties,
   setPropertySelection,
   setPropertiesBySection,
+  setMatchingEntitiesForAccordions,
 } from '../../../redux/entitiesSlice';
 import {
   findMatchingEntity,
@@ -62,8 +63,6 @@ export function useSelectedPropertyChangeHandler(
 
     if (Object.keys(removedValues).length > 0) {
       Object.entries(removedValues).forEach(([key, values]) => {
-        console.log(`Removed ${key}/${values}`);
-
         Object.keys(newSelectedProperties).forEach((k) => {
           if (key === 'mainAutocomplete') {
             if (k.startsWith(values)) {
@@ -227,6 +226,7 @@ export function useSelectedPropertyChangeHandler(
       }
     });
 
+    dispatch(setMatchingEntitiesForAccordions({ id, matchingEntities }));
     setMatchingEntitiesState(matchingEntities);
     console.log(config);
   };

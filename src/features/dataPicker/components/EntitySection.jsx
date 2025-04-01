@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
@@ -19,6 +19,7 @@ import { selectPropertyOptions } from '../../../redux/selectors/entitySelectors'
 import {
   removeEntityConfig,
   removeFormData,
+  setSelectedPropertiesInAccordions,
 } from '../../../redux/entitiesSlice';
 import { useEntityChangeHandler } from '../hooks/useEntityChangeHandler';
 import { useModalState } from '../hooks/useModalState';
@@ -35,11 +36,28 @@ import PropertySelector from './PropertySelector';
 import '@xyflow/react/dist/style.css';
 
 export default function EntitySection({ id }) {
-  const [matchingEntitiesState, setMatchingEntitiesState] = useState([]);
+  const config = useSelector((state) => state.entities.config);
+  const matchingEntitiesForAccordions = useSelector(
+    (state) => state.entities.matchingEntitiesForAccordions,
+  );
+
+  const [matchingEntitiesState, setMatchingEntitiesState] = useState(
+    matchingEntitiesForAccordions[id] || [],
+  );
+
   const [selectedPropertiesSectionState, setSelectedPropertiesSectionState] =
-    useState([]);
+    useState(
+      Object.values(config[id] || {})
+        .find((obj) => obj?.selectedProperties)
+        ?.selectedProperties?.filter((prop) => !prop.includes('/')) || [],
+    );
+
+  const selectedPropertiesInAccordions = useSelector(
+    (state) => state.entities.selectedPropertiesInAccordions,
+  );
+
   const [accordionSelectedProperties, setAccordionSelectedProperties] =
-    useState({});
+    useState(selectedPropertiesInAccordions[id] || {});
 
   const dispatch = useDispatch();
   const { isOpen, openModal, closeModal } = useModalState();
@@ -51,7 +69,6 @@ export default function EntitySection({ id }) {
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
   );
-  const config = useSelector((state) => state.entities.config);
   const formData = useSelector((state) => state.entities.formData);
   const selectedEntities = useSelector(
     (state) => state.entities.selectedEntities,
@@ -66,6 +83,15 @@ export default function EntitySection({ id }) {
   const uniqueSortedPropertyOptions = filterUniqueProperties(
     sortedPropertyOptions,
   );
+
+  useEffect(() => {
+    dispatch(
+      setSelectedPropertiesInAccordions({
+        id,
+        accordionSelectedProperties,
+      }),
+    );
+  }, [accordionSelectedProperties, dispatch, id]);
 
   const handleEntityChange = useEntityChangeHandler(
     id,

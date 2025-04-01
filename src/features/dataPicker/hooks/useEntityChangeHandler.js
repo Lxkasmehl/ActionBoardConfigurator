@@ -5,6 +5,7 @@ import {
   removeFormData,
   setPropertyOptions,
   setSelectedEntity,
+  setMatchingEntitiesForAccordions,
 } from '../../../redux/entitiesSlice';
 
 export function useEntityChangeHandler(
@@ -41,6 +42,7 @@ export function useEntityChangeHandler(
 
     setSelectedPropertiesSectionState([]);
     setMatchingEntitiesState([]);
+    dispatch(setMatchingEntitiesForAccordions({ id, matchingEntities: [] }));
   };
 
   return handleEntityChange;
