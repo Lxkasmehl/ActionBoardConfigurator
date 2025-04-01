@@ -20,8 +20,34 @@ export function useSelectedPropertyChangeHandler(
   accordionSelectedProperties,
 ) {
   const dispatch = useDispatch();
+  const config = useSelector((state) => state.entities.config);
 
-  const [selectedPropertiesState, setSelectedPropertiesState] = useState({});
+  const [selectedPropertiesState, setSelectedPropertiesState] = useState(() => {
+    const result = {};
+
+    if (!config[id]) return result;
+
+    const configKey = Object.keys(config[id])[0];
+    const configEntry = config[id][configKey];
+    const selectedProperties = configEntry?.selectedProperties || [];
+
+    selectedProperties.forEach((property) => {
+      const isNestedProperty = property.includes('/');
+      const key = isNestedProperty
+        ? property.substring(0, property.lastIndexOf('/'))
+        : 'mainAutocomplete';
+      const value = isNestedProperty
+        ? property.substring(property.lastIndexOf('/') + 1)
+        : property;
+
+      if (!result[key]) {
+        result[key] = [];
+      }
+      result[key].push(value);
+    });
+
+    return result;
+  });
   const [previousKeys, setPreviousKeys] = useState([]);
 
   const allEntities = useSelector((state) => state.entities.allEntities);
@@ -31,7 +57,6 @@ export function useSelectedPropertyChangeHandler(
   const filteredEntities = useSelector(
     (state) => state.entities.filteredEntities,
   );
-  const config = useSelector((state) => state.entities.config);
   const selectedEntities = useSelector(
     (state) => state.entities.selectedEntities,
   );
