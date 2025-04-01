@@ -14,6 +14,8 @@ const initialState = {
   customFilters: {},
   propertiesBySection: {},
   matchingEntityObjects: {},
+  matchingEntitiesForAccordions: {},
+  selectedPropertiesInAccordions: {},
 };
 
 const initializeEntityConfig = (state, id, entityName) => {
@@ -135,6 +137,16 @@ const entitiesSlice = createSlice({
       const { id, matchingEntityObjects } = action.payload;
       state.matchingEntityObjects[id] = matchingEntityObjects;
     },
+
+    setMatchingEntitiesForAccordions(state, action) {
+      const { id, matchingEntities } = action.payload;
+      state.matchingEntitiesForAccordions[id] = matchingEntities;
+    },
+
+    setSelectedPropertiesInAccordions(state, action) {
+      const { id, accordionSelectedProperties } = action.payload;
+      state.selectedPropertiesInAccordions[id] = accordionSelectedProperties;
+    },
   },
 });
 
@@ -158,6 +170,8 @@ export const {
   setCustomFilter,
   setPropertiesBySection,
   setMatchingEntityObjects,
+  setMatchingEntitiesForAccordions,
+  setSelectedPropertiesInAccordions,
 } = entitiesSlice.actions;
 
 export default entitiesSlice.reducer;
