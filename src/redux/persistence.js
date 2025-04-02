@@ -33,7 +33,7 @@ export const loadState = () => {
         entityLogic: {},
         groupedEntityLogic: {},
         selectedProperties: {},
-        customFilters: {},
+        filterStorageForNodesNotConnectedToEdges: {},
       },
       fetchedData: {
         associationSets: [],
