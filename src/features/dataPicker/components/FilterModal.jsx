@@ -10,8 +10,10 @@ import {
   setFormData,
   setFilterStorageForNodesNotConnectedToEdges,
   setMatchingEntityObjects,
+  setConditionsForFilterModal,
 } from '../../../redux/dataPickerSlice';
 import { useReactFlow } from '@xyflow/react';
+import { useSelector } from 'react-redux';
 
 const buildConditions = (obj) => {
   const conditions = [];
@@ -80,7 +82,10 @@ const buildFilterObject = (obj) => {
 };
 
 export default function FilterModal({ open, onClose, entity, id }) {
-  const [conditions, setConditions] = useState([]);
+  const conditionsForFilterModal = useSelector(
+    (state) => state.dataPicker.conditionsForFilterModal[id],
+  );
+  const [conditions, setConditions] = useState(conditionsForFilterModal || []);
   console.log('conditions', conditions);
   const dispatch = useDispatch();
 
@@ -165,6 +170,7 @@ export default function FilterModal({ open, onClose, entity, id }) {
 
     dispatch(setFormData({ id, formObject }));
     dispatch(setMatchingEntityObjects({ id, matchingEntityObjects }));
+    dispatch(setConditionsForFilterModal({ id, conditions }));
 
     if (isTargetOfEdge) {
       dispatch(setEntityFilter({ entityName: entity, id, filterObject }));

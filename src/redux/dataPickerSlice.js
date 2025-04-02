@@ -12,6 +12,7 @@ const initialState = {
   matchingEntityObjects: {},
   matchingEntitiesForAccordions: {},
   selectedPropertiesInAccordions: {},
+  conditionsForFilterModal: {},
 };
 
 const dataPickerSlice = createSlice({
@@ -87,6 +88,11 @@ const dataPickerSlice = createSlice({
       const { id, accordionSelectedProperties } = action.payload;
       state.selectedPropertiesInAccordions[id] = accordionSelectedProperties;
     },
+
+    setConditionsForFilterModal(state, action) {
+      const { id, conditions } = action.payload;
+      state.conditionsForFilterModal[id] = conditions;
+    },
   },
 });
 
@@ -104,6 +110,7 @@ export const {
   setMatchingEntityObjects,
   setMatchingEntitiesForAccordions,
   setSelectedPropertiesInAccordions,
+  setConditionsForFilterModal,
 } = dataPickerSlice.actions;
 
 export default dataPickerSlice.reducer;
