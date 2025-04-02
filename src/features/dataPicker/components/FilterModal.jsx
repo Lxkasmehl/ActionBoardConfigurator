@@ -8,7 +8,7 @@ import { setEntityFilter } from '../../../redux/configSlice';
 import {
   removeGroupedEntityLogic,
   setFormData,
-  setCustomFilter,
+  setFilterStorageForNodesNotConnectedToEdges,
   setMatchingEntityObjects,
 } from '../../../redux/dataPickerSlice';
 import { useReactFlow } from '@xyflow/react';
@@ -169,7 +169,9 @@ export default function FilterModal({ open, onClose, entity, id }) {
     if (isTargetOfEdge) {
       dispatch(setEntityFilter({ entityName: entity, id, filterObject }));
     } else {
-      dispatch(setCustomFilter({ id, filterObject }));
+      dispatch(
+        setFilterStorageForNodesNotConnectedToEdges({ id, filterObject }),
+      );
     }
 
     onClose();

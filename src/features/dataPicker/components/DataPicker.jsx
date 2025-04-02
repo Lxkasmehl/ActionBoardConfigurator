@@ -19,7 +19,7 @@ import {
 import {
   removeFormData,
   setSelectedProperties,
-  setCustomFilter,
+  setFilterStorageForNodesNotConnectedToEdges,
 } from '../../../redux/dataPickerSlice';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -38,9 +38,11 @@ export default function DataPicker() {
   const loading = useFetchEntities();
   const dispatch = useDispatch();
 
-  const { selectedEntities, selectedProperties, customFilters } = useSelector(
-    (state) => state.dataPicker,
-  );
+  const {
+    selectedEntities,
+    selectedProperties,
+    filterStorageForNodesNotConnectedToEdges,
+  } = useSelector((state) => state.dataPicker);
 
   const { config } = useSelector((state) => state.config);
 
@@ -134,7 +136,8 @@ export default function DataPicker() {
               setEntityFilter({
                 id: targetNodeId,
                 entityName: selectedEntity,
-                filterObject: customFilters[targetNodeId],
+                filterObject:
+                  filterStorageForNodesNotConnectedToEdges[targetNodeId],
               }),
             );
           }
@@ -148,7 +151,7 @@ export default function DataPicker() {
       dispatch,
       selectedEntities,
       selectedProperties,
-      customFilters,
+      filterStorageForNodesNotConnectedToEdges,
       forceRerenderEntitySection,
     ],
   );
@@ -186,7 +189,12 @@ export default function DataPicker() {
                 propertyNames: properties,
               }),
             );
-            dispatch(setCustomFilter({ id: targetNodeId, filterObject }));
+            dispatch(
+              setFilterStorageForNodesNotConnectedToEdges({
+                id: targetNodeId,
+                filterObject,
+              }),
+            );
           }
         }
       }

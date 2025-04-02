@@ -7,7 +7,7 @@ const initialState = {
   groupedEntityLogic: {},
   selectedEntities: {},
   selectedProperties: {},
-  customFilters: {},
+  filterStorageForNodesNotConnectedToEdges: {},
   propertiesBySection: {},
   matchingEntityObjects: {},
   matchingEntitiesForAccordions: {},
@@ -63,9 +63,9 @@ const dataPickerSlice = createSlice({
       state.selectedProperties[id] = propertyNames;
     },
 
-    setCustomFilter(state, action) {
+    setFilterStorageForNodesNotConnectedToEdges(state, action) {
       const { id, filterObject } = action.payload;
-      state.customFilters[id] = { ...filterObject };
+      state.filterStorageForNodesNotConnectedToEdges[id] = { ...filterObject };
     },
 
     setPropertiesBySection(state, action) {
@@ -99,7 +99,7 @@ export const {
   removeGroupedEntityLogic,
   setSelectedEntity,
   setSelectedProperties,
-  setCustomFilter,
+  setFilterStorageForNodesNotConnectedToEdges,
   setPropertiesBySection,
   setMatchingEntityObjects,
   setMatchingEntitiesForAccordions,
