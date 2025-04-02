@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Condition from './Condition';
 import ConditionGroup from './ConditionGroup';
 import { useDispatch } from 'react-redux';
-import { setEntityFilter } from '../../../redux/entitiesSlice';
+import { setEntityFilter } from '../../../redux/configSlice';
 import {
   removeGroupedEntityLogic,
   setFormData,

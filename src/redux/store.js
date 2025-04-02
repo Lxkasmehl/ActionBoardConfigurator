@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import entitiesReducer from './entitiesSlice';
+import configReducer from './configSlice';
 import fetchedDataReducer from './fetchedDataSlice';
 import dataPickerReducer from './dataPickerSlice';
 import { loadState, saveState } from './persistence';
@@ -8,7 +8,7 @@ const preloadedState = loadState();
 
 const store = configureStore({
   reducer: {
-    entities: entitiesReducer,
+    config: configReducer,
     fetchedData: fetchedDataReducer,
     dataPicker: dataPickerReducer,
   },

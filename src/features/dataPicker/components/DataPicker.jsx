@@ -15,7 +15,7 @@ import {
   setPropertySelection,
   setEntityFilter,
   removeEntityConfig,
-} from '../../../redux/entitiesSlice.js';
+} from '../../../redux/configSlice.js';
 import {
   removeFormData,
   setSelectedProperties,
@@ -42,7 +42,7 @@ export default function DataPicker() {
     (state) => state.dataPicker,
   );
 
-  const { config } = useSelector((state) => state.entities);
+  const { config } = useSelector((state) => state.config);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);

@@ -16,7 +16,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 
 import { selectPropertyOptions } from '../../../redux/selectors/entitySelectors';
-import { removeEntityConfig } from '../../../redux/entitiesSlice';
+import { removeEntityConfig } from '../../../redux/configSlice';
 import {
   removeFormData,
   setSelectedPropertiesInAccordions,
@@ -36,7 +36,7 @@ import PropertySelector from './PropertySelector';
 import '@xyflow/react/dist/style.css';
 
 export default function EntitySection({ id }) {
-  const config = useSelector((state) => state.entities.config);
+  const config = useSelector((state) => state.config.config);
   const matchingEntitiesForAccordions = useSelector(
     (state) => state.dataPicker.matchingEntitiesForAccordions,
   );

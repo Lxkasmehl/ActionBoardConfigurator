@@ -7,7 +7,7 @@ import { typeUtils } from '../../../shared/utils/entityOperations';
 export default function useRelatedSourceData(propertyOptionsId, propertyType) {
   const [relatedSourceData, setRelatedSourceData] = useState([]);
 
-  const config = useSelector((state) => state.entities.config);
+  const config = useSelector((state) => state.config.config);
   const propertiesBySection = useSelector(
     (state) => state.dataPicker.propertiesBySection || {},
   );

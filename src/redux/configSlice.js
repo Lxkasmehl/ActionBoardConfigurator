@@ -16,8 +16,8 @@ const initializeEntityConfig = (state, id, entityName) => {
   }
 };
 
-const entitiesSlice = createSlice({
-  name: 'entities',
+const configSlice = createSlice({
+  name: 'config',
   initialState,
   reducers: {
     addEntity(state, action) {
@@ -60,6 +60,6 @@ export const {
   setEntityFilter,
   setPropertySelection,
   removeEntityConfig,
-} = entitiesSlice.actions;
+} = configSlice.actions;
 
-export default entitiesSlice.reducer;
+export default configSlice.reducer;
