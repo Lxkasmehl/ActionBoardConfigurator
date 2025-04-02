@@ -12,6 +12,8 @@ export const loadState = () => {
     const state = {
       entities: {
         config: savedData.config || {},
+      },
+      dataPicker: {
         selectedEntities:
           Object.keys(savedData.config).reduce(
             (acc, key) => ({
@@ -27,12 +29,14 @@ export const loadState = () => {
           savedData.selectedPropertiesInAccordions || {},
         propertyOptions: savedData.propertyOptions || {},
         matchingEntityObjects: {},
-        associationSets: [],
         formData: {},
         entityLogic: {},
         groupedEntityLogic: {},
         selectedProperties: {},
         customFilters: {},
+      },
+      fetchedData: {
+        associationSets: [],
       },
     };
 
@@ -47,12 +51,12 @@ export const saveState = (state) => {
   try {
     const serializedState = JSON.stringify({
       config: state.entities.config,
-      propertyOptions: state.entities.propertyOptions,
-      propertiesBySection: state.entities.propertiesBySection,
+      propertyOptions: state.dataPicker.propertyOptions,
+      propertiesBySection: state.dataPicker.propertiesBySection,
       matchingEntitiesForAccordions:
-        state.entities.matchingEntitiesForAccordions,
+        state.dataPicker.matchingEntitiesForAccordions,
       selectedPropertiesInAccordions:
-        state.entities.selectedPropertiesInAccordions,
+        state.dataPicker.selectedPropertiesInAccordions,
     });
 
     try {

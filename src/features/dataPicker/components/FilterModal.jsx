@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 import Condition from './Condition';
 import ConditionGroup from './ConditionGroup';
 import { useDispatch } from 'react-redux';
+import { setEntityFilter } from '../../../redux/entitiesSlice';
 import {
-  setEntityFilter,
-  setFormData,
   removeGroupedEntityLogic,
+  setFormData,
   setCustomFilter,
   setMatchingEntityObjects,
-} from '../../../redux/entitiesSlice';
+} from '../../../redux/dataPickerSlice';
 import { useReactFlow } from '@xyflow/react';
 
 const buildConditions = (obj) => {

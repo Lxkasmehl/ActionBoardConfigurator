@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { setPropertySelection } from '../../../redux/entitiesSlice';
 import {
   setSelectedProperties,
-  setPropertySelection,
   setPropertiesBySection,
   setMatchingEntitiesForAccordions,
-} from '../../../redux/entitiesSlice';
+} from '../../../redux/dataPickerSlice';
 import {
   findMatchingEntity,
   getNavigationProperties,
@@ -58,7 +58,7 @@ export function useSelectedPropertyChangeHandler(
     (state) => state.fetchedData.filteredEntities,
   );
   const selectedEntities = useSelector(
-    (state) => state.entities.selectedEntities,
+    (state) => state.dataPicker.selectedEntities,
   );
   const selectedEntity = selectedEntities[id];
 

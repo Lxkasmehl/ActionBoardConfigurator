@@ -15,10 +15,12 @@ import {
   setPropertySelection,
   setEntityFilter,
   removeEntityConfig,
+} from '../../../redux/entitiesSlice.js';
+import {
   removeFormData,
   setSelectedProperties,
   setCustomFilter,
-} from '../../../redux/entitiesSlice.js';
+} from '../../../redux/dataPickerSlice';
 
 import AddIcon from '@mui/icons-material/Add';
 import {
@@ -36,8 +38,11 @@ export default function DataPicker() {
   const loading = useFetchEntities();
   const dispatch = useDispatch();
 
-  const { config, selectedEntities, selectedProperties, customFilters } =
-    useSelector((state) => state.entities);
+  const { selectedEntities, selectedProperties, customFilters } = useSelector(
+    (state) => state.dataPicker,
+  );
+
+  const { config } = useSelector((state) => state.entities);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
