@@ -18,7 +18,7 @@ export default function DropdownsAndInput({
   const { state, handleValueChange, handlePropertyChange, setOperator } =
     useDropdownsAndInputState(propertyOptionsId, fieldIdentifierId);
   const propertyOptions = useSelector(
-    (state) => state.entities.propertyOptions[propertyOptionsId],
+    (state) => state.dataPicker.propertyOptions[propertyOptionsId],
   );
   const sortedPropertyOptions = sortProperties(propertyOptions);
 

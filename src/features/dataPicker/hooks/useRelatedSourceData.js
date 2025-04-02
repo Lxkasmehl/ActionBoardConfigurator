@@ -9,7 +9,7 @@ export default function useRelatedSourceData(propertyOptionsId, propertyType) {
 
   const config = useSelector((state) => state.entities.config);
   const propertiesBySection = useSelector(
-    (state) => state.entities.propertiesBySection || {},
+    (state) => state.dataPicker.propertiesBySection || {},
   );
   const { getEdges } = useReactFlow();
 

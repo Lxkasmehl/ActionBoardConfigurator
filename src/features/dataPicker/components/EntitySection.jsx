@@ -16,11 +16,11 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 
 import { selectPropertyOptions } from '../../../redux/selectors/entitySelectors';
+import { removeEntityConfig } from '../../../redux/entitiesSlice';
 import {
-  removeEntityConfig,
   removeFormData,
   setSelectedPropertiesInAccordions,
-} from '../../../redux/entitiesSlice';
+} from '../../../redux/dataPickerSlice';
 import { useEntityChangeHandler } from '../hooks/useEntityChangeHandler';
 import { useModalState } from '../hooks/useModalState';
 import { useSelectedPropertyChangeHandler } from '../hooks/useSelectedPropertyChangeHandler';
@@ -38,7 +38,7 @@ import '@xyflow/react/dist/style.css';
 export default function EntitySection({ id }) {
   const config = useSelector((state) => state.entities.config);
   const matchingEntitiesForAccordions = useSelector(
-    (state) => state.entities.matchingEntitiesForAccordions,
+    (state) => state.dataPicker.matchingEntitiesForAccordions,
   );
 
   const [matchingEntitiesState, setMatchingEntitiesState] = useState(
@@ -53,7 +53,7 @@ export default function EntitySection({ id }) {
     );
 
   const selectedPropertiesInAccordions = useSelector(
-    (state) => state.entities.selectedPropertiesInAccordions,
+    (state) => state.dataPicker.selectedPropertiesInAccordions,
   );
 
   const [accordionSelectedProperties, setAccordionSelectedProperties] =
@@ -69,9 +69,9 @@ export default function EntitySection({ id }) {
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
-  const formData = useSelector((state) => state.entities.formData);
+  const formData = useSelector((state) => state.dataPicker.formData);
   const selectedEntities = useSelector(
-    (state) => state.entities.selectedEntities,
+    (state) => state.dataPicker.selectedEntities,
   );
   const selectedEntity = selectedEntities[id];
   const propertyOptions = useSelector((state) =>

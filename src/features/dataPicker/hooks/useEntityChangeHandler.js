@@ -1,12 +1,13 @@
 import { useDispatch } from 'react-redux';
+import { addEntity, removeEntity } from '../../../redux/entitiesSlice';
 import {
-  addEntity,
-  removeEntity,
-  removeFormData,
-  setPropertyOptions,
   setSelectedEntity,
   setMatchingEntitiesForAccordions,
-} from '../../../redux/entitiesSlice';
+} from '../../../redux/dataPickerSlice';
+import {
+  setPropertyOptions,
+  removeFormData,
+} from '../../../redux/dataPickerSlice';
 
 export function useEntityChangeHandler(
   id,

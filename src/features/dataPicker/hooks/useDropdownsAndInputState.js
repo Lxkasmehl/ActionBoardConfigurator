@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getNavigationProperties } from '../utils/entity/entityNavigation';
-import { setMatchingEntityObjects } from '../../../redux/entitiesSlice';
+import { setMatchingEntityObjects } from '../../../redux/dataPickerSlice';
 import { findMatchingEntity } from '../utils/entity/entityNavigation';
 
 export default function useDropdownsAndInputState(
@@ -9,7 +9,7 @@ export default function useDropdownsAndInputState(
   fieldIdentifierId,
 ) {
   // Redux selectors
-  const formData = useSelector((state) => state.entities.formData);
+  const formData = useSelector((state) => state.dataPicker.formData);
   const allEntities = useSelector((state) => state.fetchedData.allEntities);
   const associationSets = useSelector(
     (state) => state.fetchedData.associationSets,
@@ -18,13 +18,13 @@ export default function useDropdownsAndInputState(
     (state) => state.fetchedData.filteredEntities,
   );
   const matchingEntityObjects = useSelector(
-    (state) => state.entities.matchingEntityObjects,
+    (state) => state.dataPicker.matchingEntityObjects,
   );
   const selectedEntities = useSelector(
-    (state) => state.entities.selectedEntities,
+    (state) => state.dataPicker.selectedEntities,
   );
   const propertyOptions = useSelector(
-    (state) => state.entities.propertyOptions[propertyOptionsId],
+    (state) => state.dataPicker.propertyOptions[propertyOptionsId],
   );
   const dispatch = useDispatch();
 
