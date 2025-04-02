@@ -106,13 +106,48 @@ export default function useDropdownsAndInputState(
       if (!isNavigationProperty) {
         setProperty(newValue);
         const pathParts = path.split('/');
-        const newPath =
-          pathParts.length > 0
-            ? `${pathParts.slice(0, -1).join('/')}/${newValueName}`
-            : newValueName;
+
+        let relevantNavigationProperties = navigationProperties;
+        if (pathParts.length > 0) {
+          let currentEntity = filteredEntities.find(
+            (e) => e.name === selectedEntity,
+          );
+
+          let newCurrentEntity = currentEntity;
+          if (pathParts.length > 1) {
+            const result = findMatchingEntity({
+              propertyName: pathParts[pathParts.length - 1],
+              navigationProperties:
+                currentEntity.properties.navigationProperties,
+              associationSets,
+              allEntities,
+            });
+            newCurrentEntity = result?.matchingEntity;
+          }
+
+          if (newCurrentEntity) {
+            relevantNavigationProperties =
+              newCurrentEntity.properties.navigationProperties;
+          }
+        }
+
+        const lastPartIsNavigation = relevantNavigationProperties.some(
+          (np) => np.Name === pathParts[pathParts.length - 1],
+        );
+
+        const newPath = matchingEntityState
+          ? pathParts.length > 0
+            ? lastPartIsNavigation
+              ? `${path}/${newValueName}`
+              : [...pathParts.slice(0, -1), newValueName].join('/')
+            : newValueName
+          : newValueName;
 
         setPath(newPath);
-        setMatchingEntityState((prev) => ({ ...prev, path: newPath }));
+        setMatchingEntityState((prev) => ({
+          ...prev,
+          path: newPath,
+        }));
         setAutocompleteKey((prev) => prev + 1);
         return;
       }
