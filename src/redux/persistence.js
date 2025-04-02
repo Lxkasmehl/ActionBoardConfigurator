@@ -30,6 +30,7 @@ export const loadState = () => {
         propertyOptions: savedData.propertyOptions || {},
         conditionsForFilterModal: savedData.conditionsForFilterModal || {},
         formData: savedData.formData || {},
+        edgesForFlow: savedData.edgesForFlow || [],
         matchingEntityObjects: {},
         entityLogic: {},
         groupedEntityLogic: {},
@@ -60,6 +61,7 @@ export const saveState = (state) => {
         state.dataPicker.selectedPropertiesInAccordions,
       conditionsForFilterModal: state.dataPicker.conditionsForFilterModal,
       formData: state.dataPicker.formData,
+      edgesForFlow: state.dataPicker.edgesForFlow,
     });
 
     try {
