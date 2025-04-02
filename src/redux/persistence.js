@@ -10,7 +10,7 @@ export const loadState = () => {
     const savedData = JSON.parse(serializedState);
 
     const state = {
-      entities: {
+      config: {
         config: savedData.config || {},
       },
       dataPicker: {
@@ -50,7 +50,7 @@ export const loadState = () => {
 export const saveState = (state) => {
   try {
     const serializedState = JSON.stringify({
-      config: state.entities.config,
+      config: state.config.config,
       propertyOptions: state.dataPicker.propertyOptions,
       propertiesBySection: state.dataPicker.propertiesBySection,
       matchingEntitiesForAccordions:

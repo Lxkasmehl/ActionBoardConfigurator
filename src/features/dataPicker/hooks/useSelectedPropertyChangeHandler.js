@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setPropertySelection } from '../../../redux/entitiesSlice';
+import { setPropertySelection } from '../../../redux/configSlice';
 import {
   setSelectedProperties,
   setPropertiesBySection,
@@ -20,7 +20,7 @@ export function useSelectedPropertyChangeHandler(
   accordionSelectedProperties,
 ) {
   const dispatch = useDispatch();
-  const config = useSelector((state) => state.entities.config);
+  const config = useSelector((state) => state.config.config);
 
   const [selectedPropertiesState, setSelectedPropertiesState] = useState(() => {
     const result = {};

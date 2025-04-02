@@ -1,5 +1,5 @@
 import { useDispatch } from 'react-redux';
-import { addEntity, removeEntity } from '../../../redux/entitiesSlice';
+import { addEntity, removeEntity } from '../../../redux/configSlice';
 import {
   setSelectedEntity,
   setMatchingEntitiesForAccordions,
