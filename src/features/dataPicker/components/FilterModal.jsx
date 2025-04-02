@@ -86,7 +86,6 @@ export default function FilterModal({ open, onClose, entity, id }) {
     (state) => state.dataPicker.conditionsForFilterModal[id],
   );
   const [conditions, setConditions] = useState(conditionsForFilterModal || []);
-  console.log('conditions', conditions);
   const dispatch = useDispatch();
 
   const addCondition = useCallback(() => {

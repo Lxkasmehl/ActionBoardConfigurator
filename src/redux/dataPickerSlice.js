@@ -13,6 +13,7 @@ const initialState = {
   matchingEntitiesForAccordions: {},
   selectedPropertiesInAccordions: {},
   conditionsForFilterModal: {},
+  edgesForFlow: [],
 };
 
 const dataPickerSlice = createSlice({
@@ -93,6 +94,10 @@ const dataPickerSlice = createSlice({
       const { id, conditions } = action.payload;
       state.conditionsForFilterModal[id] = conditions;
     },
+
+    setEdgesForFlow(state, action) {
+      state.edgesForFlow = action.payload;
+    },
   },
 });
 
@@ -111,6 +116,7 @@ export const {
   setMatchingEntitiesForAccordions,
   setSelectedPropertiesInAccordions,
   setConditionsForFilterModal,
+  setEdgesForFlow,
 } = dataPickerSlice.actions;
 
 export default dataPickerSlice.reducer;

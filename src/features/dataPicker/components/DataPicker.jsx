@@ -20,6 +20,7 @@ import {
   removeFormData,
   setSelectedProperties,
   setFilterStorageForNodesNotConnectedToEdges,
+  setEdgesForFlow,
 } from '../../../redux/dataPickerSlice';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -42,6 +43,7 @@ export default function DataPicker() {
     selectedEntities,
     selectedProperties,
     filterStorageForNodesNotConnectedToEdges,
+    edgesForFlow,
   } = useSelector((state) => state.dataPicker);
 
   const { config } = useSelector((state) => state.config);
@@ -95,19 +97,18 @@ export default function DataPicker() {
         ];
       });
 
-      setEdges((prevEdges) => {
-        const configKeys = Object.keys(config);
-        const newEdges = configKeys.map((id) => ({
-          id: createNodeId(),
-          source: '0',
-          target: id,
-          type: 'ButtonEdge',
-        }));
-        return [...prevEdges, ...newEdges];
-      });
+      if (edgesForFlow?.length > 0) {
+        setEdges(edgesForFlow);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (edges?.length > 0) {
+      dispatch(setEdgesForFlow(edges));
+    }
+  }, [edges, dispatch]);
 
   const onConnect = useCallback(
     (connection) => {
