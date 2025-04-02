@@ -65,7 +65,7 @@ test('handle parallel request limit with multiple flows', async ({
     await selectFromAutocomplete(
       page,
       'entity-autocomplete',
-      'Business Unit',
+      'FOBusinessUnit',
       i,
     );
   }
