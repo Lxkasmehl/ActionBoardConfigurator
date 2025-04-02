@@ -1,12 +1,10 @@
 import PropTypes from 'prop-types';
-import { FormControl, FormLabel, Input, Switch } from '@mui/joy';
+import { FormControl, FormLabel, Input, Switch, Typography } from '@mui/joy';
 import useFetchEntities from '../../../../shared/hooks/useFetchEntities';
 import { sortEntities } from '../../../../shared/utils/entityOperations';
 import { useSelector } from 'react-redux';
 import { useMemo, useState } from 'react';
 import EntityPropertyFields from './EntityPropertyFields';
-import DynamicFormIcon from '@mui/icons-material/DynamicForm';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 export default function ColumnFormFields({ editedItem, setEditedItem }) {
   const filteredEntities = useSelector(
@@ -31,16 +29,37 @@ export default function ColumnFormFields({ editedItem, setEditedItem }) {
           placeholder='Enter column label'
         />
       </FormControl>
-      <Switch
-        startDecorator={<DynamicFormIcon />}
-        endDecorator={<OpenInNewIcon />}
-        checked={isIFrame}
-        onChange={(e) => setIsIFrame(e.target.checked)}
-        sx={{
-          marginTop: '10px',
-          '--Switch-gap': '20px',
-        }}
-      />
+      <div className='my-3'>
+        <Typography level='title-md' sx={{ textAlign: 'center' }}>
+          How to choose data for column
+        </Typography>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: '10px',
+            gap: '20px',
+          }}
+        >
+          <Typography
+            sx={{ flex: 1, textAlign: 'right', whiteSpace: 'nowrap' }}
+          >
+            Form Fields
+          </Typography>
+          <Switch
+            checked={isIFrame}
+            onChange={(e) => setIsIFrame(e.target.checked)}
+            sx={{
+              '--Switch-gap': '20px',
+            }}
+          />
+          <Typography sx={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}>
+            DataPicker Flow
+          </Typography>
+        </div>
+      </div>
+
       {!isIFrame ? (
         <EntityPropertyFields
           editedItem={editedItem}
