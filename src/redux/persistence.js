@@ -28,8 +28,9 @@ export const loadState = () => {
         selectedPropertiesInAccordions:
           savedData.selectedPropertiesInAccordions || {},
         propertyOptions: savedData.propertyOptions || {},
+        conditionsForFilterModal: savedData.conditionsForFilterModal || {},
+        formData: savedData.formData || {},
         matchingEntityObjects: {},
-        formData: {},
         entityLogic: {},
         groupedEntityLogic: {},
         selectedProperties: {},
@@ -57,6 +58,8 @@ export const saveState = (state) => {
         state.dataPicker.matchingEntitiesForAccordions,
       selectedPropertiesInAccordions:
         state.dataPicker.selectedPropertiesInAccordions,
+      conditionsForFilterModal: state.dataPicker.conditionsForFilterModal,
+      formData: state.dataPicker.formData,
     });
 
     try {
