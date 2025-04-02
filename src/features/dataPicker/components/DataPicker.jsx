@@ -253,6 +253,38 @@ export default function DataPicker() {
     }
   };
 
+  useEffect(() => {
+    const handleMessage = async (event) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data.type === 'FETCH_DATA_REQUEST') {
+        console.log('FETCH_DATA_REQUEST received');
+        try {
+          const results = await handleSendRequest();
+
+          window.parent.postMessage(
+            {
+              type: 'IFRAME_DATA_RESPONSE',
+              payload: results,
+            },
+            window.location.origin,
+          );
+        } catch (error) {
+          window.parent.postMessage(
+            {
+              type: 'IFRAME_ERROR',
+              payload: error.message,
+            },
+            window.location.origin,
+          );
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [handleSendRequest]);
+
   if (loading) {
     return (
       <div className='flex justify-center items-center w-screen h-screen'>
