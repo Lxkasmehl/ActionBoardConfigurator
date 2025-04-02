@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
 import ColumnFormFields from '../table/ColumnFormFields';
@@ -15,11 +15,42 @@ export default function EditModal({
 }) {
   const [editedItem, setEditedItem] = useState(item);
   const [inputValue, setInputValue] = useState('');
+  const columnFormRef = useRef(null);
+  const [isWaitingForIframeData, setIsWaitingForIframeData] = useState(false);
+  const [isIFrame, setIsIFrame] = useState(false);
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data.type === 'IFRAME_DATA_RESPONSE') {
+        console.log('Received iframe data:', event.data.payload);
+
+        if (isWaitingForIframeData) {
+          const updatedItem = {
+            ...editedItem,
+            iframeData: event.data.payload,
+          };
+          onSave(updatedItem);
+          onClose();
+          setIsWaitingForIframeData(false);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [editedItem, isWaitingForIframeData, onSave, onClose]);
 
   const handleSave = useCallback(() => {
-    onSave(editedItem);
-    onClose();
-  }, [editedItem, onSave, onClose]);
+    if (type === 'column' && columnFormRef.current && isIFrame) {
+      setIsWaitingForIframeData(true);
+      columnFormRef.current.triggerIframeDataFetch();
+    } else {
+      onSave(editedItem);
+      onClose();
+    }
+  }, [editedItem, onSave, onClose, type, isIFrame]);
 
   const handleDelete = useCallback(() => {
     onDelete(type === 'column' ? item.label : item.id);
@@ -33,8 +64,11 @@ export default function EditModal({
         <Typography level='h4'>{title}</Typography>
         {type === 'column' ? (
           <ColumnFormFields
+            ref={columnFormRef}
             editedItem={editedItem}
             setEditedItem={setEditedItem}
+            isIFrame={isIFrame}
+            setIsIFrame={setIsIFrame}
           />
         ) : (
           <FieldFormFields
@@ -57,7 +91,9 @@ export default function EditModal({
             <Button variant='plain' color='neutral' onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave} disabled={isWaitingForIframeData}>
+              {isWaitingForIframeData ? 'Waiting for data...' : 'Save'}
+            </Button>
           </div>
         </div>
       </ModalDialog>
