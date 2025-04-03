@@ -54,11 +54,20 @@ export default function DataPicker() {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState(null);
 
   const createNodeId = useCallback(() => crypto.randomUUID(), []);
 
   const forceRerenderEntitySection = useCallback(() => {
     setRenderKey((prevKey) => prevKey + 1);
+  }, []);
+
+  const onNodeClick = useCallback((event, node) => {
+    setSelectedNode(node.id);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
   }, []);
 
   useEffect(() => {
@@ -260,7 +269,8 @@ export default function DataPicker() {
       if (event.data.type === 'FETCH_DATA_REQUEST') {
         console.log('FETCH_DATA_REQUEST received');
         try {
-          const results = await handleSendRequest();
+          console.log('selectedNodeUseEffect', selectedNode);
+          const results = await handleSendRequest(selectedNode);
 
           window.parent.postMessage(
             {
@@ -283,7 +293,7 @@ export default function DataPicker() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [handleSendRequest]);
+  }, [handleSendRequest, selectedNode]);
 
   if (loading) {
     return (
@@ -301,12 +311,15 @@ export default function DataPicker() {
           data: {
             ...node.data,
             key: renderKey,
+            selected: node.id === selectedNode,
           },
         }))}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={customOnEdgesChange}
         onConnect={onConnect}
+        onNodeClick={onNodeClick}
+        onPaneClick={onPaneClick}
         nodeTypes={NODE_TYPES}
         edgeTypes={EDGE_TYPES}
         proOptions={{ hideAttribution: true }}

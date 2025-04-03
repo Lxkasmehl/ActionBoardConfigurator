@@ -26,7 +26,6 @@ const ColumnFormFields = forwardRef(
     const iframeRef = useRef(null);
     const [iframeData, setIframeData] = useState(null);
 
-    // Event listener für Nachrichten vom iframe
     useEffect(() => {
       const handleMessage = (event) => {
         if (event.origin !== window.location.origin) return;
@@ -110,6 +109,13 @@ const ColumnFormFields = forwardRef(
           />
         ) : (
           <div>
+            <Typography
+              level='title-md'
+              sx={{ textAlign: 'center', marginBottom: 2 }}
+            >
+              Select a node in the DataPicker Flow to display its corresponding
+              backend result in the table column
+            </Typography>
             <iframe
               ref={iframeRef}
               src='/data-picker'
