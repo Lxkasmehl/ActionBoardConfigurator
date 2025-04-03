@@ -28,14 +28,6 @@ export default function EditModal({
         if (isWaitingForIframeData) {
           // Extract the actual values from the response
           console.log('event.data.payload', event.data.payload);
-          const extractedData = event.data.payload
-            .map((item) => {
-              if (item.d && item.d.results) {
-                return item.d.results.map((result) => result.description);
-              }
-              return [];
-            })
-            .flat();
 
           const entityName =
             event.data.payload[0].d.results[0].__metadata.type.split('.')[1];
@@ -43,21 +35,21 @@ export default function EditModal({
             event.data.payload[0].d.results[0],
           ).find((key) => key !== '__metadata');
 
-          // If we have entity and property data, merge it with the iframe data
-          if (editedItem.entity && editedItem.property) {
-            onSave({
-              ...editedItem,
-              data: extractedData,
-              label: `${editedItem.entity.name} -> ${editedItem.property.name}`,
-            });
-          } else {
-            // If we only have direct iframe data, use it as is and update the label
-            onSave({
-              ...editedItem,
-              data: extractedData,
-              label: `${entityName} -> ${propertyName}`,
-            });
-          }
+          const extractedData = event.data.payload
+            .map((mapItem) => {
+              if (mapItem.d && mapItem.d.results) {
+                return mapItem.d.results.map((result) => result[propertyName]);
+              }
+              return [];
+            })
+            .flat();
+
+          onSave({
+            ...editedItem,
+            data: extractedData,
+            label: `${entityName} -> ${propertyName}`,
+          });
+
           onClose();
           setIsWaitingForIframeData(false);
         }
