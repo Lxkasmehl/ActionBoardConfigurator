@@ -1,20 +1,38 @@
 import PropTypes from 'prop-types';
-import { FormControl, FormLabel, Input, Switch, Typography } from '@mui/joy';
+import {
+  FormControl,
+  FormLabel,
+  Input,
+  Switch,
+  Typography,
+  Modal,
+  ModalDialog,
+  Button,
+} from '@mui/joy';
 import useFetchEntities from '../../../../shared/hooks/useFetchEntities';
 import { sortEntities } from '../../../../shared/utils/entityOperations';
 import { useSelector } from 'react-redux';
 import {
   useMemo,
-  useState,
   useEffect,
   useRef,
   useImperativeHandle,
   forwardRef,
+  useState,
 } from 'react';
 import EntityPropertyFields from './EntityPropertyFields';
 
 const ColumnFormFields = forwardRef(
-  ({ editedItem, setEditedItem, isIFrame, setIsIFrame }, ref) => {
+  (
+    {
+      editedItem,
+      setEditedItem,
+      isIFrame,
+      setIsIFrame,
+      setIsWaitingForIframeData,
+    },
+    ref,
+  ) => {
     const filteredEntities = useSelector(
       (state) => state.fetchedData.filteredEntities,
     );
@@ -24,21 +42,51 @@ const ColumnFormFields = forwardRef(
     );
     const loading = useFetchEntities();
     const iframeRef = useRef(null);
-    const [iframeData, setIframeData] = useState(null);
+    const [showWarningModal, setShowWarningModal] = useState(false);
+    const [warningMessage, setWarningMessage] = useState('');
 
     useEffect(() => {
       const handleMessage = (event) => {
         if (event.origin !== window.location.origin) return;
 
         if (event.data.type === 'IFRAME_DATA_RESPONSE') {
-          setIframeData(event.data.payload);
           console.log('event.data.payload', event.data.payload);
+        } else if (event.data.type === 'IFRAME_WARNING') {
+          setWarningMessage(event.data.payload.message);
+          setShowWarningModal(true);
         }
       };
 
       window.addEventListener('message', handleMessage);
       return () => window.removeEventListener('message', handleMessage);
     }, [setEditedItem]);
+
+    const handleWarningConfirm = () => {
+      setShowWarningModal(false);
+      if (iframeRef.current) {
+        iframeRef.current.contentWindow.postMessage(
+          {
+            type: 'IFRAME_WARNING_RESPONSE',
+            payload: { confirmed: true },
+          },
+          window.location.origin,
+        );
+      }
+    };
+
+    const handleWarningCancel = () => {
+      setIsWaitingForIframeData(false);
+      setShowWarningModal(false);
+      if (iframeRef.current) {
+        iframeRef.current.contentWindow.postMessage(
+          {
+            type: 'IFRAME_WARNING_RESPONSE',
+            payload: { confirmed: false },
+          },
+          window.location.origin,
+        );
+      }
+    };
 
     const triggerIframeDataFetch = () => {
       if (iframeRef.current) {
@@ -126,15 +174,48 @@ const ColumnFormFields = forwardRef(
                 border: '1px solid #ced8e2',
               }}
             />
-
-            {iframeData && (
-              <div style={{ marginTop: '10px' }}>
-                <h4>Received Data:</h4>
-                <pre>{JSON.stringify(iframeData, null, 2)}</pre>
-              </div>
-            )}
           </div>
         )}
+
+        <Modal
+          open={showWarningModal}
+          onClose={() => setShowWarningModal(false)}
+        >
+          <ModalDialog
+            variant='outlined'
+            role='alertdialog'
+            aria-labelledby='warning-dialog-title'
+            aria-describedby='warning-dialog-description'
+          >
+            <Typography level='h3'>Warning</Typography>
+            <Typography sx={{ mt: 1 }}>{warningMessage}</Typography>
+            <Typography
+              variant='soft'
+              color='danger'
+              startDecorator='🚨'
+              sx={{ mt: 1, padding: '10px', borderRadius: 5 }}
+            >
+              If you continue, the data for all flows in the DataPicker will be
+              fetched and displayed in a different column for each flow.
+            </Typography>
+            <div className='flex justify-end gap-2 mt-4'>
+              <Button
+                variant='plain'
+                color='neutral'
+                onClick={handleWarningCancel}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant='solid'
+                color='primary'
+                onClick={handleWarningConfirm}
+              >
+                Continue
+              </Button>
+            </div>
+          </ModalDialog>
+        </Modal>
       </>
     );
   },
@@ -152,6 +233,7 @@ ColumnFormFields.propTypes = {
   setEditedItem: PropTypes.func.isRequired,
   isIFrame: PropTypes.bool.isRequired,
   setIsIFrame: PropTypes.func.isRequired,
+  setIsWaitingForIframeData: PropTypes.func.isRequired,
 };
 
 export default ColumnFormFields;

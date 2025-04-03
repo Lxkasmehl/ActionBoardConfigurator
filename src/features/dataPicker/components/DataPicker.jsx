@@ -269,7 +269,21 @@ export default function DataPicker() {
       if (event.data.type === 'FETCH_DATA_REQUEST') {
         console.log('FETCH_DATA_REQUEST received');
         try {
-          console.log('selectedNodeUseEffect', selectedNode);
+          if (!selectedNode) {
+            window.parent.postMessage(
+              {
+                type: 'IFRAME_WARNING',
+                payload: {
+                  message:
+                    'No node selected. Please select a node before fetching data.',
+                  requestId: crypto.randomUUID(),
+                },
+              },
+              window.location.origin,
+            );
+            return;
+          }
+
           const results = await handleSendRequest(selectedNode);
 
           window.parent.postMessage(
@@ -287,6 +301,27 @@ export default function DataPicker() {
             },
             window.location.origin,
           );
+        }
+      } else if (event.data.type === 'IFRAME_WARNING_RESPONSE') {
+        if (event.data.payload.confirmed) {
+          try {
+            const results = await handleSendRequest();
+            window.parent.postMessage(
+              {
+                type: 'IFRAME_DATA_RESPONSE',
+                payload: results,
+              },
+              window.location.origin,
+            );
+          } catch (error) {
+            window.parent.postMessage(
+              {
+                type: 'IFRAME_ERROR',
+                payload: error.message,
+              },
+              window.location.origin,
+            );
+          }
         }
       }
     };
