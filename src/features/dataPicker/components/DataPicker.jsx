@@ -267,7 +267,6 @@ export default function DataPicker() {
       if (event.origin !== window.location.origin) return;
 
       if (event.data.type === 'FETCH_DATA_REQUEST') {
-        console.log('FETCH_DATA_REQUEST received');
         try {
           if (!selectedNode) {
             window.parent.postMessage(
