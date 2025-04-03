@@ -69,6 +69,7 @@ export default function EditModal({
             setEditedItem={setEditedItem}
             isIFrame={isIFrame}
             setIsIFrame={setIsIFrame}
+            setIsWaitingForIframeData={setIsWaitingForIframeData}
           />
         ) : (
           <FieldFormFields
@@ -91,8 +92,8 @@ export default function EditModal({
             <Button variant='plain' color='neutral' onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={isWaitingForIframeData}>
-              {isWaitingForIframeData ? 'Waiting for data...' : 'Save'}
+            <Button onClick={handleSave} loading={isWaitingForIframeData}>
+              Save
             </Button>
           </div>
         </div>
