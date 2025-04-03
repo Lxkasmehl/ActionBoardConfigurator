@@ -81,10 +81,27 @@ export default function TableComponent({ component }) {
   };
 
   const handleSaveColumn = (editedColumn) => {
+    // Ensure the column has a type
+    const columnWithType = {
+      ...editedColumn,
+      type: editedColumn.type || 'text',
+    };
+
     const newColumns = columns.map((col) =>
-      col.label === editingColumn.label ? editedColumn : col,
+      col.label === editingColumn.label ? columnWithType : col,
     );
     setColumns(newColumns);
+
+    // If we have direct data from the iframe, update the table data
+    if (editedColumn.data) {
+      setTableData((prevData) => {
+        const maxRows = Math.max(prevData.length, editedColumn.data.length);
+        return Array.from({ length: maxRows }, (_, index) => ({
+          ...(prevData[index] || {}),
+          [editedColumn.label]: editedColumn.data[index] || '',
+        }));
+      });
+    }
   };
 
   const handleDeleteColumn = (columnLabel) => {

@@ -49,9 +49,7 @@ const ColumnFormFields = forwardRef(
       const handleMessage = (event) => {
         if (event.origin !== window.location.origin) return;
 
-        if (event.data.type === 'IFRAME_DATA_RESPONSE') {
-          console.log('event.data.payload', event.data.payload);
-        } else if (event.data.type === 'IFRAME_WARNING') {
+        if (event.data.type === 'IFRAME_WARNING') {
           setWarningMessage(event.data.payload.message);
           setShowWarningModal(true);
         }
@@ -59,7 +57,7 @@ const ColumnFormFields = forwardRef(
 
       window.addEventListener('message', handleMessage);
       return () => window.removeEventListener('message', handleMessage);
-    }, [setEditedItem]);
+    }, [setEditedItem, editedItem]);
 
     const handleWarningConfirm = () => {
       setShowWarningModal(false);

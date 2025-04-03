@@ -1,13 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSendRequest } from './useSendRequest';
 
 export const useTableData = (columns, initialDummyData) => {
   const [tableData, setTableData] = useState(initialDummyData);
   const handleSendRequest = useSendRequest();
 
+  const updateTableData = useCallback((newData) => {
+    setTableData(newData);
+  }, []);
+
+  // Handle direct iframe data
+  useEffect(() => {
+    const columnsWithData = columns.filter((col) => col.data);
+    if (columnsWithData.length === 0) return;
+
+    setTableData((prevData) => {
+      const updatedTableData = prevData.map((row, index) => {
+        const newRow = { ...row };
+        columnsWithData.forEach((column) => {
+          if (column.data && column.data[index] !== undefined) {
+            newRow[column.label] = column.data[index];
+          }
+        });
+        return newRow;
+      });
+      return updatedTableData;
+    });
+  }, [columns]);
+
+  // Handle entity/property data
   useEffect(() => {
     const fetchEntityData = async () => {
-      const entityColumns = columns.filter((col) => col.entity && col.property);
+      const entityColumns = columns.filter(
+        (col) => col.entity && col.property && !col.data,
+      );
       if (entityColumns.length === 0) return;
 
       try {
@@ -28,35 +54,35 @@ export const useTableData = (columns, initialDummyData) => {
             .filter((value) => value !== null);
         });
 
-        const maxRows = Math.max(
-          tableData.length,
-          ...Object.values(newEntityData).map((data) => data.length),
-        );
+        setTableData((prevData) => {
+          const maxRows = Math.max(
+            prevData.length,
+            ...Object.values(newEntityData).map((data) => data.length),
+          );
 
-        const updatedTableData = Array.from({ length: maxRows }, (_, index) => {
-          const newRow =
-            index < tableData.length ? { ...tableData[index] } : {};
+          return Array.from({ length: maxRows }, (_, index) => {
+            const newRow =
+              index < prevData.length ? { ...prevData[index] } : {};
 
-          entityColumns.forEach((column) => {
-            if (
-              newEntityData[column.label] &&
-              newEntityData[column.label][index]
-            ) {
-              newRow[column.label] = newEntityData[column.label][index];
-            }
+            entityColumns.forEach((column) => {
+              if (
+                newEntityData[column.label] &&
+                newEntityData[column.label][index]
+              ) {
+                newRow[column.label] = newEntityData[column.label][index];
+              }
+            });
+
+            return newRow;
           });
-
-          return newRow;
         });
-
-        setTableData(updatedTableData);
       } catch (error) {
         console.error('Error fetching entity data:', error);
       }
     };
 
     fetchEntityData();
-  }, [columns, handleSendRequest, tableData]);
+  }, [columns, handleSendRequest]);
 
-  return [tableData, setTableData];
+  return [tableData, updateTableData];
 };

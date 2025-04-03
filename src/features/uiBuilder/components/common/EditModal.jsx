@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
@@ -24,14 +25,39 @@ export default function EditModal({
       if (event.origin !== window.location.origin) return;
 
       if (event.data.type === 'IFRAME_DATA_RESPONSE') {
-        console.log('Received iframe data:', event.data.payload);
-
         if (isWaitingForIframeData) {
-          const updatedItem = {
-            ...editedItem,
-            iframeData: event.data.payload,
-          };
-          onSave(updatedItem);
+          // Extract the actual values from the response
+          console.log('event.data.payload', event.data.payload);
+          const extractedData = event.data.payload
+            .map((item) => {
+              if (item.d && item.d.results) {
+                return item.d.results.map((result) => result.description);
+              }
+              return [];
+            })
+            .flat();
+
+          const entityName =
+            event.data.payload[0].d.results[0].__metadata.type.split('.')[1];
+          const propertyName = Object.keys(
+            event.data.payload[0].d.results[0],
+          ).find((key) => key !== '__metadata');
+
+          // If we have entity and property data, merge it with the iframe data
+          if (editedItem.entity && editedItem.property) {
+            onSave({
+              ...editedItem,
+              data: extractedData,
+              label: `${editedItem.entity.name} -> ${editedItem.property.name}`,
+            });
+          } else {
+            // If we only have direct iframe data, use it as is and update the label
+            onSave({
+              ...editedItem,
+              data: extractedData,
+              label: `${entityName} -> ${propertyName}`,
+            });
+          }
           onClose();
           setIsWaitingForIframeData(false);
         }
