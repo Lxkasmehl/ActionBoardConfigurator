@@ -35,7 +35,7 @@ import PropertySelector from './PropertySelector';
 
 import '@xyflow/react/dist/style.css';
 
-export default function EntitySection({ id }) {
+export default function EntitySection({ id, data }) {
   const config = useSelector((state) => state.config.config);
   const matchingEntitiesForAccordions = useSelector(
     (state) => state.dataPicker.matchingEntitiesForAccordions,
@@ -124,7 +124,7 @@ export default function EntitySection({ id }) {
     <div>
       <Card
         data-testid='entity-section'
-        color={isTargetOfEdge ? 'primary' : 'neutral'}
+        color={data.selected ? 'primary' : 'neutral'}
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -134,6 +134,12 @@ export default function EntitySection({ id }) {
           maxWidth: '780px',
           width: 'auto',
           padding: 3,
+          border: isTargetOfEdge && '2px solid',
+          boxShadow: isTargetOfEdge ? '0 0 8px rgba(0, 0, 0, 0.2)' : 'none',
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': {
+            boxShadow: '0 0 12px rgba(0, 0, 0, 0.15)',
+          },
         }}
       >
         <div className='flex flex-row gap-6 items-center'>
@@ -330,4 +336,7 @@ export default function EntitySection({ id }) {
 
 EntitySection.propTypes = {
   id: PropTypes.number.isRequired,
+  data: PropTypes.shape({
+    selected: PropTypes.bool,
+  }),
 };
