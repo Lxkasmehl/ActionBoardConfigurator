@@ -1,62 +1,77 @@
+import { Typography } from '@mui/joy';
 import PropTypes from 'prop-types';
-import { Table } from '@mui/joy';
 
 export const ColumnDragOverlay = ({ activeColumn, tableData }) => {
   if (!activeColumn) return null;
 
   return (
-    <Table borderAxis='bothBetween' color='neutral' variant='outlined'>
-      <thead>
-        <tr>
-          <th
-            style={{
-              whiteSpace: 'normal',
-              wordWrap: 'break-word',
-              position: 'relative',
-              cursor: 'grab',
-              width: '100%',
-              overflow: 'visible',
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        border: '1px solid #ced8e2',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        backgroundColor: '#fbfcfe',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        minWidth: '150px',
+        opacity: 0.7,
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          padding: 10,
+          borderBottom: '1px solid #ced8e2',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          style={{
+            cursor: 'grab',
+            position: 'absolute',
+            top: '-4px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            rotate: '90deg',
+            zIndex: 1000,
+            borderRadius: '4px',
+            backgroundColor: '#ced8e2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '4px 0px',
+          }}
+        >
+          <span style={{ fontSize: 'small' }}>⋮</span>
+        </div>
+        <Typography
+          level='title-sm'
+          sx={{ textAlign: 'center', wordBreak: 'break-word' }}
+        >
+          {activeColumn.label}
+        </Typography>
+      </div>
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {(tableData || []).map((row, index) => (
+          <Typography
+            key={index}
+            level='body-sm'
+            sx={{
+              padding: 1,
+              borderBottom:
+                index === tableData.length - 1 ? 'none' : '1px solid #ced8e2',
+              textAlign: 'center',
+              minHeight: '38px',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <div
-                style={{
-                  cursor: 'grab',
-                  position: 'absolute',
-                  top: '-4px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  rotate: '90deg',
-                  zIndex: 1000,
-                  borderRadius: '4px',
-                  backgroundColor: '#ced8e2',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '4px 0px',
-                }}
-              >
-                <span style={{ fontSize: 'small' }}>⋮</span>
-              </div>
-              {activeColumn.label}
-            </div>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {(tableData || []).map((row, index) => (
-          <tr key={index}>
-            <td>{row[activeColumn.label]}</td>
-          </tr>
+            {row[activeColumn.label]}
+          </Typography>
         ))}
-      </tbody>
-    </Table>
+      </div>
+    </div>
   );
 };
 
