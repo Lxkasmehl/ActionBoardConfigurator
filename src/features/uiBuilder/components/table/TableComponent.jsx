@@ -1,4 +1,4 @@
-import { Table, IconButton, Sheet } from '@mui/joy';
+import { IconButton, Sheet } from '@mui/joy';
 import { Add } from '@mui/icons-material';
 import { useState } from 'react';
 import EditModal from '../common/EditModal';
@@ -123,34 +123,48 @@ export default function TableComponent({ component }) {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <Sheet sx={{ overflow: 'auto', maxHeight: '500px' }}>
-          <Table borderAxis='bothBetween' color='neutral' variant='outlined'>
-            <thead>
-              <tr>
-                <SortableContext
-                  items={columns.map((col) => col.label)}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  {columns.map((column) => (
-                    <DraggableColumn
-                      key={column.label}
-                      column={column}
-                      onEdit={handleEditColumn}
-                      isHovered={hoveredColumnHeader === column.label}
-                      isColumnHovered={hoveredColumn === column.label}
-                      onMouseEnter={() => setHoveredColumn(column.label)}
-                      onMouseLeave={() => setHoveredColumn(null)}
-                      onHeaderMouseEnter={(label) =>
-                        setHoveredColumnHeader(label)
-                      }
-                      onHeaderMouseLeave={() => setHoveredColumnHeader(null)}
-                      data={tableData}
-                    />
-                  ))}
-                </SortableContext>
-              </tr>
-            </thead>
-          </Table>
+        <Sheet
+          sx={{
+            overflow: 'auto',
+            maxHeight: '500px',
+            maxWidth: 'calc(100vw - 460px)',
+            '& > div': {
+              minWidth: 'min-content',
+              width: '100%',
+            },
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${columns.length}, minmax(120px, 1fr))`,
+              border: '1px solid #ced8e2',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              minWidth: 'min-content',
+            }}
+          >
+            <SortableContext
+              items={columns.map((col) => col.label)}
+              strategy={horizontalListSortingStrategy}
+            >
+              {columns.map((column, index) => (
+                <DraggableColumn
+                  key={column.label}
+                  column={column}
+                  onEdit={handleEditColumn}
+                  isHovered={hoveredColumnHeader === column.label}
+                  isColumnHovered={hoveredColumn === column.label}
+                  onMouseEnter={() => setHoveredColumn(column.label)}
+                  onMouseLeave={() => setHoveredColumn(null)}
+                  onHeaderMouseEnter={(label) => setHoveredColumnHeader(label)}
+                  onHeaderMouseLeave={() => setHoveredColumnHeader(null)}
+                  data={tableData}
+                  isLastColumn={index === columns.length - 1}
+                />
+              ))}
+            </SortableContext>
+          </div>
         </Sheet>
 
         <DragOverlay modifiers={[restrictToHorizontalAxis]}>
