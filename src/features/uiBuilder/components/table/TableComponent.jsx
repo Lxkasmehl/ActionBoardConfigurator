@@ -83,7 +83,6 @@ export default function TableComponent({ component }) {
     field: column.label,
     headerName: column.label,
     minWidth: 100,
-    maxWidth: 250,
     flex: 1,
     resizable: true,
     editable: false,
@@ -110,7 +109,11 @@ export default function TableComponent({ component }) {
         slots={{
           toolbar: CustomToolbar,
           columnMenu: (props) => (
-            <CustomColumnMenu {...props} onEditColumn={handleEditColumn} />
+            <CustomColumnMenu
+              {...props}
+              onEditColumn={handleEditColumn}
+              onDeleteColumn={handleDeleteColumn}
+            />
           ),
         }}
         sx={{
