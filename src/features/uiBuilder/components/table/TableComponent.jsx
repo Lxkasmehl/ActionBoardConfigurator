@@ -1,11 +1,12 @@
 import { IconButton } from '@mui/joy';
-import { Add, Edit } from '@mui/icons-material';
+import { Add } from '@mui/icons-material';
 import { useState } from 'react';
 import EditModal from '../common/EditModal';
 import PropTypes from 'prop-types';
 import { useTableData } from '../../hooks/useTableData';
 import { getInitialDummyData } from '../../utils/tableUtils';
 import { DataGridPro } from '@mui/x-data-grid-pro';
+import CustomColumnMenu from './CustomColumnMenu';
 
 export default function TableComponent({ component }) {
   const [columns, setColumns] = useState(component.props.columns);
@@ -25,7 +26,8 @@ export default function TableComponent({ component }) {
     setColumns([...columns, newColumn]);
   };
 
-  const handleEditColumn = (column) => {
+  const handleEditColumn = (columnField) => {
+    const column = columns.find((col) => col.label === columnField);
     setEditingColumn(column);
   };
 
@@ -64,12 +66,14 @@ export default function TableComponent({ component }) {
     );
   };
 
-  // Convert our column format to MUI X Data Grid format
   const gridColumns = columns.map((column) => ({
     field: column.label,
     headerName: column.label,
-    minWidth: 150,
-    editable: true,
+    minWidth: 100,
+    maxWidth: 250,
+    flex: 1,
+    resizable: true,
+    editable: false,
     type: column.type || 'string',
     renderHeader: () => (
       <div
@@ -82,14 +86,6 @@ export default function TableComponent({ component }) {
         }}
       >
         <span>{column.label}</span>
-        <IconButton
-          size='sm'
-          variant='plain'
-          color='neutral'
-          onClick={() => handleEditColumn(column)}
-        >
-          <Edit fontSize='small' />
-        </IconButton>
       </div>
     ),
   }));
@@ -110,6 +106,11 @@ export default function TableComponent({ component }) {
         disableRowSelectionOnClick
         experimentalFeatures={{ newEditingApi: true }}
         columnReordering
+        slots={{
+          columnMenu: (props) => (
+            <CustomColumnMenu {...props} onEditColumn={handleEditColumn} />
+          ),
+        }}
         sx={{
           zIndex: 10000,
         }}
