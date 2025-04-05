@@ -1,76 +1,25 @@
-import { IconButton, Sheet } from '@mui/joy';
-import { Add } from '@mui/icons-material';
+import { IconButton } from '@mui/joy';
+import { Add, Edit } from '@mui/icons-material';
 import { useState } from 'react';
 import EditModal from '../common/EditModal';
 import PropTypes from 'prop-types';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragOverlay,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  horizontalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import DraggableColumn from './DraggableColumn';
-import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import { useTableData } from '../../hooks/useTableData';
 import { getInitialDummyData } from '../../utils/tableUtils';
-import { ColumnDragOverlay } from './ColumnDragOverlay';
+import { DataGridPro } from '@mui/x-data-grid-pro';
 
 export default function TableComponent({ component }) {
   const [columns, setColumns] = useState(component.props.columns);
-  const [hoveredColumn, setHoveredColumn] = useState(null);
-  const [hoveredColumnHeader, setHoveredColumnHeader] = useState(null);
   const [editingColumn, setEditingColumn] = useState(null);
-  const [activeColumn, setActiveColumn] = useState(null);
   const [tableData, setTableData] = useTableData(
     columns,
     getInitialDummyData(),
   );
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const handleDragStart = (event) => {
-    const { active } = event;
-    const column = columns.find((col) => col.label === active.id);
-    if (column) {
-      setActiveColumn(column);
-    }
-  };
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    setActiveColumn(null);
-
-    if (active.id !== over.id) {
-      setColumns((items) => {
-        const oldIndex = items.findIndex((item) => item.label === active.id);
-        const newIndex = items.findIndex((item) => item.label === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  };
-
   const handleAddColumn = () => {
     const newColumnLabel = `Column ${columns.length + 1}`;
     const newColumn = {
       label: newColumnLabel,
+      type: 'text',
     };
 
     setColumns([...columns, newColumn]);
@@ -115,65 +64,56 @@ export default function TableComponent({ component }) {
     );
   };
 
-  return (
-    <>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
+  // Convert our column format to MUI X Data Grid format
+  const gridColumns = columns.map((column) => ({
+    field: column.label,
+    headerName: column.label,
+    minWidth: 150,
+    editable: true,
+    type: column.type || 'string',
+    renderHeader: () => (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          gap: 4,
+        }}
       >
-        <Sheet
-          sx={{
-            overflow: 'auto',
-            maxHeight: '500px',
-            maxWidth: 'calc(100vw - 460px)',
-            '& > div': {
-              minWidth: 'min-content',
-              width: '100%',
-            },
-          }}
+        <span>{column.label}</span>
+        <IconButton
+          size='sm'
+          variant='plain'
+          color='neutral'
+          onClick={() => handleEditColumn(column)}
         >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${columns.length}, minmax(120px, 1fr))`,
-              border: '1px solid #ced8e2',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              minWidth: 'min-content',
-            }}
-          >
-            <SortableContext
-              items={columns.map((col) => col.label)}
-              strategy={horizontalListSortingStrategy}
-            >
-              {columns.map((column, index) => (
-                <DraggableColumn
-                  key={column.label}
-                  column={column}
-                  onEdit={handleEditColumn}
-                  isHovered={hoveredColumnHeader === column.label}
-                  isColumnHovered={hoveredColumn === column.label}
-                  onMouseEnter={() => setHoveredColumn(column.label)}
-                  onMouseLeave={() => setHoveredColumn(null)}
-                  onHeaderMouseEnter={(label) => setHoveredColumnHeader(label)}
-                  onHeaderMouseLeave={() => setHoveredColumnHeader(null)}
-                  data={tableData}
-                  isLastColumn={index === columns.length - 1}
-                />
-              ))}
-            </SortableContext>
-          </div>
-        </Sheet>
+          <Edit fontSize='small' />
+        </IconButton>
+      </div>
+    ),
+  }));
 
-        <DragOverlay modifiers={[restrictToHorizontalAxis]}>
-          <ColumnDragOverlay
-            activeColumn={activeColumn}
-            tableData={tableData}
-          />
-        </DragOverlay>
-      </DndContext>
+  // Add a unique id to each row for the Data Grid
+  const rows = tableData.map((row, index) => ({
+    id: index,
+    ...row,
+  }));
+
+  return (
+    <div
+      style={{ maxHeight: 500, width: '100%', maxWidth: 'calc(100vw - 460px)' }}
+    >
+      <DataGridPro
+        rows={rows}
+        columns={gridColumns}
+        disableRowSelectionOnClick
+        experimentalFeatures={{ newEditingApi: true }}
+        columnReordering
+        sx={{
+          zIndex: 10000,
+        }}
+      />
       <IconButton
         variant='solid'
         color='primary'
@@ -199,7 +139,7 @@ export default function TableComponent({ component }) {
           title='Edit Column'
         />
       )}
-    </>
+    </div>
   );
 }
 
