@@ -10,7 +10,12 @@ import CustomColumnMenu from './CustomColumnMenu';
 import CustomToolbar from './CustomToolbar';
 
 export default function TableComponent({ component }) {
-  const [columns, setColumns] = useState(component.props.columns);
+  const [columns, setColumns] = useState(
+    component.props.columns.map((col) => ({
+      ...col,
+      id: crypto.randomUUID(),
+    })),
+  );
   const [editingColumn, setEditingColumn] = useState(null);
   const [tableData, setTableData] = useTableData(
     columns,
@@ -18,33 +23,37 @@ export default function TableComponent({ component }) {
   );
 
   const handleAddColumn = () => {
-    const newColumnLabel = `Column ${columns.length + 1}`;
+    const existingNumbers = columns.map((col) => {
+      const match = col.label.match(/Column (\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    });
+    const maxNumber = Math.max(0, ...existingNumbers);
+
+    let newNumber = maxNumber + 1;
+    while (columns.some((col) => col.label === `Column ${newNumber}`)) {
+      newNumber++;
+    }
+
+    const newColumnLabel = `Column ${newNumber}`;
     const newColumn = {
+      id: crypto.randomUUID(),
       label: newColumnLabel,
-      type: 'text',
     };
 
     setColumns([...columns, newColumn]);
   };
 
-  const handleEditColumn = (columnField) => {
-    const column = columns.find((col) => col.label === columnField);
+  const handleEditColumn = (columnId) => {
+    const column = columns.find((col) => col.id === columnId);
     setEditingColumn(column);
   };
 
   const handleSaveColumn = (editedColumn) => {
-    // Ensure the column has a type
-    const columnWithType = {
-      ...editedColumn,
-      type: editedColumn.type || 'text',
-    };
-
     const newColumns = columns.map((col) =>
-      col.label === editingColumn.label ? columnWithType : col,
+      col.id === editingColumn.id ? editedColumn : col,
     );
     setColumns(newColumns);
 
-    // If we have direct data from the iframe, update the table data
     if (editedColumn.data) {
       setTableData((prevData) => {
         const maxRows = Math.max(prevData.length, editedColumn.data.length);
@@ -56,15 +65,18 @@ export default function TableComponent({ component }) {
     }
   };
 
-  const handleDeleteColumn = (columnLabel) => {
-    setColumns(columns.filter((col) => col.label !== columnLabel));
-    setTableData(
-      tableData.map((row) => {
-        const newRow = { ...row };
-        delete newRow[columnLabel];
-        return newRow;
-      }),
-    );
+  const handleDeleteColumn = (columnId) => {
+    const columnToDelete = columns.find((col) => col.id === columnId);
+    if (columnToDelete) {
+      setColumns(columns.filter((col) => col.id !== columnId));
+      setTableData(
+        tableData.map((row) => {
+          const newRow = { ...row };
+          delete newRow[columnToDelete.label];
+          return newRow;
+        }),
+      );
+    }
   };
 
   const gridColumns = columns.map((column) => ({
@@ -76,22 +88,9 @@ export default function TableComponent({ component }) {
     resizable: true,
     editable: false,
     type: column.type || 'string',
-    renderHeader: () => (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          gap: 4,
-        }}
-      >
-        <span>{column.label}</span>
-      </div>
-    ),
+    columnId: column.id,
   }));
 
-  // Add a unique id to each row for the Data Grid
   const rows = tableData.map((row, index) => ({
     id: index,
     ...row,

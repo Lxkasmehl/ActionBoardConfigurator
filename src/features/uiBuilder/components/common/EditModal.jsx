@@ -26,9 +26,6 @@ export default function EditModal({
 
       if (event.data.type === 'IFRAME_DATA_RESPONSE') {
         if (isWaitingForIframeData) {
-          // Extract the actual values from the response
-          console.log('event.data.payload', event.data.payload);
-
           const entityName =
             event.data.payload[0].d.results[0].__metadata.type.split('.')[1];
           const propertyName = Object.keys(
@@ -71,9 +68,9 @@ export default function EditModal({
   }, [editedItem, onSave, onClose, type, isIFrame]);
 
   const handleDelete = useCallback(() => {
-    onDelete(type === 'column' ? item.label : item.id);
+    onDelete(item.id);
     onClose();
-  }, [type, item, onDelete, onClose]);
+  }, [item, onDelete, onClose]);
 
   return (
     <Modal open={open} onClose={onClose}>
