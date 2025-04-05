@@ -1,5 +1,5 @@
 import { useSortable } from '@dnd-kit/sortable';
-import { Box, Card, Button, Divider } from '@mui/joy';
+import { Box, Card, Button, Divider, IconButton } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from '../common/constants';
 import FilterArea from '../FilterArea';
@@ -9,8 +9,12 @@ import TableComponent from '../table/TableComponent';
 import HeadingComponent from '../text/HeadingComponent';
 import ParagraphComponent from '../text/ParagraphComponent';
 import ChartComponent from '../chart/ChartComponent';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import { useState } from 'react';
 
 export default function SortableComponent({ component, isOver, isLast }) {
+  const [isNearEdge, setIsNearEdge] = useState(false);
+
   const { attributes, listeners, setNodeRef, transition, isDragging } =
     useSortable({
       id: component.id,
@@ -18,6 +22,8 @@ export default function SortableComponent({ component, isOver, isLast }) {
         isDragging: false,
       },
     });
+
+  console.log('listeners', listeners);
 
   const { setNodeRef: setGapRef, isOver: isGapOver } = useDroppable({
     id: `gap-${component.id}`,
@@ -31,6 +37,22 @@ export default function SortableComponent({ component, isOver, isLast }) {
     transition,
     position: 'relative',
     zIndex: isDragging ? 1 : 0,
+  };
+
+  const handleMouseMove = (e) => {
+    if (component.type !== 'table') return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const edgeThreshold = 20; // pixels from edge
+
+    setIsNearEdge(
+      x < edgeThreshold ||
+        x > rect.width - edgeThreshold ||
+        y < edgeThreshold ||
+        y > rect.height - edgeThreshold,
+    );
   };
 
   const renderComponent = () => {
@@ -78,18 +100,58 @@ export default function SortableComponent({ component, isOver, isLast }) {
       <Card
         ref={setNodeRef}
         style={style}
-        {...attributes}
-        {...listeners}
+        onMouseMove={component.type === 'table' ? handleMouseMove : undefined}
+        onMouseLeave={
+          component.type === 'table' ? () => setIsNearEdge(false) : undefined
+        }
+        {...(component.type === 'table'
+          ? isNearEdge
+            ? { ...attributes, ...listeners }
+            : {}
+          : { ...attributes, ...listeners })}
         sx={{
           p: 2,
-          cursor: 'grab',
+          cursor:
+            component.type === 'table'
+              ? isNearEdge
+                ? 'grab'
+                : 'default'
+              : 'grab',
           '&:active': {
-            cursor: 'grabbing',
+            cursor:
+              component.type === 'table'
+                ? isNearEdge
+                  ? 'grabbing'
+                  : 'default'
+                : 'grabbing',
           },
           position: 'relative',
           transition: 'transform 0.2s ease',
         }}
       >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 1,
+          }}
+        >
+          <IconButton
+            {...attributes}
+            {...listeners}
+            size='sm'
+            variant='plain'
+            sx={{
+              cursor: 'grab',
+              '&:active': {
+                cursor: 'grabbing',
+              },
+            }}
+          >
+            <DragIndicatorIcon />
+          </IconButton>
+        </Box>
         {renderComponent()}
       </Card>
       <Box
