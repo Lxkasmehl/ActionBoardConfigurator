@@ -1,22 +1,33 @@
 import { GridColumnMenu } from '@mui/x-data-grid-pro';
 import EditItem from './EditItem';
+import DeleteItem from './DeleteItem';
 import PropTypes from 'prop-types';
 
-export default function CustomColumnMenu({ onEditColumn, ...props }) {
+export default function CustomColumnMenu({
+  onEditColumn,
+  onDeleteColumn,
+  ...props
+}) {
   if (!props.colDef) return null;
 
   return (
     <GridColumnMenu
       {...props}
       slots={{
-        columnMenuUserItem: EditItem,
+        columnMenuEditItem: EditItem,
         columnMenuFilterItem: null,
+        columnMenuDeleteItem: DeleteItem,
       }}
       slotProps={{
-        columnMenuUserItem: {
+        columnMenuEditItem: {
           displayOrder: 1,
           editValue: 'Edit Column',
           editHandler: () => onEditColumn(props.colDef.columnId),
+        },
+        columnMenuDeleteItem: {
+          displayOrder: 2,
+          deleteValue: 'Delete Column',
+          deleteHandler: () => onDeleteColumn(props.colDef.columnId),
         },
       }}
     />
@@ -25,6 +36,7 @@ export default function CustomColumnMenu({ onEditColumn, ...props }) {
 
 CustomColumnMenu.propTypes = {
   onEditColumn: PropTypes.func.isRequired,
+  onDeleteColumn: PropTypes.func.isRequired,
   colDef: PropTypes.shape({
     columnId: PropTypes.string.isRequired,
     field: PropTypes.string.isRequired,
