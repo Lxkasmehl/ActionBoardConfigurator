@@ -7,6 +7,7 @@ import { useTableData } from '../../hooks/useTableData';
 import { getInitialDummyData } from '../../utils/tableUtils';
 import { DataGridPro } from '@mui/x-data-grid-pro';
 import CustomColumnMenu from './CustomColumnMenu';
+import CustomToolbar from './CustomToolbar';
 
 export default function TableComponent({ component }) {
   const [columns, setColumns] = useState(component.props.columns);
@@ -106,13 +107,33 @@ export default function TableComponent({ component }) {
         disableRowSelectionOnClick
         experimentalFeatures={{ newEditingApi: true }}
         columnReordering
+        hideFooter
         slots={{
+          toolbar: CustomToolbar,
           columnMenu: (props) => (
             <CustomColumnMenu {...props} onEditColumn={handleEditColumn} />
           ),
         }}
         sx={{
-          zIndex: 10000,
+          '& .MuiDataGrid-cell': {
+            borderRight: '1px solid rgba(224, 224, 224, 1)',
+          },
+          '& .MuiDataGrid-cell:last-child': {
+            borderRight: 'none',
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            borderBottom: '1px solid rgba(224, 224, 224, 1)',
+            borderTop: '1px solid rgba(224, 224, 224, 1)',
+          },
+          '& .MuiDataGrid-columnHeader': {
+            borderRight: '1px solid rgba(224, 224, 224, 1)',
+          },
+          '& .MuiDataGrid-columnHeader:last-child': {
+            borderRight: 'none',
+          },
+          '& .MuiDataGrid-row:last-child .MuiDataGrid-cell': {
+            borderBottom: 'none',
+          },
         }}
       />
       <IconButton
