@@ -198,7 +198,7 @@ const ColumnFormFields = forwardRef(
               isMainEntity: e.target.checked,
             });
           }}
-          disabled={!editedItem.entity}
+          disabled={!isIFrame && !editedItem.entity}
           sx={{ marginTop: 1, alignSelf: 'center' }}
         />
 
