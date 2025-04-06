@@ -3,6 +3,7 @@ import { useSendRequest } from './useSendRequest';
 
 export const useTableData = (columns, initialDummyData) => {
   const [tableData, setTableData] = useState(initialDummyData);
+  const [isLoading, setIsLoading] = useState(false);
   const handleSendRequest = useSendRequest();
 
   const updateTableData = useCallback((newData) => {
@@ -36,6 +37,7 @@ export const useTableData = (columns, initialDummyData) => {
       );
       if (entityColumns.length === 0) return;
 
+      setIsLoading(true);
       try {
         const results = await Promise.all(
           entityColumns.map((col) =>
@@ -49,9 +51,9 @@ export const useTableData = (columns, initialDummyData) => {
         const newEntityData = {};
         results.forEach((result, index) => {
           const column = entityColumns[index];
-          newEntityData[column.label] = result.d.results
-            .map((item) => item[column.property.name])
-            .filter((value) => value !== null);
+          newEntityData[column.label] = result.d.results.map(
+            (item) => item[column.property.name],
+          );
         });
 
         setTableData((prevData) => {
@@ -78,11 +80,13 @@ export const useTableData = (columns, initialDummyData) => {
         });
       } catch (error) {
         console.error('Error fetching entity data:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchEntityData();
   }, [columns, handleSendRequest]);
 
-  return [tableData, updateTableData];
+  return [tableData, updateTableData, isLoading];
 };
