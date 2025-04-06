@@ -17,7 +17,7 @@ export default function TableComponent({ component }) {
     })),
   );
   const [editingColumn, setEditingColumn] = useState(null);
-  const [tableData, setTableData] = useTableData(
+  const [tableData, setTableData, isLoading] = useTableData(
     columns,
     getInitialDummyData(),
   );
@@ -123,6 +123,7 @@ export default function TableComponent({ component }) {
         experimentalFeatures={{ newEditingApi: true }}
         columnReordering
         hideFooter
+        loading={isLoading}
         slots={{
           toolbar: CustomToolbar,
           columnMenu: (props) => (
