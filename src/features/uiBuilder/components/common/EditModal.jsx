@@ -13,12 +13,18 @@ export default function EditModal({
   onDelete,
   type,
   title,
+  mainEntity,
 }) {
   const [editedItem, setEditedItem] = useState(item);
   const [inputValue, setInputValue] = useState('');
   const columnFormRef = useRef(null);
   const [isWaitingForIframeData, setIsWaitingForIframeData] = useState(false);
   const [isIFrame, setIsIFrame] = useState(false);
+  const [validationError, setValidationError] = useState('');
+
+  useEffect(() => {
+    setValidationError('');
+  }, [editedItem]);
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -41,12 +47,11 @@ export default function EditModal({
               (result) => result[propertyName],
             );
 
-            // First item updates the current column, others create new ones
             const columnData = {
               ...editedItem,
               data: extractedData,
               label: `${entityName} -> ${propertyName}`,
-              isNewColumn: index > 0, // Mark as new column for all but the first item
+              isNewColumn: index > 0,
             };
 
             onSave(columnData);
@@ -63,14 +68,32 @@ export default function EditModal({
   }, [editedItem, isWaitingForIframeData, onSave, onClose]);
 
   const handleSave = useCallback(() => {
-    if (type === 'column' && columnFormRef.current && isIFrame) {
-      setIsWaitingForIframeData(true);
-      columnFormRef.current.triggerIframeDataFetch();
+    if (type === 'column') {
+      if (
+        editedItem.entity &&
+        !editedItem.isMainEntity &&
+        mainEntity &&
+        editedItem.entity.name !== mainEntity.name
+      ) {
+        setValidationError(
+          `This column cannot be saved because its entity (${editedItem.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`,
+        );
+        return;
+      }
+      setValidationError('');
+
+      if (columnFormRef.current && isIFrame) {
+        setIsWaitingForIframeData(true);
+        columnFormRef.current.triggerIframeDataFetch();
+      } else {
+        onSave(editedItem);
+        onClose();
+      }
     } else {
       onSave(editedItem);
       onClose();
     }
-  }, [editedItem, onSave, onClose, type, isIFrame]);
+  }, [editedItem, onSave, onClose, type, isIFrame, mainEntity]);
 
   const handleDelete = useCallback(() => {
     onDelete(item.id);
@@ -90,6 +113,7 @@ export default function EditModal({
             isIFrame={isIFrame}
             setIsIFrame={setIsIFrame}
             setIsWaitingForIframeData={setIsWaitingForIframeData}
+            mainEntity={mainEntity}
           />
         ) : (
           <FieldFormFields
@@ -112,10 +136,23 @@ export default function EditModal({
             <Button variant='plain' color='neutral' onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave} loading={isWaitingForIframeData}>
+            <Button
+              onClick={handleSave}
+              loading={isWaitingForIframeData}
+              disabled={!!validationError}
+            >
               Save
             </Button>
           </div>
+          {validationError && (
+            <Typography
+              color='danger'
+              level='body-sm'
+              sx={{ mt: 1, maxWidth: '400px' }}
+            >
+              {validationError}
+            </Typography>
+          )}
         </div>
       </ModalDialog>
     </Modal>
@@ -143,4 +180,7 @@ EditModal.propTypes = {
   onDelete: PropTypes.func.isRequired,
   type: PropTypes.oneOf(['column', 'field']).isRequired,
   title: PropTypes.string.isRequired,
+  mainEntity: PropTypes.shape({
+    name: PropTypes.string,
+  }),
 };

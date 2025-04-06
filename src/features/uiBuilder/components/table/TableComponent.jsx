@@ -16,11 +16,21 @@ export default function TableComponent({ component }) {
       id: crypto.randomUUID(),
     })),
   );
+  const [mainEntity, setMainEntity] = useState(null);
   const [editingColumn, setEditingColumn] = useState(null);
   const [tableData, setTableData, isLoading] = useTableData(
     columns,
     getInitialDummyData(),
   );
+
+  const isColumnInvalid = (column) => {
+    return (
+      column.entity &&
+      !column.isMainEntity &&
+      mainEntity &&
+      column.entity.name !== mainEntity.name
+    );
+  };
 
   const handleAddColumn = () => {
     const existingNumbers = columns.map((col) => {
@@ -49,6 +59,17 @@ export default function TableComponent({ component }) {
   };
 
   const handleSaveColumn = (editedColumn) => {
+    if (editedColumn.isMainEntity) {
+      // If this column is being set as main entity, unset any other main entity
+      setMainEntity(editedColumn.entity);
+      setColumns((prevColumns) =>
+        prevColumns.map((col) => ({
+          ...col,
+          isMainEntity: col.id === editedColumn.id,
+        })),
+      );
+    }
+
     if (editedColumn.data) {
       if (editedColumn.isNewColumn) {
         const newColumn = {
@@ -83,6 +104,9 @@ export default function TableComponent({ component }) {
   const handleDeleteColumn = (columnId) => {
     const columnToDelete = columns.find((col) => col.id === columnId);
     if (columnToDelete) {
+      if (columnToDelete.isMainEntity) {
+        setMainEntity(null);
+      }
       setColumns(columns.filter((col) => col.id !== columnId));
       setTableData(
         tableData.map((row) => {
@@ -94,16 +118,35 @@ export default function TableComponent({ component }) {
     }
   };
 
-  const gridColumns = columns.map((column) => ({
-    field: column.label,
-    headerName: column.label,
-    minWidth: 100,
-    flex: 1,
-    resizable: true,
-    editable: !column.data && !column.entity,
-    type: column.type || 'string',
-    columnId: column.id,
-  }));
+  console.log('columns', columns);
+
+  const gridColumns = columns.map((column) => {
+    const isInvalid = isColumnInvalid(column);
+    return {
+      field: column.label,
+      headerName: column.label,
+      minWidth: 100,
+      flex: 1,
+      resizable: true,
+      editable: !column.data && !column.entity,
+      type: column.type || 'string',
+      columnId: column.id,
+      headerClassName: isInvalid ? 'invalid-column-header' : '',
+      cellClassName: isInvalid ? 'invalid-column-cell' : '',
+      description: isInvalid
+        ? `This column's entity (${column.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`
+        : '',
+    };
+  });
+
+  // Sort columns to put main entity first
+  const sortedColumns = [...gridColumns].sort((a, b) => {
+    const colA = columns.find((col) => col.id === a.columnId);
+    const colB = columns.find((col) => col.id === b.columnId);
+    if (colA.isMainEntity) return -1;
+    if (colB.isMainEntity) return 1;
+    return 0;
+  });
 
   const rows = tableData.map((row, index) => ({
     id: index,
@@ -116,7 +159,7 @@ export default function TableComponent({ component }) {
     >
       <DataGridPro
         rows={rows}
-        columns={gridColumns}
+        columns={sortedColumns}
         disableRowSelectionOnClick
         experimentalFeatures={{ newEditingApi: true }}
         columnReordering
@@ -152,6 +195,15 @@ export default function TableComponent({ component }) {
           '& .MuiDataGrid-row:last-child .MuiDataGrid-cell': {
             borderBottom: 'none',
           },
+          '& .invalid-column-header': {
+            backgroundColor: 'rgba(255, 0, 0, 0.1)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 0, 0, 0.15)',
+            },
+          },
+          '& .invalid-column-cell': {
+            backgroundColor: 'rgba(255, 0, 0, 0.05)',
+          },
         }}
       />
       <IconButton
@@ -177,6 +229,7 @@ export default function TableComponent({ component }) {
           onDelete={handleDeleteColumn}
           type='column'
           title='Edit Column'
+          mainEntity={mainEntity}
         />
       )}
     </div>
