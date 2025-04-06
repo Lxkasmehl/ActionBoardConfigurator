@@ -8,8 +8,12 @@ export default function EntityPropertyFields({
   sortedEntities,
   loading,
 }) {
-  const [selectedEntity, setSelectedEntity] = useState(editedItem.entity);
-  const [selectedProperty, setSelectedProperty] = useState(editedItem.property);
+  const [selectedEntity, setSelectedEntity] = useState(
+    editedItem.entity || null,
+  );
+  const [selectedProperty, setSelectedProperty] = useState(
+    editedItem.property || null,
+  );
   const [propertyOptions, setPropertyOptions] = useState([]);
 
   useEffect(() => {
