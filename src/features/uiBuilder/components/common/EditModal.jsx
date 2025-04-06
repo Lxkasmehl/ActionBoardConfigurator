@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
 import ColumnFormFields from '../table/ColumnFormFields';
 import FieldFormFields from '../table/FieldFormFields';
+import { useSelector } from 'react-redux';
 
 export default function EditModal({
   open,
@@ -21,6 +22,9 @@ export default function EditModal({
   const [isWaitingForIframeData, setIsWaitingForIframeData] = useState(false);
   const [isIFrame, setIsIFrame] = useState(false);
   const [validationError, setValidationError] = useState('');
+  const filteredEntities = useSelector(
+    (state) => state.fetchedData.filteredEntities,
+  );
 
   useEffect(() => {
     setValidationError('');
@@ -47,11 +51,16 @@ export default function EditModal({
               (result) => result[propertyName],
             );
 
+            const completeEntity = filteredEntities.find(
+              (entity) => entity.name === entityName,
+            );
+
             const columnData = {
               ...editedItem,
               data: extractedData,
               label: `${entityName} -> ${propertyName}`,
               isNewColumn: index > 0,
+              entity: completeEntity,
             };
 
             onSave(columnData);
@@ -65,7 +74,7 @@ export default function EditModal({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [editedItem, isWaitingForIframeData, onSave, onClose]);
+  }, [editedItem, isWaitingForIframeData, onSave, onClose, filteredEntities]);
 
   const handleSave = useCallback(() => {
     if (type === 'column') {
