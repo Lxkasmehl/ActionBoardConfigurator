@@ -49,12 +49,23 @@ export default function TableComponent({ component }) {
   };
 
   const handleSaveColumn = (editedColumn) => {
-    const newColumns = columns.map((col) =>
-      col.id === editingColumn.id ? editedColumn : col,
-    );
-    setColumns(newColumns);
+    console.log('editedColumn', editedColumn);
 
     if (editedColumn.data) {
+      if (editedColumn.isNewColumn) {
+        const newColumn = {
+          ...editedColumn,
+          id: crypto.randomUUID(),
+        };
+        setColumns((prevColumns) => [...prevColumns, newColumn]);
+      } else {
+        setColumns((prevColumns) =>
+          prevColumns.map((col) =>
+            col.id === editingColumn.id ? editedColumn : col,
+          ),
+        );
+      }
+
       setTableData((prevData) => {
         const maxRows = Math.max(prevData.length, editedColumn.data.length);
         return Array.from({ length: maxRows }, (_, index) => ({
@@ -62,6 +73,12 @@ export default function TableComponent({ component }) {
           [editedColumn.label]: editedColumn.data[index] || '',
         }));
       });
+    } else {
+      setColumns((prevColumns) =>
+        prevColumns.map((col) =>
+          col.id === editingColumn.id ? editedColumn : col,
+        ),
+      );
     }
   };
 

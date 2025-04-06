@@ -26,25 +26,30 @@ export default function EditModal({
 
       if (event.data.type === 'IFRAME_DATA_RESPONSE') {
         if (isWaitingForIframeData) {
-          const entityName =
-            event.data.payload[0].d.results[0].__metadata.type.split('.')[1];
-          const propertyName = Object.keys(
-            event.data.payload[0].d.results[0],
-          ).find((key) => key !== '__metadata');
+          const dataItems = Array.isArray(event.data.payload)
+            ? event.data.payload
+            : [event.data.payload];
 
-          const extractedData = event.data.payload
-            .map((mapItem) => {
-              if (mapItem.d && mapItem.d.results) {
-                return mapItem.d.results.map((result) => result[propertyName]);
-              }
-              return [];
-            })
-            .flat();
+          dataItems.forEach((dataItem, index) => {
+            const entityName =
+              dataItem.d.results[0].__metadata.type.split('.')[1];
+            const propertyName = Object.keys(dataItem.d.results[0]).find(
+              (key) => key !== '__metadata',
+            );
 
-          onSave({
-            ...editedItem,
-            data: extractedData,
-            label: `${entityName} -> ${propertyName}`,
+            const extractedData = dataItem.d.results.map(
+              (result) => result[propertyName],
+            );
+
+            // First item updates the current column, others create new ones
+            const columnData = {
+              ...editedItem,
+              data: extractedData,
+              label: `${entityName} -> ${propertyName}`,
+              isNewColumn: index > 0, // Mark as new column for all but the first item
+            };
+
+            onSave(columnData);
           });
 
           onClose();
