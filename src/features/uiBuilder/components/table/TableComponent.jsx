@@ -118,8 +118,6 @@ export default function TableComponent({ component }) {
     }
   };
 
-  console.log('columns', columns);
-
   const gridColumns = columns.map((column) => {
     const isInvalid = isColumnInvalid(column);
     return {

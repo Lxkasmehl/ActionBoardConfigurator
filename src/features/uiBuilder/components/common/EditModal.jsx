@@ -30,6 +30,7 @@ export default function EditModal({
   const [isWaitingForIframeData, setIsWaitingForIframeData] = useState(false);
   const [isIFrame, setIsIFrame] = useState(false);
   const [validationError, setValidationError] = useState('');
+  const [isIframeValidationError, setIsIframeValidationError] = useState(false);
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
@@ -38,6 +39,7 @@ export default function EditModal({
 
   useEffect(() => {
     setValidationError('');
+    setIsIframeValidationError(false);
   }, [editedItem]);
 
   useEffect(() => {
@@ -49,6 +51,8 @@ export default function EditModal({
           const dataItems = Array.isArray(event.data.payload)
             ? event.data.payload
             : [event.data.payload];
+
+          let hasValidationError = false;
 
           dataItems.forEach((dataItem, index) => {
             const entityName =
@@ -73,18 +77,42 @@ export default function EditModal({
               entity: completeEntity,
             };
 
+            if (
+              columnData.entity &&
+              !columnData.isMainEntity &&
+              mainEntity &&
+              columnData.entity.name !== mainEntity.name
+            ) {
+              setValidationError(
+                `This column cannot be saved because its entity (${columnData.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`,
+              );
+              setIsIframeValidationError(true);
+              hasValidationError = true;
+              return;
+            }
+
             onSave(columnData);
           });
 
-          onClose();
           setIsWaitingForIframeData(false);
+
+          if (!hasValidationError) {
+            onClose();
+          }
         }
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [editedItem, isWaitingForIframeData, onSave, onClose, filteredEntities]);
+  }, [
+    editedItem,
+    isWaitingForIframeData,
+    onSave,
+    onClose,
+    filteredEntities,
+    mainEntity,
+  ]);
 
   const handleSave = useCallback(() => {
     if (type === 'column') {
@@ -97,6 +125,7 @@ export default function EditModal({
         setValidationError(
           `This column cannot be saved because its entity (${editedItem.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`,
         );
+        setIsIframeValidationError(false);
         return;
       }
       setValidationError('');
@@ -164,7 +193,7 @@ export default function EditModal({
                 <Button
                   onClick={handleSave}
                   loading={isWaitingForIframeData}
-                  disabled={!!validationError}
+                  disabled={!!validationError && !isIframeValidationError}
                 >
                   Save
                 </Button>
