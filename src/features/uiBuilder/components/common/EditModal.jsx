@@ -1,10 +1,18 @@
 /* eslint-disable react/prop-types */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
+import {
+  Modal,
+  ModalDialog,
+  ModalClose,
+  Typography,
+  Button,
+  CircularProgress,
+} from '@mui/joy';
 import ColumnFormFields from '../table/ColumnFormFields';
 import FieldFormFields from '../table/FieldFormFields';
 import { useSelector } from 'react-redux';
+import useFetchEntities from '../../../../shared/hooks/useFetchEntities';
 
 export default function EditModal({
   open,
@@ -25,6 +33,8 @@ export default function EditModal({
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
+
+  const loading = useFetchEntities();
 
   useEffect(() => {
     setValidationError('');
@@ -114,55 +124,63 @@ export default function EditModal({
       <ModalDialog>
         <ModalClose onClick={onClose} />
         <Typography level='h4'>{title}</Typography>
-        {type === 'column' ? (
-          <ColumnFormFields
-            ref={columnFormRef}
-            editedItem={editedItem}
-            setEditedItem={setEditedItem}
-            isIFrame={isIFrame}
-            setIsIFrame={setIsIFrame}
-            setIsWaitingForIframeData={setIsWaitingForIframeData}
-            mainEntity={mainEntity}
-          />
-        ) : (
-          <FieldFormFields
-            editedItem={editedItem}
-            setEditedItem={setEditedItem}
-            inputValue={inputValue}
-            setInputValue={setInputValue}
-          />
-        )}
-        <div className='flex flex-col gap-4 mt-3'>
-          <Button
-            variant='outlined'
-            color='danger'
-            onClick={handleDelete}
-            className='w-full'
-          >
-            Delete {type === 'column' ? 'Column' : 'Field'}
-          </Button>
-          <div className='flex justify-end gap-2'>
-            <Button variant='plain' color='neutral' onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              loading={isWaitingForIframeData}
-              disabled={!!validationError}
-            >
-              Save
-            </Button>
+        {loading ? (
+          <div className='flex justify-center items-center p-4'>
+            <CircularProgress />
           </div>
-          {validationError && (
-            <Typography
-              color='danger'
-              level='body-sm'
-              sx={{ mt: 1, maxWidth: '400px' }}
-            >
-              {validationError}
-            </Typography>
-          )}
-        </div>
+        ) : (
+          <div>
+            {type === 'column' ? (
+              <ColumnFormFields
+                ref={columnFormRef}
+                editedItem={editedItem}
+                setEditedItem={setEditedItem}
+                isIFrame={isIFrame}
+                setIsIFrame={setIsIFrame}
+                setIsWaitingForIframeData={setIsWaitingForIframeData}
+                mainEntity={mainEntity}
+              />
+            ) : (
+              <FieldFormFields
+                editedItem={editedItem}
+                setEditedItem={setEditedItem}
+                inputValue={inputValue}
+                setInputValue={setInputValue}
+              />
+            )}
+            <div className='flex flex-col gap-4 mt-3'>
+              <Button
+                variant='outlined'
+                color='danger'
+                onClick={handleDelete}
+                className='w-full'
+              >
+                Delete {type === 'column' ? 'Column' : 'Field'}
+              </Button>
+              <div className='flex justify-end gap-2'>
+                <Button variant='plain' color='neutral' onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  loading={isWaitingForIframeData}
+                  disabled={!!validationError}
+                >
+                  Save
+                </Button>
+              </div>
+              {validationError && (
+                <Typography
+                  color='danger'
+                  level='body-sm'
+                  sx={{ mt: 1, maxWidth: '400px' }}
+                >
+                  {validationError}
+                </Typography>
+              )}
+            </div>
+          </div>
+        )}
       </ModalDialog>
     </Modal>
   );
