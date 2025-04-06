@@ -49,8 +49,6 @@ export default function TableComponent({ component }) {
   };
 
   const handleSaveColumn = (editedColumn) => {
-    console.log('editedColumn', editedColumn);
-
     if (editedColumn.data) {
       if (editedColumn.isNewColumn) {
         const newColumn = {
@@ -102,7 +100,7 @@ export default function TableComponent({ component }) {
     minWidth: 100,
     flex: 1,
     resizable: true,
-    editable: false,
+    editable: !column.data && !column.entity,
     type: column.type || 'string',
     columnId: column.id,
   }));
