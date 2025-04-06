@@ -8,6 +8,7 @@ import {
   Modal,
   ModalDialog,
   Button,
+  Checkbox,
 } from '@mui/joy';
 import useFetchEntities from '../../../../shared/hooks/useFetchEntities';
 import { sortEntities } from '../../../../shared/utils/entityOperations';
@@ -30,6 +31,7 @@ const ColumnFormFields = forwardRef(
       isIFrame,
       setIsIFrame,
       setIsWaitingForIframeData,
+      mainEntity,
     },
     ref,
   ) => {
@@ -44,6 +46,15 @@ const ColumnFormFields = forwardRef(
     const iframeRef = useRef(null);
     const [showWarningModal, setShowWarningModal] = useState(false);
     const [warningMessage, setWarningMessage] = useState('');
+
+    const isInvalid = useMemo(() => {
+      return (
+        editedItem.entity &&
+        !editedItem.isMainEntity &&
+        mainEntity &&
+        editedItem.entity.name !== mainEntity.name
+      );
+    }, [editedItem.entity, editedItem.isMainEntity, mainEntity]);
 
     useEffect(() => {
       const handleMessage = (event) => {
@@ -175,6 +186,34 @@ const ColumnFormFields = forwardRef(
           </div>
         )}
 
+        <Checkbox
+          color='neutral'
+          label='Make Main Entity'
+          size='md'
+          variant='outlined'
+          checked={editedItem.isMainEntity}
+          onChange={(e) => {
+            setEditedItem({
+              ...editedItem,
+              isMainEntity: e.target.checked,
+            });
+          }}
+          disabled={!editedItem.entity}
+          sx={{ marginTop: 1, alignSelf: 'center' }}
+        />
+
+        {isInvalid && (
+          <Typography
+            color='danger'
+            level='body-sm'
+            sx={{ mt: 1, maxWidth: '400px' }}
+          >
+            This column&apos;s entity ({editedItem.entity.name}) does not match
+            the main entity ({mainEntity.name}). Either make it the main entity
+            or choose a different entity.
+          </Typography>
+        )}
+
         <Modal
           open={showWarningModal}
           onClose={() => setShowWarningModal(false)}
@@ -227,11 +266,15 @@ ColumnFormFields.propTypes = {
     entity: PropTypes.object,
     property: PropTypes.object,
     externalUrl: PropTypes.string,
+    isMainEntity: PropTypes.bool,
   }).isRequired,
   setEditedItem: PropTypes.func.isRequired,
   isIFrame: PropTypes.bool.isRequired,
   setIsIFrame: PropTypes.func.isRequired,
   setIsWaitingForIframeData: PropTypes.func.isRequired,
+  mainEntity: PropTypes.shape({
+    name: PropTypes.string,
+  }),
 };
 
 export default ColumnFormFields;
