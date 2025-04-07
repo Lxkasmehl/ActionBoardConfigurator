@@ -1,17 +1,27 @@
 import PropTypes from 'prop-types';
 import { Typography } from '@mui/joy';
-import { useRef } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 
 const DataPickerIframe = ({ onWarning, onDataFetch }) => {
   const iframeRef = useRef(null);
 
-  const handleMessage = (event) => {
-    if (event.origin !== window.location.origin) return;
+  const handleMessage = useCallback(
+    (event) => {
+      if (event.origin !== window.location.origin) return;
 
-    if (event.data.type === 'IFRAME_WARNING') {
-      onWarning(event.data.payload.message);
-    }
-  };
+      if (event.data.type === 'IFRAME_WARNING') {
+        onWarning(event.data.payload.message);
+      } else if (event.data.type === 'IFRAME_DATA_RESPONSE') {
+        onDataFetch(event.data.payload);
+      }
+    },
+    [onWarning, onDataFetch],
+  );
+
+  useEffect(() => {
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [handleMessage]);
 
   const triggerDataFetch = () => {
     if (iframeRef.current) {
@@ -23,6 +33,13 @@ const DataPickerIframe = ({ onWarning, onDataFetch }) => {
       );
     }
   };
+
+  // Expose triggerDataFetch to parent component
+  useEffect(() => {
+    if (iframeRef.current) {
+      iframeRef.current.triggerDataFetch = triggerDataFetch;
+    }
+  }, []);
 
   return (
     <div>
