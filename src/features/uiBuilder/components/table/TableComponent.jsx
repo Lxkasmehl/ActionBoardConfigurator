@@ -1,9 +1,10 @@
 import { IconButton } from '@mui/joy';
 import { Add } from '@mui/icons-material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EditModal from '../common/EditModal';
 import PropTypes from 'prop-types';
 import { useTableData } from '../../hooks/useTableData';
+import { useSendRequest } from '../../hooks/useSendRequest';
 import { getInitialDummyData } from '../../utils/tableUtils';
 import { DataGridPro } from '@mui/x-data-grid-pro';
 import CustomColumnMenu from './CustomColumnMenu';
@@ -22,11 +23,41 @@ export default function TableComponent({ component }) {
     columns,
     getInitialDummyData(),
   );
+  const [relationData, setRelationData] = useState({});
+  const sendRequest = useSendRequest();
+
+  useEffect(() => {
+    const fetchRelationData = async () => {
+      const newRelationData = {};
+
+      for (const column of columns) {
+        if (column.relation && column.entity) {
+          try {
+            const response = await sendRequest({
+              entity: column.entity.name,
+              properties: [column.relation.property.Name, column.property.name],
+            });
+            newRelationData[column.label] = response.d.results;
+          } catch (error) {
+            console.error(
+              `Error fetching relation data for ${column.label}:`,
+              error,
+            );
+          }
+        }
+      }
+
+      setRelationData(newRelationData);
+    };
+
+    fetchRelationData();
+  }, [columns, sendRequest]);
 
   const isColumnInvalid = (column) => {
     return (
       column.entity &&
       !column.isMainEntity &&
+      !column.relation &&
       mainEntity &&
       column.entity.name !== mainEntity.name
     );
@@ -71,33 +102,30 @@ export default function TableComponent({ component }) {
     }
 
     if (editedColumn.data) {
-      if (editedColumn.isNewColumn) {
-        const newColumn = {
-          ...editedColumn,
-          id: crypto.randomUUID(),
-        };
-        setColumns((prevColumns) => [...prevColumns, newColumn]);
-      } else {
-        setColumns((prevColumns) =>
-          prevColumns.map((col) =>
-            col.id === editingColumn.id ? editedColumn : col,
-          ),
-        );
-      }
+      setColumns((prevColumns) => {
+        const updatedColumns = editedColumn.isNewColumn
+          ? [...prevColumns, { ...editedColumn, id: crypto.randomUUID() }]
+          : prevColumns.map((col) =>
+              col.id === editingColumn.id ? editedColumn : col,
+            );
 
-      setTableData((prevData) => {
-        const maxRows = Math.max(prevData.length, editedColumn.data.length);
-        return Array.from({ length: maxRows }, (_, index) => ({
-          ...(prevData[index] || {}),
-          [editedColumn.label]: editedColumn.data[index] || '',
-        }));
+        setTableData((prevData) => {
+          const maxRows = Math.max(prevData.length, editedColumn.data.length);
+          return Array.from({ length: maxRows }, (_, index) => ({
+            ...(prevData[index] || {}),
+            [editedColumn.label]: editedColumn.data[index] || '',
+          }));
+        });
+
+        return updatedColumns;
       });
     } else {
-      setColumns((prevColumns) =>
-        prevColumns.map((col) =>
+      setColumns((prevColumns) => {
+        const updatedColumns = prevColumns.map((col) =>
           col.id === editingColumn.id ? editedColumn : col,
-        ),
-      );
+        );
+        return updatedColumns;
+      });
     }
   };
 
@@ -146,10 +174,42 @@ export default function TableComponent({ component }) {
     return 0;
   });
 
-  const rows = tableData.map((row, index) => ({
-    id: index,
-    ...row,
-  }));
+  const rows = tableData.map((row, index) => {
+    const alignedRow = { ...row };
+    // Ensure all column values are properly aligned
+    columns.forEach((column) => {
+      if (column.relation) {
+        const mainEntityColumn = columns.find((col) => col.isMainEntity);
+        if (mainEntityColumn) {
+          const mainEntityValue = row[mainEntityColumn.label];
+          if (mainEntityValue) {
+            // Find the corresponding relation value from the fetched relation data
+            const relationItems = relationData[column.label] || [];
+            const relationItem = relationItems.find(
+              (item) => item[column.relation.property.Name] === mainEntityValue,
+            );
+
+            // Store the relation value in a hidden field
+            alignedRow[`_relation_${column.label}`] =
+              relationItem?.[column.relation.property.Name];
+
+            // Set the visible value
+            alignedRow[column.label] =
+              relationItem?.[column.property.name] || null;
+          } else {
+            alignedRow[column.label] = null;
+            alignedRow[`_relation_${column.label}`] = null;
+          }
+        }
+      }
+    });
+    return {
+      id: index,
+      ...alignedRow,
+    };
+  });
+
+  console.log('rows', rows);
 
   return (
     <div

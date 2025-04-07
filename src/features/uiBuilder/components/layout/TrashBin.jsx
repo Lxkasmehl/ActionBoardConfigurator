@@ -32,6 +32,7 @@ export default function TrashBin({ isVisible, onOverChange }) {
         width: 60,
         height: 60,
         borderRadius: '50%',
+        zIndex: 1000,
       }}
     >
       <Delete />
