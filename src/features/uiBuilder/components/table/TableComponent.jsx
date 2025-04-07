@@ -53,13 +53,15 @@ export default function TableComponent({ component }) {
     fetchRelationData();
   }, [columns, sendRequest]);
 
+  console.log('columns', columns);
+
   const isColumnInvalid = (column) => {
     return (
       column.entity &&
       !column.isMainEntity &&
-      !column.relation &&
       mainEntity &&
-      column.entity.name !== mainEntity.name
+      column.entity.name !== mainEntity.name &&
+      !column.relation?.label.split('->')[2].includes(mainEntity.name)
     );
   };
 
@@ -91,7 +93,6 @@ export default function TableComponent({ component }) {
 
   const handleSaveColumn = (editedColumn) => {
     if (editedColumn.isMainEntity) {
-      // If this column is being set as main entity, unset any other main entity
       setMainEntity(editedColumn.entity);
       setColumns((prevColumns) =>
         prevColumns.map((col) => ({
@@ -160,7 +161,7 @@ export default function TableComponent({ component }) {
       headerClassName: isInvalid ? 'invalid-column-header' : '',
       cellClassName: isInvalid ? 'invalid-column-cell' : '',
       description: isInvalid
-        ? `This column's entity (${column.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`
+        ? `This column's entity (${column.entity.name}) does not match the main entity (${mainEntity.name}) and has no valid relation to it. Either make it the main entity, choose a different entity, or set up a proper relation to the main entity.`
         : '',
     };
   });
@@ -189,16 +190,10 @@ export default function TableComponent({ component }) {
               (item) => item[column.relation.property.Name] === mainEntityValue,
             );
 
-            // Store the relation value in a hidden field
-            alignedRow[`_relation_${column.label}`] =
-              relationItem?.[column.relation.property.Name];
-
-            // Set the visible value
             alignedRow[column.label] =
               relationItem?.[column.property.name] || null;
           } else {
             alignedRow[column.label] = null;
-            alignedRow[`_relation_${column.label}`] = null;
           }
         }
       }
@@ -208,8 +203,6 @@ export default function TableComponent({ component }) {
       ...alignedRow,
     };
   });
-
-  console.log('rows', rows);
 
   return (
     <div
