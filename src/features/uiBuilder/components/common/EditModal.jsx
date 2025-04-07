@@ -119,11 +119,12 @@ export default function EditModal({
       if (
         editedItem.entity &&
         !editedItem.isMainEntity &&
+        !editedItem.relation &&
         mainEntity &&
         editedItem.entity.name !== mainEntity.name
       ) {
         setValidationError(
-          `This column cannot be saved because its entity (${editedItem.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`,
+          `This column cannot be saved because its entity (${editedItem.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity, choose a different entity, or define a relationship between the entities.`,
         );
         setIsIframeValidationError(false);
         return;
@@ -231,6 +232,11 @@ EditModal.propTypes = {
       name: PropTypes.string,
       type: PropTypes.string,
     }),
+    relation: PropTypes.shape({
+      type: PropTypes.string,
+      property: PropTypes.object,
+      label: PropTypes.string,
+    }),
   }).isRequired,
   onSave: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
@@ -238,5 +244,8 @@ EditModal.propTypes = {
   title: PropTypes.string.isRequired,
   mainEntity: PropTypes.shape({
     name: PropTypes.string,
+    properties: PropTypes.shape({
+      navigationProperties: PropTypes.array,
+    }),
   }),
 };

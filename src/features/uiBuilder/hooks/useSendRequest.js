@@ -15,9 +15,10 @@ export const useSendRequest = () => {
       headers.set('successfactors-sourcetype', 'Application');
       headers.set('Accept', 'application/json');
 
-      const { entity, property } = config;
+      const { entity, property, properties } = config;
       const baseUrl = `/api/odata/v2/${entity}`;
-      const queryString = `$format=json&$select=${encodeURIComponent(property)}`;
+      const selectedProperties = properties || [property];
+      const queryString = `$format=json&$select=${encodeURIComponent(selectedProperties.join(','))}`;
 
       const response = await fetch(`${baseUrl}?${queryString}`, {
         method: 'GET',
