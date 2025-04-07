@@ -5,11 +5,9 @@ import {
   Input,
   Switch,
   Typography,
-  Modal,
-  ModalDialog,
-  Button,
   Checkbox,
   Autocomplete,
+  Button,
 } from '@mui/joy';
 import useFetchEntities from '../../../../shared/hooks/useFetchEntities';
 import { sortEntities } from '../../../../shared/utils/entityOperations';
@@ -17,12 +15,14 @@ import { useSelector } from 'react-redux';
 import {
   useMemo,
   useEffect,
-  useRef,
   useImperativeHandle,
   forwardRef,
   useState,
 } from 'react';
 import EntityPropertyFields from './EntityPropertyFields';
+import WarningModal from './WarningModal';
+import CustomRelationModal from './CustomRelationModal';
+import DataPickerIframe from './DataPickerIframe';
 
 const ColumnFormFields = forwardRef(
   (
@@ -44,22 +44,18 @@ const ColumnFormFields = forwardRef(
       [filteredEntities],
     );
     const loading = useFetchEntities();
-    const iframeRef = useRef(null);
     const [showWarningModal, setShowWarningModal] = useState(false);
     const [warningMessage, setWarningMessage] = useState('');
     const [relationOptions, setRelationOptions] = useState([]);
     const [selectedMainEntityProp, setSelectedMainEntityProp] = useState('');
     const [selectedCurrentEntityProp, setSelectedCurrentEntityProp] =
       useState('');
-    const [customRelationModal, setCustomRelationModal] = useState(null);
+    const [showCustomRelationModal, setShowCustomRelationModal] =
+      useState(false);
 
     const isInvalid = useMemo(() => {
       if (!editedItem.entity || !mainEntity) return false;
-
-      // If it's the main entity or has a valid relation, it's valid
       if (editedItem.isMainEntity || editedItem.relation) return false;
-
-      // Otherwise, it's invalid if the entities don't match
       return editedItem.entity.name !== mainEntity.name;
     }, [
       editedItem.entity,
@@ -74,15 +70,12 @@ const ColumnFormFields = forwardRef(
         mainEntity &&
         editedItem.entity.name !== mainEntity.name
       ) {
-        // Find navigation properties that could relate to the main entity
         const mainEntityProps =
           mainEntity.properties?.navigationProperties || [];
         const currentEntityProps =
           editedItem.entity.properties?.navigationProperties || [];
-
         const relations = [];
 
-        // Check if main entity has a navigation property to current entity
         mainEntityProps.forEach((prop) => {
           if (prop.Type === editedItem.entity.name) {
             relations.push({
@@ -93,7 +86,6 @@ const ColumnFormFields = forwardRef(
           }
         });
 
-        // Check if current entity has a navigation property to main entity
         currentEntityProps.forEach((prop) => {
           if (prop.Type === mainEntity.name) {
             relations.push({
@@ -104,12 +96,10 @@ const ColumnFormFields = forwardRef(
           }
         });
 
-        // Also check for properties that might indicate a relationship
         const mainEntityRegularProps = mainEntity.properties?.properties || [];
         const currentEntityRegularProps =
           editedItem.entity.properties?.properties || [];
 
-        // Check if main entity has a property that matches current entity's name
         mainEntityRegularProps.forEach((prop) => {
           if (
             prop.Type === 'Edm.String' &&
@@ -125,7 +115,6 @@ const ColumnFormFields = forwardRef(
           }
         });
 
-        // Check if current entity has a property that matches main entity's name
         currentEntityRegularProps.forEach((prop) => {
           if (
             prop.Type === 'Edm.String' &&
@@ -143,56 +132,14 @@ const ColumnFormFields = forwardRef(
       }
     }, [editedItem.entity, mainEntity, editedItem.relation]);
 
-    useEffect(() => {
-      const handleMessage = (event) => {
-        if (event.origin !== window.location.origin) return;
-
-        if (event.data.type === 'IFRAME_WARNING') {
-          setWarningMessage(event.data.payload.message);
-          setShowWarningModal(true);
-        }
-      };
-
-      window.addEventListener('message', handleMessage);
-      return () => window.removeEventListener('message', handleMessage);
-    }, [setEditedItem, editedItem]);
-
     const handleWarningConfirm = () => {
       setShowWarningModal(false);
-      if (iframeRef.current) {
-        iframeRef.current.contentWindow.postMessage(
-          {
-            type: 'IFRAME_WARNING_RESPONSE',
-            payload: { confirmed: true },
-          },
-          window.location.origin,
-        );
-      }
+      setIsWaitingForIframeData(true);
     };
 
     const handleWarningCancel = () => {
       setIsWaitingForIframeData(false);
       setShowWarningModal(false);
-      if (iframeRef.current) {
-        iframeRef.current.contentWindow.postMessage(
-          {
-            type: 'IFRAME_WARNING_RESPONSE',
-            payload: { confirmed: false },
-          },
-          window.location.origin,
-        );
-      }
-    };
-
-    const triggerIframeDataFetch = () => {
-      if (iframeRef.current) {
-        iframeRef.current.contentWindow.postMessage(
-          {
-            type: 'FETCH_DATA_REQUEST',
-          },
-          window.location.origin,
-        );
-      }
     };
 
     const handleCustomRelation = () => {
@@ -203,9 +150,10 @@ const ColumnFormFields = forwardRef(
       }
 
       const customRelation = {
-        name: `Custom_${selectedMainEntityProp}_${selectedCurrentEntityProp}`,
+        name: `Custom_${selectedMainEntityProp.Name}_${selectedCurrentEntityProp.Name}`,
         mainEntityProperty: selectedMainEntityProp,
         currentEntityProperty: selectedCurrentEntityProp,
+        label: `${editedItem.entity.name} (${selectedCurrentEntityProp.Name}) -> ${mainEntity.name} (${selectedMainEntityProp.Name})`,
       };
 
       setEditedItem((prev) => ({
@@ -213,15 +161,12 @@ const ColumnFormFields = forwardRef(
         relation: customRelation,
       }));
 
-      setCustomRelationModal(null);
+      setShowCustomRelationModal(false);
     };
 
     const handleRelationChange = (event, newValue) => {
       if (newValue === 'custom') {
-        setCustomRelationModal({
-          mainEntity,
-          currentEntity: editedItem.entity,
-        });
+        setShowCustomRelationModal(true);
       } else {
         setEditedItem((prev) => ({
           ...prev,
@@ -231,7 +176,9 @@ const ColumnFormFields = forwardRef(
     };
 
     useImperativeHandle(ref, () => ({
-      triggerIframeDataFetch,
+      triggerIframeDataFetch: () => {
+        // This will be implemented in the DataPickerIframe component
+      },
     }));
 
     return (
@@ -308,74 +255,7 @@ const ColumnFormFields = forwardRef(
                     <Button
                       variant='plain'
                       size='sm'
-                      onClick={() => {
-                        const mainEntityProps =
-                          mainEntity.properties?.properties || [];
-                        const currentEntityProps =
-                          editedItem.entity.properties?.properties || [];
-
-                        console.log('mainEntityProps', mainEntityProps);
-                        console.log('currentEntityProps', currentEntityProps);
-
-                        setCustomRelationModal(
-                          <Modal
-                            open={true}
-                            onClose={() => setCustomRelationModal(null)}
-                          >
-                            <ModalDialog>
-                              <Typography level='h4'>
-                                Define Custom Relationship
-                              </Typography>
-                              <FormControl sx={{ mt: 2 }}>
-                                <FormLabel>Main Entity Property</FormLabel>
-                                <Autocomplete
-                                  value={selectedMainEntityProp || null}
-                                  options={mainEntityProps}
-                                  placeholder='Select property from main entity'
-                                  onChange={(_, value) =>
-                                    setSelectedMainEntityProp(value)
-                                  }
-                                  getOptionLabel={(option) => option.Name}
-                                  isOptionEqualToValue={(option, value) =>
-                                    option?.Name === value?.Name
-                                  }
-                                />
-                              </FormControl>
-                              <FormControl sx={{ mt: 2 }}>
-                                <FormLabel>Current Entity Property</FormLabel>
-                                <Autocomplete
-                                  value={selectedCurrentEntityProp || null}
-                                  options={currentEntityProps}
-                                  placeholder='Select property from current entity'
-                                  onChange={(_, value) =>
-                                    setSelectedCurrentEntityProp(value)
-                                  }
-                                  getOptionLabel={(option) => option.Name}
-                                  isOptionEqualToValue={(option, value) =>
-                                    option?.Name === value?.Name
-                                  }
-                                />
-                              </FormControl>
-                              <div className='flex justify-end gap-2 mt-4'>
-                                <Button
-                                  variant='plain'
-                                  color='neutral'
-                                  onClick={() => setCustomRelationModal(null)}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  variant='solid'
-                                  color='primary'
-                                  onClick={handleCustomRelation}
-                                >
-                                  Save
-                                </Button>
-                              </div>
-                            </ModalDialog>
-                          </Modal>,
-                        );
-                      }}
+                      onClick={() => setShowCustomRelationModal(true)}
                     >
                       Define Custom
                     </Button>
@@ -389,25 +269,13 @@ const ColumnFormFields = forwardRef(
               )}
           </>
         ) : (
-          <div>
-            <Typography
-              level='title-md'
-              sx={{ textAlign: 'center', marginBottom: 2 }}
-            >
-              Select a node in the DataPicker Flow to display its corresponding
-              backend result in the table column
-            </Typography>
-            <iframe
-              ref={iframeRef}
-              src='/data-picker'
-              style={{
-                width: '80vw',
-                height: '50vh',
-                borderRadius: '8px',
-                border: '1px solid #ced8e2',
-              }}
-            />
-          </div>
+          <DataPickerIframe
+            onWarning={(message) => {
+              setWarningMessage(message);
+              setShowWarningModal(true);
+            }}
+            onDataFetch={() => setIsWaitingForIframeData(true)}
+          />
         )}
 
         <Checkbox
@@ -420,7 +288,7 @@ const ColumnFormFields = forwardRef(
             setEditedItem({
               ...editedItem,
               isMainEntity: e.target.checked,
-              relation: null, // Clear relation if making main entity
+              relation: null,
             });
           }}
           disabled={!isIFrame && !editedItem.entity}
@@ -440,47 +308,25 @@ const ColumnFormFields = forwardRef(
           </Typography>
         )}
 
-        <Modal
+        <WarningModal
           open={showWarningModal}
           onClose={() => setShowWarningModal(false)}
-        >
-          <ModalDialog
-            variant='outlined'
-            role='alertdialog'
-            aria-labelledby='warning-dialog-title'
-            aria-describedby='warning-dialog-description'
-          >
-            <Typography level='h3'>Warning</Typography>
-            <Typography sx={{ mt: 1 }}>{warningMessage}</Typography>
-            <Typography
-              variant='soft'
-              color='danger'
-              startDecorator='🚨'
-              sx={{ mt: 1, padding: '10px', borderRadius: 5 }}
-            >
-              If you continue, the data for all flows in the DataPicker will be
-              fetched and displayed in a different column for each flow.
-            </Typography>
-            <div className='flex justify-end gap-2 mt-4'>
-              <Button
-                variant='plain'
-                color='neutral'
-                onClick={handleWarningCancel}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant='solid'
-                color='primary'
-                onClick={handleWarningConfirm}
-              >
-                Continue
-              </Button>
-            </div>
-          </ModalDialog>
-        </Modal>
+          message={warningMessage}
+          onConfirm={handleWarningConfirm}
+          onCancel={handleWarningCancel}
+        />
 
-        {customRelationModal}
+        <CustomRelationModal
+          open={showCustomRelationModal}
+          onClose={() => setShowCustomRelationModal(false)}
+          mainEntity={mainEntity}
+          currentEntity={editedItem.entity}
+          onSave={handleCustomRelation}
+          selectedMainEntityProp={selectedMainEntityProp}
+          setSelectedMainEntityProp={setSelectedMainEntityProp}
+          selectedCurrentEntityProp={selectedCurrentEntityProp}
+          setSelectedCurrentEntityProp={setSelectedCurrentEntityProp}
+        />
       </>
     );
   },
