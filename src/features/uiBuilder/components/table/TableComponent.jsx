@@ -35,7 +35,11 @@ export default function TableComponent({ component }) {
           try {
             const response = await sendRequest({
               entity: column.entity.name,
-              properties: [column.relation.property.Name, column.property.name],
+              properties: [
+                column.relation.property?.Name ||
+                  column.relation.currentEntityProperty?.Name,
+                column.property.name,
+              ],
             });
             newRelationData[column.label] = response.d.results;
           } catch (error) {
@@ -53,15 +57,13 @@ export default function TableComponent({ component }) {
     fetchRelationData();
   }, [columns, sendRequest]);
 
-  console.log('columns', columns);
-
   const isColumnInvalid = (column) => {
     return (
       column.entity &&
       !column.isMainEntity &&
       mainEntity &&
       column.entity.name !== mainEntity.name &&
-      !column.relation?.label.split('->')[2].includes(mainEntity.name)
+      !column.relation?.label.split('->').pop().includes(mainEntity.name)
     );
   };
 
@@ -187,7 +189,11 @@ export default function TableComponent({ component }) {
             // Find the corresponding relation value from the fetched relation data
             const relationItems = relationData[column.label] || [];
             const relationItem = relationItems.find(
-              (item) => item[column.relation.property.Name] === mainEntityValue,
+              (item) =>
+                item[
+                  column.relation.property?.Name ||
+                    column.relation.currentEntityProperty.Name
+                ] === mainEntityValue,
             );
 
             alignedRow[column.label] =
