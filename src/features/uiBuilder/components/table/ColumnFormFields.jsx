@@ -364,7 +364,9 @@ const ColumnFormFields = forwardRef(
           open={showCustomRelationModal}
           onClose={() => setShowCustomRelationModal(false)}
           mainEntity={mainEntity}
-          currentEntity={editedItem.entity}
+          currentEntity={
+            isIframeValidationError ? columnData.entity : editedItem.entity
+          }
           onSave={handleCustomRelation}
           selectedMainEntityProp={selectedMainEntityProp}
           setSelectedMainEntityProp={setSelectedMainEntityProp}
