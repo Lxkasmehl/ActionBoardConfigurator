@@ -31,6 +31,7 @@ export default function EditModal({
   const [isIFrame, setIsIFrame] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [isIframeValidationError, setIsIframeValidationError] = useState(false);
+  const [columnData, setColumnData] = useState(null);
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
@@ -57,6 +58,7 @@ export default function EditModal({
           dataItems.forEach((dataItem, index) => {
             const entityName =
               dataItem.d.results[0].__metadata.type.split('.')[1];
+
             const propertyName = Object.keys(dataItem.d.results[0]).find(
               (key) => key !== '__metadata',
             );
@@ -69,29 +71,47 @@ export default function EditModal({
               (entity) => entity.name === entityName,
             );
 
-            const columnData = {
-              ...editedItem,
+            const completeProperty = [
+              ...(completeEntity.properties.properties || []),
+              ...(completeEntity.properties.navigationProperties || []),
+            ].find((property) => property.Name === propertyName);
+
+            const baseColumnData = {
               data: extractedData,
               label: `${entityName} -> ${propertyName}`,
               isNewColumn: index > 0,
               entity: completeEntity,
+              property: completeProperty,
             };
 
+            const newColumnData = {
+              ...(isIframeValidationError ? columnData : editedItem),
+              ...baseColumnData,
+            };
+
+            setColumnData(newColumnData);
+
             if (
-              columnData.entity &&
-              !columnData.isMainEntity &&
+              newColumnData.entity &&
+              !newColumnData.isMainEntity &&
               mainEntity &&
-              columnData.entity.name !== mainEntity.name
+              newColumnData.entity.name !== mainEntity.name &&
+              (!newColumnData.relation ||
+                !newColumnData.relation.label ||
+                !newColumnData.relation.label
+                  .split('->')
+                  .pop()
+                  .includes(mainEntity.name))
             ) {
               setValidationError(
-                `This column cannot be saved because its entity (${columnData.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`,
+                `This column cannot be saved because its entity (${newColumnData.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`,
               );
               setIsIframeValidationError(true);
               hasValidationError = true;
               return;
             }
 
-            onSave(columnData);
+            onSave(newColumnData);
           });
 
           setIsWaitingForIframeData(false);
@@ -112,6 +132,8 @@ export default function EditModal({
     onClose,
     filteredEntities,
     mainEntity,
+    columnData,
+    isIframeValidationError,
   ]);
 
   const handleSave = useCallback(() => {
@@ -159,7 +181,7 @@ export default function EditModal({
             <CircularProgress />
           </div>
         ) : (
-          <div>
+          <div className='flex justify-center items-center flex-col'>
             {type === 'column' ? (
               <ColumnFormFields
                 ref={columnFormRef}
@@ -169,6 +191,9 @@ export default function EditModal({
                 setIsIFrame={setIsIFrame}
                 setIsWaitingForIframeData={setIsWaitingForIframeData}
                 mainEntity={mainEntity}
+                isIframeValidationError={isIframeValidationError}
+                columnData={columnData}
+                setColumnData={setColumnData}
               />
             ) : (
               <FieldFormFields
@@ -178,7 +203,7 @@ export default function EditModal({
                 setInputValue={setInputValue}
               />
             )}
-            <div className='flex flex-col gap-4 mt-3'>
+            <div className='flex flex-col gap-4 mt-3 max-w-[500px] w-[100%]'>
               <Button
                 variant='outlined'
                 color='danger'
