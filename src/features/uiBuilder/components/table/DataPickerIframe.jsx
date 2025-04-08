@@ -42,10 +42,10 @@ const DataPickerIframe = ({ onWarning, onDataFetch }) => {
   }, []);
 
   return (
-    <div>
+    <div className='flex justify-center items-center flex-col mt-3'>
       <Typography
         level='title-md'
-        sx={{ textAlign: 'center', marginBottom: 2 }}
+        sx={{ textAlign: 'center', marginBottom: 2, maxWidth: '500px' }}
       >
         Select a node in the DataPicker Flow to display its corresponding
         backend result in the table column
@@ -55,7 +55,7 @@ const DataPickerIframe = ({ onWarning, onDataFetch }) => {
         src='/data-picker'
         style={{
           width: '80vw',
-          height: '50vh',
+          height: '45vh',
           borderRadius: '8px',
           border: '1px solid #ced8e2',
         }}

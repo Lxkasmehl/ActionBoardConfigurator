@@ -33,6 +33,9 @@ const ColumnFormFields = forwardRef(
       setIsIFrame,
       setIsWaitingForIframeData,
       mainEntity,
+      isIframeValidationError,
+      columnData,
+      setColumnData,
     },
     ref,
   ) => {
@@ -65,23 +68,27 @@ const ColumnFormFields = forwardRef(
     ]);
 
     useEffect(() => {
+      const currentEntity =
+        isIframeValidationError && columnData
+          ? columnData.entity
+          : editedItem.entity;
       if (
-        editedItem.entity &&
+        currentEntity &&
         mainEntity &&
-        editedItem.entity.name !== mainEntity.name
+        currentEntity.name !== mainEntity.name
       ) {
         const mainEntityProps =
           mainEntity.properties?.navigationProperties || [];
         const currentEntityProps =
-          editedItem.entity.properties?.navigationProperties || [];
+          currentEntity.properties?.navigationProperties || [];
         const relations = [];
 
         mainEntityProps.forEach((prop) => {
-          if (prop.Type === editedItem.entity.name) {
+          if (prop.Type === currentEntity.name) {
             relations.push({
               type: 'main_to_current',
               property: prop,
-              label: `${mainEntity.name} -> ${prop.Name} -> ${editedItem.entity.name}`,
+              label: `${mainEntity.name} -> ${prop.Name} -> ${currentEntity.name}`,
             });
           }
         });
@@ -91,26 +98,24 @@ const ColumnFormFields = forwardRef(
             relations.push({
               type: 'current_to_main',
               property: prop,
-              label: `${editedItem.entity.name} -> ${prop.Name} -> ${mainEntity.name}`,
+              label: `${currentEntity.name} -> ${prop.Name} -> ${mainEntity.name}`,
             });
           }
         });
 
         const mainEntityRegularProps = mainEntity.properties?.properties || [];
         const currentEntityRegularProps =
-          editedItem.entity.properties?.properties || [];
+          currentEntity.properties?.properties || [];
 
         mainEntityRegularProps.forEach((prop) => {
           if (
             prop.Type === 'Edm.String' &&
-            prop.Name.toLowerCase().includes(
-              editedItem.entity.name.toLowerCase(),
-            )
+            prop.Name.toLowerCase().includes(currentEntity.name.toLowerCase())
           ) {
             relations.push({
               type: 'main_to_current_property',
               property: prop,
-              label: `${mainEntity.name} -> ${prop.Name} -> ${editedItem.entity.name}`,
+              label: `${mainEntity.name} -> ${prop.Name} -> ${currentEntity.name}`,
             });
           }
         });
@@ -123,14 +128,20 @@ const ColumnFormFields = forwardRef(
             relations.push({
               type: 'current_to_main_property',
               property: prop,
-              label: `${editedItem.entity.name} -> ${prop.Name} -> ${mainEntity.name}`,
+              label: `${currentEntity.name} -> ${prop.Name} -> ${mainEntity.name}`,
             });
           }
         });
 
         setRelationOptions(relations);
       }
-    }, [editedItem.entity, mainEntity, editedItem.relation]);
+    }, [
+      editedItem.entity,
+      mainEntity,
+      editedItem.relation,
+      isIframeValidationError,
+      columnData,
+    ]);
 
     const handleWarningConfirm = () => {
       setShowWarningModal(false);
@@ -149,17 +160,27 @@ const ColumnFormFields = forwardRef(
         return;
       }
 
+      const currentEntity = isIframeValidationError
+        ? columnData.entity
+        : editedItem.entity;
       const customRelation = {
         name: `Custom_${selectedMainEntityProp.Name}_${selectedCurrentEntityProp.Name}`,
         mainEntityProperty: selectedMainEntityProp,
         currentEntityProperty: selectedCurrentEntityProp,
-        label: `${editedItem.entity.name} (${selectedCurrentEntityProp.Name}) -> ${mainEntity.name} (${selectedMainEntityProp.Name})`,
+        label: `${currentEntity.name} (${selectedCurrentEntityProp.Name}) -> ${mainEntity.name} (${selectedMainEntityProp.Name})`,
       };
 
-      setEditedItem((prev) => ({
-        ...prev,
-        relation: customRelation,
-      }));
+      if (isIframeValidationError) {
+        setColumnData((prev) => ({
+          ...prev,
+          relation: customRelation,
+        }));
+      } else {
+        setEditedItem((prev) => ({
+          ...prev,
+          relation: customRelation,
+        }));
+      }
 
       setShowCustomRelationModal(false);
     };
@@ -168,10 +189,17 @@ const ColumnFormFields = forwardRef(
       if (newValue === 'custom') {
         setShowCustomRelationModal(true);
       } else {
-        setEditedItem((prev) => ({
-          ...prev,
-          relation: newValue,
-        }));
+        if (isIframeValidationError) {
+          setColumnData((prev) => ({
+            ...prev,
+            relation: newValue,
+          }));
+        } else {
+          setEditedItem((prev) => ({
+            ...prev,
+            relation: newValue,
+          }));
+        }
       }
     };
 
@@ -188,7 +216,7 @@ const ColumnFormFields = forwardRef(
 
     return (
       <>
-        <FormControl>
+        <FormControl sx={{ maxWidth: '500px', width: '100%' }}>
           <FormLabel>Label</FormLabel>
           <Input
             value={editedItem.label}
@@ -230,7 +258,6 @@ const ColumnFormFields = forwardRef(
             </Typography>
           </div>
         </div>
-
         {!isIFrame ? (
           <>
             <EntityPropertyFields
@@ -239,39 +266,6 @@ const ColumnFormFields = forwardRef(
               sortedEntities={sortedEntities}
               loading={loading}
             />
-            {editedItem.entity &&
-              mainEntity &&
-              editedItem.entity.name !== mainEntity.name && (
-                <FormControl sx={{ mt: 2 }}>
-                  <FormLabel>Relationship to Main Entity</FormLabel>
-                  <div className='flex gap-2 items-center'>
-                    <Autocomplete
-                      value={editedItem.relation || null}
-                      onChange={handleRelationChange}
-                      options={relationOptions}
-                      getOptionLabel={(option) => option?.label || ''}
-                      isOptionEqualToValue={(option, value) =>
-                        option?.type === value?.type &&
-                        option?.property?.Name === value?.property?.Name
-                      }
-                      placeholder='Select or define a relationship'
-                      sx={{ flex: 1 }}
-                    />
-                    <Button
-                      variant='plain'
-                      size='sm'
-                      onClick={() => setShowCustomRelationModal(true)}
-                    >
-                      Define Custom
-                    </Button>
-                  </div>
-                  {editedItem.relation && (
-                    <Typography color='success' level='body-sm' sx={{ mt: 1 }}>
-                      Selected relationship: {editedItem.relation.label}
-                    </Typography>
-                  )}
-                </FormControl>
-              )}
           </>
         ) : (
           <DataPickerIframe
@@ -282,7 +276,52 @@ const ColumnFormFields = forwardRef(
             onDataFetch={() => setIsWaitingForIframeData(true)}
           />
         )}
-
+        {(editedItem.entity &&
+          mainEntity &&
+          editedItem.entity.name !== mainEntity.name) ||
+        isIframeValidationError ? (
+          <FormControl sx={{ mt: 2, maxWidth: '500px' }}>
+            <FormLabel>Relationship to Main Entity</FormLabel>
+            <div className='flex gap-2 items-center'>
+              <Autocomplete
+                value={
+                  isIframeValidationError && columnData
+                    ? columnData.relation
+                    : editedItem.relation || null
+                }
+                onChange={handleRelationChange}
+                options={relationOptions}
+                getOptionLabel={(option) => option?.label || ''}
+                isOptionEqualToValue={(option, value) =>
+                  option?.type === value?.type &&
+                  option?.property?.Name === value?.property?.Name
+                }
+                placeholder='Select or define a relationship'
+                sx={{ flex: 1 }}
+              />
+              <Button
+                variant='plain'
+                size='sm'
+                onClick={() => setShowCustomRelationModal(true)}
+              >
+                Define Custom
+              </Button>
+            </div>
+            {(isIframeValidationError && columnData?.relation
+              ? columnData.relation
+              : editedItem.relation) && (
+              <Typography color='success' level='body-sm' sx={{ mt: 1 }}>
+                Selected relationship:{' '}
+                {
+                  (isIframeValidationError && columnData?.relation
+                    ? columnData.relation
+                    : editedItem.relation
+                  ).label
+                }
+              </Typography>
+            )}
+          </FormControl>
+        ) : null}
         <Checkbox
           color='neutral'
           label='Make Main Entity'
@@ -365,6 +404,22 @@ ColumnFormFields.propTypes = {
       navigationProperties: PropTypes.array,
     }),
   }),
+  isIframeValidationError: PropTypes.bool.isRequired,
+  columnData: PropTypes.shape({
+    label: PropTypes.string,
+    entity: PropTypes.shape({
+      name: PropTypes.string,
+      properties: PropTypes.shape({
+        properties: PropTypes.array,
+        navigationProperties: PropTypes.array,
+      }),
+    }),
+    property: PropTypes.object,
+    externalUrl: PropTypes.string,
+    isMainEntity: PropTypes.bool,
+    relation: PropTypes.object,
+  }),
+  setColumnData: PropTypes.func.isRequired,
 };
 
 export default ColumnFormFields;

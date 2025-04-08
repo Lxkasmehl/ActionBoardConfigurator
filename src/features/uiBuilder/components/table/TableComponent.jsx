@@ -197,7 +197,9 @@ export default function TableComponent({ component }) {
             );
 
             alignedRow[column.label] =
-              relationItem?.[column.property.name] || null;
+              relationItem?.[column.property.name] ||
+              relationItem?.[column.property.Name] ||
+              null;
           } else {
             alignedRow[column.label] = null;
           }

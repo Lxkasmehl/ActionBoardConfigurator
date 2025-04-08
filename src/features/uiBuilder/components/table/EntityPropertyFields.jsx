@@ -43,7 +43,7 @@ export default function EntityPropertyFields({
 
   return (
     <>
-      <FormControl>
+      <FormControl sx={{ maxWidth: '500px', width: '100%' }}>
         <FormLabel>Entity</FormLabel>
         <Autocomplete
           value={selectedEntity}
@@ -62,7 +62,7 @@ export default function EntityPropertyFields({
           placeholder='Select Entity'
         />
       </FormControl>
-      <FormControl>
+      <FormControl sx={{ maxWidth: '500px', width: '100%', marginTop: 1 }}>
         <FormLabel>Property</FormLabel>
         <Autocomplete
           value={selectedProperty}
