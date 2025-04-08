@@ -18,6 +18,7 @@ import {
   useImperativeHandle,
   forwardRef,
   useState,
+  useCallback,
 } from 'react';
 import EntityPropertyFields from './EntityPropertyFields';
 import WarningModal from './WarningModal';
@@ -203,6 +204,27 @@ const ColumnFormFields = forwardRef(
       }
     };
 
+    const handleEntitySelected = useCallback(
+      (data) => {
+        if (isIframeValidationError) {
+          setColumnData((prev) => ({
+            ...prev,
+            entity: data.entity,
+            label: data.label,
+            isNewColumn: data.isNewColumn,
+          }));
+        } else {
+          setEditedItem((prev) => ({
+            ...prev,
+            entity: data.entity,
+            label: data.label,
+            isNewColumn: data.isNewColumn,
+          }));
+        }
+      },
+      [isIframeValidationError, setColumnData, setEditedItem],
+    );
+
     useImperativeHandle(ref, () => ({
       triggerIframeDataFetch: () => {
         if (isIFrame) {
@@ -274,6 +296,7 @@ const ColumnFormFields = forwardRef(
               setShowWarningModal(true);
             }}
             onDataFetch={() => setIsWaitingForIframeData(true)}
+            onEntitySelected={handleEntitySelected}
           />
         )}
         {(editedItem.entity &&
