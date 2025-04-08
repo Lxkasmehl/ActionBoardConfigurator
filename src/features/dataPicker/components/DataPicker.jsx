@@ -56,6 +56,19 @@ export default function DataPicker() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
 
+  useEffect(() => {
+    window.parent.postMessage(
+      {
+        type: 'SELECTED_NODE_CHANGED',
+        payload: {
+          nodeId: selectedNode,
+          selectedEntity: selectedNode ? selectedEntities[selectedNode] : null,
+        },
+      },
+      window.location.origin,
+    );
+  }, [selectedNode, selectedEntities]);
+
   const createNodeId = useCallback(() => crypto.randomUUID(), []);
 
   const forceRerenderEntitySection = useCallback(() => {

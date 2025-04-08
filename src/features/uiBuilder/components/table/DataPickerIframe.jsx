@@ -1,9 +1,14 @@
 import PropTypes from 'prop-types';
 import { Typography } from '@mui/joy';
 import { useRef, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 
-const DataPickerIframe = ({ onWarning, onDataFetch }) => {
+const DataPickerIframe = ({ onWarning, onDataFetch, onEntitySelected }) => {
   const iframeRef = useRef(null);
+
+  const filteredEntities = useSelector(
+    (state) => state.fetchedData.filteredEntities,
+  );
 
   const handleMessage = useCallback(
     (event) => {
@@ -13,9 +18,22 @@ const DataPickerIframe = ({ onWarning, onDataFetch }) => {
         onWarning(event.data.payload.message);
       } else if (event.data.type === 'IFRAME_DATA_RESPONSE') {
         onDataFetch(event.data.payload);
+      } else if (event.data.type === 'SELECTED_NODE_CHANGED') {
+        const { selectedEntity } = event.data.payload;
+        const completeEntity = filteredEntities.find(
+          (entity) => entity.name === selectedEntity,
+        );
+
+        if (selectedEntity && completeEntity) {
+          onEntitySelected({
+            entity: completeEntity,
+            label: selectedEntity,
+            isNewColumn: false,
+          });
+        }
       }
     },
-    [onWarning, onDataFetch],
+    [onWarning, onDataFetch, onEntitySelected, filteredEntities],
   );
 
   useEffect(() => {
@@ -67,6 +85,7 @@ const DataPickerIframe = ({ onWarning, onDataFetch }) => {
 DataPickerIframe.propTypes = {
   onWarning: PropTypes.func.isRequired,
   onDataFetch: PropTypes.func.isRequired,
+  onEntitySelected: PropTypes.func.isRequired,
 };
 
 export default DataPickerIframe;
