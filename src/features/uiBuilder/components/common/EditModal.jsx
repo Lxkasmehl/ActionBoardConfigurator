@@ -38,6 +38,51 @@ export default function EditModal({
 
   const loading = useFetchEntities();
 
+  const isEntityMismatch = useCallback(
+    (newColumnData) => {
+      if (!newColumnData.entity || !mainEntity) return false;
+      return newColumnData.entity.name !== mainEntity.name;
+    },
+    [mainEntity],
+  );
+
+  const hasValidRelation = useCallback(
+    (newColumnData) => {
+      if (!newColumnData.relation || !newColumnData.relation.label)
+        return false;
+      return newColumnData.relation.label
+        .split('->')
+        .pop()
+        .includes(mainEntity.name);
+    },
+    [mainEntity],
+  );
+
+  const validateColumnData = useCallback(
+    (newColumnData) => {
+      if (
+        newColumnData.entity &&
+        !newColumnData.isMainEntity &&
+        isEntityMismatch(newColumnData) &&
+        !hasValidRelation(newColumnData)
+      ) {
+        setValidationError(
+          `This column cannot be saved because its entity (${newColumnData.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`,
+        );
+        setIsIframeValidationError(true);
+        return true;
+      }
+      return false;
+    },
+    [
+      isEntityMismatch,
+      hasValidRelation,
+      mainEntity,
+      setValidationError,
+      setIsIframeValidationError,
+    ],
+  );
+
   useEffect(() => {
     setValidationError('');
     setIsIframeValidationError(false);
@@ -91,22 +136,7 @@ export default function EditModal({
 
             setColumnData(newColumnData);
 
-            if (
-              newColumnData.entity &&
-              !newColumnData.isMainEntity &&
-              mainEntity &&
-              newColumnData.entity.name !== mainEntity.name &&
-              (!newColumnData.relation ||
-                !newColumnData.relation.label ||
-                !newColumnData.relation.label
-                  .split('->')
-                  .pop()
-                  .includes(mainEntity.name))
-            ) {
-              setValidationError(
-                `This column cannot be saved because its entity (${newColumnData.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity or choose a different entity.`,
-              );
-              setIsIframeValidationError(true);
+            if (validateColumnData(newColumnData)) {
               hasValidationError = true;
               return;
             }
@@ -134,6 +164,7 @@ export default function EditModal({
     mainEntity,
     columnData,
     isIframeValidationError,
+    validateColumnData,
   ]);
 
   const handleSave = useCallback(() => {
