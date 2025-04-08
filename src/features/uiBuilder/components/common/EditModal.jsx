@@ -104,51 +104,53 @@ export default function EditModal({
             const entityName =
               dataItem.d.results[0].__metadata.type.split('.')[1];
 
-            const propertyName = Object.keys(dataItem.d.results[0]).find(
+            const propertyNames = Object.keys(dataItem.d.results[0]).filter(
               (key) => key !== '__metadata',
             );
 
-            const extractedData = dataItem.d.results.map(
-              (result) => result[propertyName],
-            );
+            propertyNames.forEach((propertyName, propertyIndex) => {
+              const extractedData = dataItem.d.results.map(
+                (result) => result[propertyName],
+              );
 
-            const completeEntity = filteredEntities.find(
-              (entity) => entity.name === entityName,
-            );
+              const completeEntity = filteredEntities.find(
+                (entity) => entity.name === entityName,
+              );
 
-            const completeProperty = [
-              ...(completeEntity.properties.properties || []),
-              ...(completeEntity.properties.navigationProperties || []),
-            ].find((property) => property.Name === propertyName);
+              const completeProperty = [
+                ...(completeEntity.properties.properties || []),
+                ...(completeEntity.properties.navigationProperties || []),
+              ].find((property) => property.Name === propertyName);
 
-            const baseColumnData = {
-              data: extractedData,
-              label: `${entityName} -> ${propertyName}`,
-              isNewColumn: index > 0,
-              entity: completeEntity,
-              property: completeProperty,
-            };
+              const baseColumnData = {
+                data: extractedData,
+                label: `${entityName} -> ${propertyName}`,
+                isNewColumn: index > 0 || propertyIndex > 0,
+                entity: completeEntity,
+                property: completeProperty,
+              };
 
-            const newColumnData = {
-              ...(isIframeValidationError ? columnData : editedItem),
-              ...baseColumnData,
-            };
+              const newColumnData = {
+                ...(isIframeValidationError ? columnData : editedItem),
+                ...baseColumnData,
+              };
 
-            setColumnData(newColumnData);
+              setColumnData(newColumnData);
 
-            if (validateColumnData(newColumnData)) {
-              hasValidationError = true;
-              return;
+              if (validateColumnData(newColumnData)) {
+                hasValidationError = true;
+                return;
+              }
+
+              onSave(newColumnData);
+            });
+
+            setIsWaitingForIframeData(false);
+
+            if (!hasValidationError) {
+              onClose();
             }
-
-            onSave(newColumnData);
           });
-
-          setIsWaitingForIframeData(false);
-
-          if (!hasValidationError) {
-            onClose();
-          }
         }
       }
     };
