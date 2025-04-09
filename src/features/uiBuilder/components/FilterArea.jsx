@@ -3,7 +3,7 @@ import { Autocomplete, FormLabel, IconButton, Input } from '@mui/joy';
 import { Add, Delete, Edit } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 
-export default function FilterArea({ component }) {
+export default function FilterArea({ component, disabled = false }) {
   const [filters, setFilters] = useState(
     component.props.fields.map((field, index) => ({
       id: index + 1,
@@ -15,6 +15,7 @@ export default function FilterArea({ component }) {
   const [editingValue, setEditingValue] = useState('');
 
   const handleAddFilter = () => {
+    if (disabled) return;
     setFilters([
       ...filters,
       {
@@ -26,17 +27,20 @@ export default function FilterArea({ component }) {
   };
 
   const handleRemoveFilter = (id) => {
+    if (disabled) return;
     if (filters.length > 1) {
       setFilters(filters.filter((filter) => filter.id !== id));
     }
   };
 
   const handleEditStart = (filter) => {
+    if (disabled) return;
     setEditingId(filter.id);
     setEditingValue(filter.label);
   };
 
   const handleEditComplete = () => {
+    if (disabled) return;
     if (editingId) {
       setFilters(
         filters.map((filter) =>
@@ -48,6 +52,7 @@ export default function FilterArea({ component }) {
   };
 
   const handleKeyDown = (e) => {
+    if (disabled) return;
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
@@ -74,6 +79,7 @@ export default function FilterArea({ component }) {
                 onBlur={handleEditComplete}
                 onKeyDown={handleKeyDown}
                 autoFocus
+                disabled={disabled}
               />
             ) : (
               <FormLabel
@@ -92,16 +98,18 @@ export default function FilterArea({ component }) {
                 {filter.label}
               </FormLabel>
             )}
-            <IconButton
-              size='sm'
-              variant='plain'
-              color='neutral'
-              onClick={() => handleEditStart(filter)}
-              className='opacity-0 group-hover:opacity-100 transition-opacity'
-            >
-              <Edit />
-            </IconButton>
-            {filters.length > 1 && (
+            {!disabled && (
+              <IconButton
+                size='sm'
+                variant='plain'
+                color='neutral'
+                onClick={() => handleEditStart(filter)}
+                className='opacity-0 group-hover:opacity-100 transition-opacity'
+              >
+                <Edit />
+              </IconButton>
+            )}
+            {filters.length > 1 && !disabled && (
               <IconButton
                 size='sm'
                 variant='plain'
@@ -117,23 +125,26 @@ export default function FilterArea({ component }) {
             size='sm'
             placeholder='Select an option'
             options={filter.options}
+            disabled={disabled}
           />
         </div>
       ))}
 
-      <IconButton
-        variant='solid'
-        color='primary'
-        onClick={handleAddFilter}
-        sx={{
-          position: 'absolute',
-          top: '-10px',
-          right: '-10px',
-          borderRadius: '50%',
-        }}
-      >
-        <Add />
-      </IconButton>
+      {!disabled && (
+        <IconButton
+          variant='solid'
+          color='primary'
+          onClick={handleAddFilter}
+          sx={{
+            position: 'absolute',
+            top: '-10px',
+            right: '-10px',
+            borderRadius: '50%',
+          }}
+        >
+          <Add />
+        </IconButton>
+      )}
     </div>
   );
 }
@@ -148,4 +159,5 @@ FilterArea.propTypes = {
       ).isRequired,
     }).isRequired,
   }).isRequired,
+  disabled: PropTypes.bool,
 };
