@@ -10,7 +10,7 @@ import { DataGridPro } from '@mui/x-data-grid-pro';
 import CustomColumnMenu from './CustomColumnMenu';
 import CustomToolbar from './CustomToolbar';
 
-export default function TableComponent({ component }) {
+export default function TableComponent({ component, disabled = false }) {
   const [columns, setColumns] = useState(
     component.props.columns.map((col) => ({
       ...col,
@@ -68,6 +68,7 @@ export default function TableComponent({ component }) {
   };
 
   const handleAddColumn = () => {
+    if (disabled) return;
     const existingNumbers = columns.map((col) => {
       const match = col.label.match(/Column (\d+)/);
       return match ? parseInt(match[1]) : 0;
@@ -89,11 +90,13 @@ export default function TableComponent({ component }) {
   };
 
   const handleEditColumn = (columnId) => {
+    if (disabled) return;
     const column = columns.find((col) => col.id === columnId);
     setEditingColumn(column);
   };
 
   const handleSaveColumn = (editedColumn) => {
+    if (disabled) return;
     if (editedColumn.isMainEntity) {
       setMainEntity(editedColumn.entity);
       setColumns((prevColumns) =>
@@ -133,6 +136,7 @@ export default function TableComponent({ component }) {
   };
 
   const handleDeleteColumn = (columnId) => {
+    if (disabled) return;
     const columnToDelete = columns.find((col) => col.id === columnId);
     if (columnToDelete) {
       if (columnToDelete.isMainEntity) {
@@ -156,8 +160,8 @@ export default function TableComponent({ component }) {
       headerName: column.label,
       minWidth: 100,
       flex: 1,
-      resizable: true,
-      editable: !column.data && !column.entity,
+      resizable: !disabled,
+      editable: !disabled && !column.data && !column.entity,
       type: column.type || 'string',
       columnId: column.id,
       headerClassName: isInvalid ? 'invalid-column-header' : '',
@@ -221,7 +225,7 @@ export default function TableComponent({ component }) {
         columns={sortedColumns}
         disableRowSelectionOnClick
         experimentalFeatures={{ newEditingApi: true }}
-        columnReordering
+        columnReordering={!disabled}
         hideFooter
         loading={isLoading}
         slots={{
@@ -231,6 +235,7 @@ export default function TableComponent({ component }) {
               {...props}
               onEditColumn={handleEditColumn}
               onDeleteColumn={handleDeleteColumn}
+              disabled={disabled}
             />
           ),
         }}
@@ -263,23 +268,25 @@ export default function TableComponent({ component }) {
           '& .invalid-column-cell': {
             backgroundColor: 'rgba(255, 0, 0, 0.05)',
           },
+          ...(disabled ? { opacity: 0.7, pointerEvents: 'none' } : {}),
         }}
       />
-      <IconButton
-        variant='solid'
-        color='primary'
-        onClick={handleAddColumn}
-        sx={{
-          position: 'absolute',
-          top: '-10px',
-          right: '-10px',
-          borderRadius: '50%',
-          zIndex: 1000,
-        }}
-      >
-        <Add />
-      </IconButton>
-      {editingColumn && (
+      {!disabled && (
+        <IconButton
+          variant='solid'
+          color='primary'
+          onClick={handleAddColumn}
+          sx={{
+            position: 'absolute',
+            top: '-10px',
+            right: '-10px',
+            borderRadius: '50%',
+          }}
+        >
+          <Add />
+        </IconButton>
+      )}
+      {editingColumn && !disabled && (
         <EditModal
           open={!!editingColumn}
           onClose={() => setEditingColumn(null)}
@@ -288,7 +295,6 @@ export default function TableComponent({ component }) {
           onDelete={handleDeleteColumn}
           type='column'
           title='Edit Column'
-          mainEntity={mainEntity}
         />
       )}
     </div>
@@ -301,11 +307,9 @@ TableComponent.propTypes = {
       columns: PropTypes.arrayOf(
         PropTypes.shape({
           label: PropTypes.string.isRequired,
-          type: PropTypes.string.isRequired,
-          entity: PropTypes.string,
-          property: PropTypes.string,
         }),
       ).isRequired,
     }).isRequired,
   }).isRequired,
+  disabled: PropTypes.bool,
 };

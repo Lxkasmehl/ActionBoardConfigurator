@@ -6,7 +6,7 @@ import EditModal from './common/EditModal';
 import EditButton from './common/EditButton';
 import PropTypes from 'prop-types';
 
-export default function ButtonBar({ component }) {
+export default function ButtonBar({ component, disabled = false }) {
   const [fields, setFields] = useState(
     component.props.fields.map((field, index) => ({
       id: index + 1,
@@ -17,6 +17,7 @@ export default function ButtonBar({ component }) {
   const [editingField, setEditingField] = useState(null);
 
   const handleAddField = () => {
+    if (disabled) return;
     setFields([
       ...fields,
       {
@@ -28,10 +29,12 @@ export default function ButtonBar({ component }) {
   };
 
   const handleEditField = (field) => {
+    if (disabled) return;
     setEditingField(field);
   };
 
   const handleSaveField = (editedField) => {
+    if (disabled) return;
     setFields(
       fields.map((field) =>
         field.id === editedField.id ? editedField : field,
@@ -40,6 +43,7 @@ export default function ButtonBar({ component }) {
   };
 
   const handleDeleteField = (fieldId) => {
+    if (disabled) return;
     setFields(fields.filter((field) => field.id !== fieldId));
   };
 
@@ -55,10 +59,11 @@ export default function ButtonBar({ component }) {
               variant='solid'
               color='primary'
               className='group-hover:opacity-50 transition-opacity'
+              disabled={disabled}
             >
               <IconComponent />
             </IconButton>
-            <EditButton onClick={() => handleEditField(field)} />
+            {!disabled && <EditButton onClick={() => handleEditField(field)} />}
           </div>
         );
       case 'autocomplete':
@@ -72,8 +77,9 @@ export default function ButtonBar({ component }) {
               sx={{
                 width: '170px',
               }}
+              disabled={disabled}
             />
-            <EditButton onClick={() => handleEditField(field)} />
+            {!disabled && <EditButton onClick={() => handleEditField(field)} />}
           </div>
         );
       case 'button':
@@ -83,10 +89,11 @@ export default function ButtonBar({ component }) {
             <Button
               size='sm'
               className='group-hover:opacity-50 transition-opacity'
+              disabled={disabled}
             >
               {field['text/icon']}
             </Button>
-            <EditButton onClick={() => handleEditField(field)} />
+            {!disabled && <EditButton onClick={() => handleEditField(field)} />}
           </div>
         );
     }
@@ -95,20 +102,22 @@ export default function ButtonBar({ component }) {
   return (
     <>
       <div className='flex gap-2 flex-wrap'>{fields.map(renderField)}</div>
-      <IconButton
-        variant='solid'
-        color='primary'
-        onClick={handleAddField}
-        sx={{
-          position: 'absolute',
-          top: '-10px',
-          right: '-10px',
-          borderRadius: '50%',
-        }}
-      >
-        <Add />
-      </IconButton>
-      {editingField && (
+      {!disabled && (
+        <IconButton
+          variant='solid'
+          color='primary'
+          onClick={handleAddField}
+          sx={{
+            position: 'absolute',
+            top: '-10px',
+            right: '-10px',
+            borderRadius: '50%',
+          }}
+        >
+          <Add />
+        </IconButton>
+      )}
+      {editingField && !disabled && (
         <EditModal
           open={!!editingField}
           onClose={() => setEditingField(null)}
@@ -134,4 +143,5 @@ ButtonBar.propTypes = {
       ).isRequired,
     }).isRequired,
   }).isRequired,
+  disabled: PropTypes.bool,
 };

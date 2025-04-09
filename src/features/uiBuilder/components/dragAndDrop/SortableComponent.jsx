@@ -10,9 +10,17 @@ import HeadingComponent from '../text/HeadingComponent';
 import ParagraphComponent from '../text/ParagraphComponent';
 import ChartComponent from '../chart/ChartComponent';
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setWorkingSelectedComponents } from '@/redux/uiBuilderSlice';
 
 export default function SortableComponent({ component, isOver, isLast }) {
   const [isNearEdge, setIsNearEdge] = useState(false);
+  const dispatch = useDispatch();
+  const workingSelectedComponents = useSelector(
+    (state) => state.uiBuilder.workingSelectedComponents,
+  );
+  const isSelected = workingSelectedComponents.includes(component.id);
+  const isInGroupMode = useSelector((state) => state.uiBuilder.isInGroupMode);
 
   const { attributes, listeners, setNodeRef, transition, isDragging } =
     useSortable({
@@ -20,6 +28,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
       data: {
         isDragging: false,
       },
+      disabled: isInGroupMode,
     });
 
   const { setNodeRef: setGapRef, isOver: isGapOver } = useDroppable({
@@ -28,6 +37,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
       type: 'gap',
       componentId: component.id,
     },
+    disabled: isInGroupMode,
   });
 
   const style = {
@@ -52,20 +62,42 @@ export default function SortableComponent({ component, isOver, isLast }) {
     );
   };
 
+  const toggleComponentSelection = () => {
+    const newSelectedComponents = workingSelectedComponents.includes(
+      component.id,
+    )
+      ? workingSelectedComponents.filter((id) => id !== component.id)
+      : [...workingSelectedComponents, component.id];
+    dispatch(setWorkingSelectedComponents(newSelectedComponents));
+  };
+
+  const handleClick = () => {
+    if (isInGroupMode) {
+      toggleComponentSelection();
+    }
+  };
+
   const renderComponent = () => {
     const config = COMPONENT_CONFIGS[component.type];
     if (!config) return null;
 
+    const commonProps = {
+      disabled: isInGroupMode,
+      sx: isInGroupMode ? { pointerEvents: 'none', opacity: 0.7 } : {},
+    };
+
     switch (component.type) {
       case 'heading':
-        return <HeadingComponent component={component} />;
+        return <HeadingComponent component={component} {...commonProps} />;
       case 'paragraph':
-        return <ParagraphComponent component={component} />;
+        return <ParagraphComponent component={component} {...commonProps} />;
       case 'button':
         return (
           <Button
             variant={component.props.variant}
             color={component.props.color}
+            disabled={isInGroupMode}
+            sx={isInGroupMode ? { opacity: 0.7 } : {}}
           >
             {component.props.text}
           </Button>
@@ -76,17 +108,21 @@ export default function SortableComponent({ component, isOver, isLast }) {
             component='img'
             src={component.props.src}
             alt={component.props.alt}
-            sx={{ maxWidth: '100%', height: 'auto' }}
+            sx={{
+              maxWidth: '100%',
+              height: 'auto',
+              ...(isInGroupMode ? { opacity: 0.7 } : {}),
+            }}
           />
         );
       case 'filterArea':
-        return <FilterArea component={component} />;
+        return <FilterArea component={component} {...commonProps} />;
       case 'buttonBar':
-        return <ButtonBar component={component} />;
+        return <ButtonBar component={component} {...commonProps} />;
       case 'table':
-        return <TableComponent component={component} />;
+        return <TableComponent component={component} {...commonProps} />;
       case 'chart':
-        return <ChartComponent component={component} />;
+        return <ChartComponent component={component} {...commonProps} />;
       default:
         return null;
     }
@@ -101,6 +137,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
         onMouseLeave={
           component.type === 'table' ? () => setIsNearEdge(false) : undefined
         }
+        onClick={handleClick}
         {...(component.type === 'table'
           ? isNearEdge
             ? { ...attributes, ...listeners }
@@ -108,15 +145,17 @@ export default function SortableComponent({ component, isOver, isLast }) {
           : { ...attributes, ...listeners })}
         sx={{
           p: 2,
-          cursor:
-            component.type === 'table'
+          cursor: isInGroupMode
+            ? 'pointer'
+            : component.type === 'table'
               ? isNearEdge
                 ? 'grab'
                 : 'default'
               : 'grab',
           '&:active': {
-            cursor:
-              component.type === 'table'
+            cursor: isInGroupMode
+              ? 'pointer'
+              : component.type === 'table'
                 ? isNearEdge
                   ? 'grabbing'
                   : 'default'
@@ -124,6 +163,8 @@ export default function SortableComponent({ component, isOver, isLast }) {
           },
           position: 'relative',
           transition: 'transform 0.2s ease',
+          border: isSelected ? '2px solid' : '1px solid',
+          borderColor: isSelected ? 'primary.500' : 'divider',
         }}
       >
         {renderComponent()}

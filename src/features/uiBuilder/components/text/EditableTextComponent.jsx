@@ -8,27 +8,32 @@ export default function EditableTextComponent({
   InputComponent,
   inputProps = {},
   typographyProps = {},
+  disabled = false,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(component.props.text);
   const [previousText, setPreviousText] = useState(component.props.text);
 
   const handleEditClick = () => {
+    if (disabled) return;
     setPreviousText(editedText);
     setIsEditing(true);
   };
 
   const handleSave = () => {
+    if (disabled) return;
     setPreviousText(editedText);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
+    if (disabled) return;
     setEditedText(previousText);
     setIsEditing(false);
   };
 
   const handleKeyDown = (e) => {
+    if (disabled) return;
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
@@ -53,6 +58,7 @@ export default function EditableTextComponent({
             onKeyDown={handleKeyDown}
             autoFocus
             sx={{ flex: 1 }}
+            disabled={disabled}
             {...inputProps}
           />
           <IconButton
@@ -60,6 +66,7 @@ export default function EditableTextComponent({
             color='success'
             onClick={handleSave}
             sx={{ borderRadius: '50%' }}
+            disabled={disabled}
           >
             <Check />
           </IconButton>
@@ -68,6 +75,7 @@ export default function EditableTextComponent({
             color='danger'
             onClick={handleCancel}
             sx={{ borderRadius: '50%' }}
+            disabled={disabled}
           >
             <Close />
           </IconButton>
@@ -84,7 +92,9 @@ export default function EditableTextComponent({
               top: '-10px',
               right: '-10px',
               borderRadius: '50%',
+              display: disabled ? 'none' : 'block',
             }}
+            disabled={disabled}
           >
             <Edit />
           </IconButton>
@@ -103,4 +113,5 @@ EditableTextComponent.propTypes = {
   InputComponent: PropTypes.elementType.isRequired,
   inputProps: PropTypes.object,
   typographyProps: PropTypes.object,
+  disabled: PropTypes.bool,
 };

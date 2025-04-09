@@ -4,15 +4,18 @@ import { useDroppable } from '@dnd-kit/core';
 import SortableComponent from '../dragAndDrop/SortableComponent';
 import EmptyState from '../layout/EmptyState';
 import TrashBin from './TrashBin';
+import { useSelector } from 'react-redux';
 
 export default function PreviewArea({
   components,
   activeDragData,
   onTrashOver,
 }) {
+  const isInGroupMode = useSelector((state) => state.uiBuilder.isInGroupMode);
   const { setNodeRef, isOver } = useDroppable({
     id: 'preview-area',
     data: { type: 'preview-area' },
+    disabled: isInGroupMode,
   });
 
   const { setNodeRef: setInitialGapRef, isOver: isInitialGapOver } =
@@ -22,6 +25,7 @@ export default function PreviewArea({
         type: 'gap',
         componentId: components[0]?.id,
       },
+      disabled: isInGroupMode,
     });
 
   const isDraggingExistingComponent = activeDragData?.type === 'preview';
@@ -53,6 +57,7 @@ export default function PreviewArea({
           borderRadius: 'sm',
           position: 'relative',
           overflowY: 'auto',
+          zIndex: 20,
         }}
       >
         {components.length === 0 ? (
