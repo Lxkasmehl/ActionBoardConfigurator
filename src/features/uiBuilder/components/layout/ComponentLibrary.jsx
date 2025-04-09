@@ -1,26 +1,65 @@
-import { Card, Typography, Stack, Button, Box } from '@mui/joy';
+import {
+  Card,
+  Typography,
+  Stack,
+  Button,
+  Box,
+  Dropdown,
+  MenuButton,
+  Menu,
+  MenuItem,
+  Input,
+} from '@mui/joy';
 import { COMPONENT_CONFIGS } from '../common/constants';
 import DraggableComponent from '../dragAndDrop/DraggableComponent';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  setIsInGroupMode,
+  setIsInCreateGroupMode,
   saveSelectedComponents,
-  clearSelectedComponents,
+  setWorkingSelectedComponents,
 } from '@/redux/uiBuilderSlice';
+import { useState } from 'react';
 
 export default function ComponentLibrary() {
   const disabledComponents = ['Image', 'Button'];
   const dispatch = useDispatch();
-  const isInGroupMode = useSelector((state) => state.uiBuilder.isInGroupMode);
+  const isInCreateGroupMode = useSelector(
+    (state) => state.uiBuilder.isInCreateGroupMode,
+  );
+  const componentGroups = useSelector(
+    (state) => state.uiBuilder.componentGroups,
+  );
+  const workingSelectedComponents = useSelector(
+    (state) => state.uiBuilder.workingSelectedComponents,
+  );
+  const [groupName, setGroupName] = useState('');
+  const [error, setError] = useState('');
 
   const handleSave = () => {
-    dispatch(saveSelectedComponents());
-    dispatch(setIsInGroupMode(false));
+    if (!groupName.trim()) return;
+
+    if (componentGroups[groupName.trim()]) {
+      setError('A group with this name already exists');
+      return;
+    }
+
+    if (workingSelectedComponents.length === 0) {
+      setError('Please select at least one component for the group');
+      return;
+    }
+
+    setError('');
+    dispatch(saveSelectedComponents({ groupName: groupName.trim() }));
+    dispatch(setIsInCreateGroupMode(false));
+    dispatch(setWorkingSelectedComponents([]));
+    setGroupName('');
   };
 
   const handleCancel = () => {
-    dispatch(clearSelectedComponents());
-    dispatch(setIsInGroupMode(false));
+    dispatch(setIsInCreateGroupMode(false));
+    dispatch(setWorkingSelectedComponents([]));
+    setGroupName('');
+    setError('');
   };
 
   return (
@@ -47,19 +86,50 @@ export default function ComponentLibrary() {
         ))}
       </Stack>
       <Box sx={{ flexGrow: 1 }}></Box>
-      {isInGroupMode ? (
-        <div className='flex flex-row gap-1 z-20'>
-          <Button color='danger' onClick={handleCancel} sx={{ flex: 1 }}>
-            Cancel
-          </Button>
-          <Button color='success' sx={{ flex: 1 }} onClick={handleSave}>
-            Save
-          </Button>
-        </div>
+      {isInCreateGroupMode ? (
+        <>
+          <Input
+            required
+            placeholder='Group Name'
+            value={groupName}
+            onChange={(e) => {
+              setGroupName(e.target.value);
+              setError('');
+            }}
+            error={!!error}
+            sx={{ zIndex: '20 !important', mb: 1 }}
+          />
+          {error && (
+            <Typography color='danger' level='body-sm' sx={{ mb: 1 }}>
+              {error}
+            </Typography>
+          )}
+          <div className='flex flex-row gap-1 z-20'>
+            <Button color='danger' onClick={handleCancel} sx={{ flex: 1 }}>
+              Cancel
+            </Button>
+            <Button
+              color='success'
+              sx={{ flex: 1 }}
+              onClick={handleSave}
+              disabled={!groupName.trim()}
+            >
+              Save
+            </Button>
+          </div>
+        </>
       ) : (
-        <Button onClick={() => dispatch(setIsInGroupMode(true))}>
-          Create Group
-        </Button>
+        <Dropdown>
+          <MenuButton color='primary' variant='solid'>
+            Create / Edit Group
+          </MenuButton>
+          <Menu>
+            <MenuItem onClick={() => dispatch(setIsInCreateGroupMode(true))}>
+              Create New Group
+            </MenuItem>
+            <MenuItem>Edit Existing Group</MenuItem>
+          </Menu>
+        </Dropdown>
       )}
     </Card>
   );

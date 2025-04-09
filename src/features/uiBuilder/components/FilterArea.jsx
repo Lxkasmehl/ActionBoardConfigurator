@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Autocomplete, FormLabel, IconButton, Input } from '@mui/joy';
+import { Autocomplete, FormLabel, IconButton } from '@mui/joy';
 import { Add, Delete, Edit } from '@mui/icons-material';
 import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 
 export default function FilterArea({ component, disabled = false }) {
   const [filters, setFilters] = useState(
@@ -13,6 +14,10 @@ export default function FilterArea({ component, disabled = false }) {
   );
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
+  const tableColumns = useSelector((state) => state.uiBuilder.tableColumns);
+  const componentGroups = useSelector(
+    (state) => state.uiBuilder.componentGroups,
+  );
 
   const handleAddFilter = () => {
     if (disabled) return;
@@ -37,6 +42,31 @@ export default function FilterArea({ component, disabled = false }) {
     if (disabled) return;
     setEditingId(filter.id);
     setEditingValue(filter.label);
+  };
+
+  const getColumnOptions = () => {
+    // Find which group this component belongs to
+    const componentGroup = Object.values(componentGroups).find((group) =>
+      group.components.includes(component.id),
+    );
+
+    if (!componentGroup) {
+      return [];
+    }
+
+    console.log('tableColumns', tableColumns);
+
+    // Find the table component in the same group
+    const tableComponentId = componentGroup.components.find(
+      (id) => tableColumns[id],
+    );
+
+    return (
+      tableColumns[tableComponentId]?.map((column) => ({
+        label: column.label,
+        value: column.id,
+      })) || []
+    );
   };
 
   const handleEditComplete = () => {
@@ -72,14 +102,19 @@ export default function FilterArea({ component, disabled = false }) {
         >
           <div className='grid grid-cols-[1fr,auto,auto] items-center gap-2'>
             {editingId === filter.id ? (
-              <Input
+              <Autocomplete
                 size='sm'
-                value={editingValue}
-                onChange={(e) => setEditingValue(e.target.value)}
+                placeholder='Select Column'
+                disabled={disabled}
                 onBlur={handleEditComplete}
                 onKeyDown={handleKeyDown}
-                autoFocus
-                disabled={disabled}
+                options={getColumnOptions()}
+                getOptionLabel={(option) => option.label}
+                onChange={(event, newValue) => {
+                  if (newValue) {
+                    setEditingValue(newValue.label);
+                  }
+                }}
               />
             ) : (
               <FormLabel
@@ -98,7 +133,7 @@ export default function FilterArea({ component, disabled = false }) {
                 {filter.label}
               </FormLabel>
             )}
-            {!disabled && (
+            {!disabled && editingId !== filter.id && (
               <IconButton
                 size='sm'
                 variant='plain'
@@ -151,6 +186,7 @@ export default function FilterArea({ component, disabled = false }) {
 
 FilterArea.propTypes = {
   component: PropTypes.shape({
+    id: PropTypes.string.isRequired,
     props: PropTypes.shape({
       fields: PropTypes.arrayOf(
         PropTypes.shape({

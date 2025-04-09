@@ -1,6 +1,7 @@
 import { IconButton } from '@mui/joy';
 import { Add } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import EditModal from '../common/EditModal';
 import PropTypes from 'prop-types';
 import { useTableData } from '../../hooks/useTableData';
@@ -9,8 +10,10 @@ import { getInitialDummyData } from '../../utils/tableUtils';
 import { DataGridPro } from '@mui/x-data-grid-pro';
 import CustomColumnMenu from './CustomColumnMenu';
 import CustomToolbar from './CustomToolbar';
+import { setTableColumns } from '../../../../redux/uiBuilderSlice';
 
 export default function TableComponent({ component, disabled = false }) {
+  const dispatch = useDispatch();
   const [columns, setColumns] = useState(
     component.props.columns.map((col) => ({
       ...col,
@@ -57,6 +60,11 @@ export default function TableComponent({ component, disabled = false }) {
     fetchRelationData();
   }, [columns, sendRequest]);
 
+  // Update Redux store whenever columns change
+  useEffect(() => {
+    dispatch(setTableColumns({ componentId: component.id, columns }));
+  }, [columns, dispatch, component.id]);
+
   const isColumnInvalid = (column) => {
     return (
       column.entity &&
@@ -86,7 +94,8 @@ export default function TableComponent({ component, disabled = false }) {
       label: newColumnLabel,
     };
 
-    setColumns([...columns, newColumn]);
+    const updatedColumns = [...columns, newColumn];
+    setColumns(updatedColumns);
   };
 
   const handleEditColumn = (columnId) => {
@@ -99,39 +108,34 @@ export default function TableComponent({ component, disabled = false }) {
     if (disabled) return;
     if (editedColumn.isMainEntity) {
       setMainEntity(editedColumn.entity);
-      setColumns((prevColumns) =>
-        prevColumns.map((col) => ({
-          ...col,
-          isMainEntity: col.id === editedColumn.id,
-        })),
-      );
+      const updatedColumns = columns.map((col) => ({
+        ...col,
+        isMainEntity: col.id === editedColumn.id,
+      }));
+      setColumns(updatedColumns);
     }
 
     if (editedColumn.data) {
-      setColumns((prevColumns) => {
-        const updatedColumns = editedColumn.isNewColumn
-          ? [...prevColumns, { ...editedColumn, id: crypto.randomUUID() }]
-          : prevColumns.map((col) =>
-              col.id === editingColumn.id ? editedColumn : col,
-            );
+      const updatedColumns = editedColumn.isNewColumn
+        ? [...columns, { ...editedColumn, id: crypto.randomUUID() }]
+        : columns.map((col) =>
+            col.id === editingColumn.id ? editedColumn : col,
+          );
 
-        setTableData((prevData) => {
-          const maxRows = Math.max(prevData.length, editedColumn.data.length);
-          return Array.from({ length: maxRows }, (_, index) => ({
-            ...(prevData[index] || {}),
-            [editedColumn.label]: editedColumn.data[index] || '',
-          }));
-        });
-
-        return updatedColumns;
+      setTableData((prevData) => {
+        const maxRows = Math.max(prevData.length, editedColumn.data.length);
+        return Array.from({ length: maxRows }, (_, index) => ({
+          ...(prevData[index] || {}),
+          [editedColumn.label]: editedColumn.data[index] || '',
+        }));
       });
+
+      setColumns(updatedColumns);
     } else {
-      setColumns((prevColumns) => {
-        const updatedColumns = prevColumns.map((col) =>
-          col.id === editingColumn.id ? editedColumn : col,
-        );
-        return updatedColumns;
-      });
+      const updatedColumns = columns.map((col) =>
+        col.id === editingColumn.id ? editedColumn : col,
+      );
+      setColumns(updatedColumns);
     }
   };
 
@@ -142,7 +146,8 @@ export default function TableComponent({ component, disabled = false }) {
       if (columnToDelete.isMainEntity) {
         setMainEntity(null);
       }
-      setColumns(columns.filter((col) => col.id !== columnId));
+      const updatedColumns = columns.filter((col) => col.id !== columnId);
+      setColumns(updatedColumns);
       setTableData(
         tableData.map((row) => {
           const newRow = { ...row };
@@ -303,6 +308,7 @@ export default function TableComponent({ component, disabled = false }) {
 
 TableComponent.propTypes = {
   component: PropTypes.shape({
+    id: PropTypes.string.isRequired,
     props: PropTypes.shape({
       columns: PropTypes.arrayOf(
         PropTypes.shape({
