@@ -19,8 +19,19 @@ export default function SortableComponent({ component, isOver, isLast }) {
   const workingSelectedComponents = useSelector(
     (state) => state.uiBuilder.workingSelectedComponents,
   );
-  const isSelected = workingSelectedComponents.includes(component.id);
-  const isInGroupMode = useSelector((state) => state.uiBuilder.isInGroupMode);
+  const componentGroups = useSelector(
+    (state) => state.uiBuilder.componentGroups,
+  );
+  const isWorkingSelected = workingSelectedComponents.includes(component.id);
+  const isInCreateGroupMode = useSelector(
+    (state) => state.uiBuilder.isInCreateGroupMode,
+  );
+
+  // Find which group this component belongs to
+  const componentGroup = Object.values(componentGroups).find((group) =>
+    group.components.includes(component.id),
+  );
+  const groupColor = componentGroup ? componentGroup.color : undefined;
 
   const { attributes, listeners, setNodeRef, transition, isDragging } =
     useSortable({
@@ -28,7 +39,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
       data: {
         isDragging: false,
       },
-      disabled: isInGroupMode,
+      disabled: isInCreateGroupMode,
     });
 
   const { setNodeRef: setGapRef, isOver: isGapOver } = useDroppable({
@@ -37,7 +48,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
       type: 'gap',
       componentId: component.id,
     },
-    disabled: isInGroupMode,
+    disabled: isInCreateGroupMode,
   });
 
   const style = {
@@ -72,7 +83,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
   };
 
   const handleClick = () => {
-    if (isInGroupMode) {
+    if (isInCreateGroupMode) {
       toggleComponentSelection();
     }
   };
@@ -82,8 +93,8 @@ export default function SortableComponent({ component, isOver, isLast }) {
     if (!config) return null;
 
     const commonProps = {
-      disabled: isInGroupMode,
-      sx: isInGroupMode ? { pointerEvents: 'none', opacity: 0.7 } : {},
+      disabled: isInCreateGroupMode,
+      sx: isInCreateGroupMode ? { pointerEvents: 'none', opacity: 0.7 } : {},
     };
 
     switch (component.type) {
@@ -96,8 +107,8 @@ export default function SortableComponent({ component, isOver, isLast }) {
           <Button
             variant={component.props.variant}
             color={component.props.color}
-            disabled={isInGroupMode}
-            sx={isInGroupMode ? { opacity: 0.7 } : {}}
+            disabled={isInCreateGroupMode}
+            sx={isInCreateGroupMode ? { opacity: 0.7 } : {}}
           >
             {component.props.text}
           </Button>
@@ -111,7 +122,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
             sx={{
               maxWidth: '100%',
               height: 'auto',
-              ...(isInGroupMode ? { opacity: 0.7 } : {}),
+              ...(isInCreateGroupMode ? { opacity: 0.7 } : {}),
             }}
           />
         );
@@ -145,7 +156,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
           : { ...attributes, ...listeners })}
         sx={{
           p: 2,
-          cursor: isInGroupMode
+          cursor: isInCreateGroupMode
             ? 'pointer'
             : component.type === 'table'
               ? isNearEdge
@@ -153,7 +164,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
                 : 'default'
               : 'grab',
           '&:active': {
-            cursor: isInGroupMode
+            cursor: isInCreateGroupMode
               ? 'pointer'
               : component.type === 'table'
                 ? isNearEdge
@@ -163,8 +174,14 @@ export default function SortableComponent({ component, isOver, isLast }) {
           },
           position: 'relative',
           transition: 'transform 0.2s ease',
-          border: isSelected ? '2px solid' : '1px solid',
-          borderColor: isSelected ? 'primary.500' : 'divider',
+          border: isWorkingSelected || groupColor ? '2px solid' : '1px solid',
+          borderColor:
+            groupColor || (isWorkingSelected ? 'primary.500' : 'divider'),
+          zIndex:
+            isInCreateGroupMode &&
+            !componentGroup &&
+            ['buttonBar', 'filterArea', 'table'].includes(component.type) &&
+            '20 !important',
         }}
       >
         {renderComponent()}

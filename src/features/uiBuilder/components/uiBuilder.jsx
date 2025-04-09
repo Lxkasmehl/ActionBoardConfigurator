@@ -23,7 +23,9 @@ import { useSelector } from 'react-redux';
 export default function UiBuilder() {
   const [components, setComponents] = useState([]);
   const [isOverTrash, setIsOverTrash] = useState(false);
-  const isInGroupMode = useSelector((state) => state.uiBuilder.isInGroupMode);
+  const isInCreateGroupMode = useSelector(
+    (state) => state.uiBuilder.isInCreateGroupMode,
+  );
   const { activeDragData, handleDragStart, handleDragEnd } = useDragAndDrop(
     components,
     setComponents,
@@ -70,7 +72,7 @@ export default function UiBuilder() {
           </DragOverlay>
         </DndContext>
       </Box>
-      {isInGroupMode && (
+      {isInCreateGroupMode && (
         <Box
           sx={{
             height: '100vh',
