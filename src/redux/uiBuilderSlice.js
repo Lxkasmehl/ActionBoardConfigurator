@@ -33,6 +33,16 @@ const uiBuilderSlice = createSlice({
         }
       }
     },
+    updateComponentGroups: (state, action) => {
+      state.componentGroups = action.payload;
+    },
+    checkAndDeleteEmptyGroups: (state) => {
+      Object.keys(state.componentGroups).forEach((groupName) => {
+        if (state.componentGroups[groupName].components.length === 0) {
+          delete state.componentGroups[groupName];
+        }
+      });
+    },
     setTableColumns: (state, action) => {
       const { componentId, columns } = action.payload;
       state.tableColumns[componentId] = columns;
@@ -51,6 +61,8 @@ export const {
   setIsInCreateGroupMode,
   setWorkingSelectedComponents,
   saveSelectedComponents,
+  updateComponentGroups,
+  checkAndDeleteEmptyGroups,
   setTableColumns,
   setColumnData,
   setGroupToEdit,
