@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Autocomplete, FormLabel, IconButton } from '@mui/joy';
+import { Autocomplete, FormLabel, IconButton, Tooltip } from '@mui/joy';
 import { Add, Delete, Edit } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
@@ -15,6 +15,7 @@ export default function FilterArea({ component, disabled = false }) {
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
   const tableColumns = useSelector((state) => state.uiBuilder.tableColumns);
+  const columnData = useSelector((state) => state.uiBuilder.columnData);
   const componentGroups = useSelector(
     (state) => state.uiBuilder.componentGroups,
   );
@@ -44,22 +45,16 @@ export default function FilterArea({ component, disabled = false }) {
     setEditingValue(filter.label);
   };
 
+  const componentGroup = Object.values(componentGroups).find((group) =>
+    group.components.includes(component.id),
+  );
+
+  const tableComponentId = componentGroup?.components?.find(
+    (id) => tableColumns[id],
+  );
+
   const getColumnOptions = () => {
-    // Find which group this component belongs to
-    const componentGroup = Object.values(componentGroups).find((group) =>
-      group.components.includes(component.id),
-    );
-
-    if (!componentGroup) {
-      return [];
-    }
-
-    console.log('tableColumns', tableColumns);
-
-    // Find the table component in the same group
-    const tableComponentId = componentGroup.components.find(
-      (id) => tableColumns[id],
-    );
+    if (!tableComponentId) return [];
 
     return (
       tableColumns[tableComponentId]?.map((column) => ({
@@ -102,20 +97,31 @@ export default function FilterArea({ component, disabled = false }) {
         >
           <div className='grid grid-cols-[1fr,auto,auto] items-center gap-2'>
             {editingId === filter.id ? (
-              <Autocomplete
-                size='sm'
-                placeholder='Select Column'
-                disabled={disabled}
-                onBlur={handleEditComplete}
-                onKeyDown={handleKeyDown}
-                options={getColumnOptions()}
-                getOptionLabel={(option) => option.label}
-                onChange={(event, newValue) => {
-                  if (newValue) {
-                    setEditingValue(newValue.label);
-                  }
+              <Tooltip
+                title={
+                  getColumnOptions().length === 0 &&
+                  'Please create a group with a table to select table columns as options'
+                }
+                placement='top'
+                sx={{
+                  maxWidth: '300px',
                 }}
-              />
+              >
+                <Autocomplete
+                  size='sm'
+                  placeholder='Select Column'
+                  disabled={disabled}
+                  onBlur={handleEditComplete}
+                  onKeyDown={handleKeyDown}
+                  options={getColumnOptions()}
+                  getOptionLabel={(option) => option.label}
+                  onChange={(event, newValue) => {
+                    if (newValue) {
+                      setEditingValue(newValue.label);
+                    }
+                  }}
+                />
+              </Tooltip>
             ) : (
               <FormLabel
                 size='sm'
@@ -159,8 +165,10 @@ export default function FilterArea({ component, disabled = false }) {
           <Autocomplete
             size='sm'
             placeholder='Select an option'
-            options={filter.options}
+            options={columnData[tableComponentId]?.[filter.label] || []}
             disabled={disabled}
+            getOptionLabel={(option) => option.toString() || ''}
+            multiple
           />
         </div>
       ))}

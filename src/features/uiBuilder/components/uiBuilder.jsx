@@ -73,7 +73,6 @@ export default function UiBuilder() {
           </DragOverlay>
         </DndContext>
       </Box>
-      {console.log(groupToEdit)}
       {(isInCreateGroupMode || groupToEdit !== null) && (
         <Box
           sx={{

@@ -4,6 +4,7 @@ const initialState = {
   isInCreateGroupMode: false,
   workingSelectedComponents: [],
   tableColumns: {},
+  columnData: {},
   componentGroups: {},
   groupToEdit: null,
 };
@@ -36,6 +37,10 @@ const uiBuilderSlice = createSlice({
       const { componentId, columns } = action.payload;
       state.tableColumns[componentId] = columns;
     },
+    setColumnData: (state, action) => {
+      const { componentId, data } = action.payload;
+      state.columnData[componentId] = data;
+    },
     setGroupToEdit: (state, action) => {
       state.groupToEdit = action.payload;
     },
@@ -47,6 +52,7 @@ export const {
   setWorkingSelectedComponents,
   saveSelectedComponents,
   setTableColumns,
+  setColumnData,
   setGroupToEdit,
 } = uiBuilderSlice.actions;
 
