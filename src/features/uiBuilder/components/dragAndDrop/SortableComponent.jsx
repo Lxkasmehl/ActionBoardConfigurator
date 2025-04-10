@@ -9,7 +9,7 @@ import TableComponent from '../table/TableComponent';
 import HeadingComponent from '../text/HeadingComponent';
 import ParagraphComponent from '../text/ParagraphComponent';
 import ChartComponent from '../chart/ChartComponent';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setWorkingSelectedComponents } from '@/redux/uiBuilderSlice';
 
@@ -26,12 +26,17 @@ export default function SortableComponent({ component, isOver, isLast }) {
   const isInCreateGroupMode = useSelector(
     (state) => state.uiBuilder.isInCreateGroupMode,
   );
-
+  const groupToEdit = useSelector((state) => state.uiBuilder.groupToEdit);
   // Find which group this component belongs to
   const componentGroup = Object.values(componentGroups).find((group) =>
     group.components.includes(component.id),
   );
   const groupColor = componentGroup ? componentGroup.color : undefined;
+  const groupIsEditing =
+    groupToEdit ===
+    Object.keys(componentGroups).find(
+      (key) => componentGroups[key] === componentGroup,
+    );
 
   const { attributes, listeners, setNodeRef, transition, isDragging } =
     useSortable({
@@ -39,7 +44,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
       data: {
         isDragging: false,
       },
-      disabled: isInCreateGroupMode,
+      disabled: isInCreateGroupMode || groupToEdit !== null,
     });
 
   const { setNodeRef: setGapRef, isOver: isGapOver } = useDroppable({
@@ -48,7 +53,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
       type: 'gap',
       componentId: component.id,
     },
-    disabled: isInCreateGroupMode,
+    disabled: isInCreateGroupMode || groupToEdit !== null,
   });
 
   const style = {
@@ -56,6 +61,12 @@ export default function SortableComponent({ component, isOver, isLast }) {
     position: 'relative',
     zIndex: isDragging ? 1 : 0,
   };
+
+  useEffect(() => {
+    if (groupIsEditing) {
+      dispatch(setWorkingSelectedComponents(componentGroup.components));
+    }
+  }, [dispatch, groupIsEditing, componentGroup]);
 
   const handleMouseMove = (e) => {
     if (component.type !== 'table') return;
@@ -83,7 +94,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
   };
 
   const handleClick = () => {
-    if (isInCreateGroupMode) {
+    if (isInCreateGroupMode || groupToEdit !== null) {
       toggleComponentSelection();
     }
   };
@@ -93,8 +104,11 @@ export default function SortableComponent({ component, isOver, isLast }) {
     if (!config) return null;
 
     const commonProps = {
-      disabled: isInCreateGroupMode,
-      sx: isInCreateGroupMode ? { pointerEvents: 'none', opacity: 0.7 } : {},
+      disabled: isInCreateGroupMode || groupToEdit !== null,
+      sx:
+        isInCreateGroupMode || groupToEdit !== null
+          ? { pointerEvents: 'none', opacity: 0.7 }
+          : {},
     };
 
     switch (component.type) {
@@ -107,8 +121,12 @@ export default function SortableComponent({ component, isOver, isLast }) {
           <Button
             variant={component.props.variant}
             color={component.props.color}
-            disabled={isInCreateGroupMode}
-            sx={isInCreateGroupMode ? { opacity: 0.7 } : {}}
+            disabled={isInCreateGroupMode || groupToEdit !== null}
+            sx={
+              isInCreateGroupMode || groupToEdit !== null
+                ? { opacity: 0.7 }
+                : {}
+            }
           >
             {component.props.text}
           </Button>
@@ -122,7 +140,9 @@ export default function SortableComponent({ component, isOver, isLast }) {
             sx={{
               maxWidth: '100%',
               height: 'auto',
-              ...(isInCreateGroupMode ? { opacity: 0.7 } : {}),
+              ...(isInCreateGroupMode || groupToEdit !== null
+                ? { opacity: 0.7 }
+                : {}),
             }}
           />
         );
@@ -156,32 +176,41 @@ export default function SortableComponent({ component, isOver, isLast }) {
           : { ...attributes, ...listeners })}
         sx={{
           p: 2,
-          cursor: isInCreateGroupMode
-            ? 'pointer'
-            : component.type === 'table'
-              ? isNearEdge
-                ? 'grab'
-                : 'default'
-              : 'grab',
-          '&:active': {
-            cursor: isInCreateGroupMode
+          cursor:
+            isInCreateGroupMode || groupToEdit
               ? 'pointer'
               : component.type === 'table'
                 ? isNearEdge
-                  ? 'grabbing'
+                  ? 'grab'
                   : 'default'
-                : 'grabbing',
+                : 'grab',
+          '&:active': {
+            cursor:
+              isInCreateGroupMode || groupToEdit
+                ? 'pointer'
+                : component.type === 'table'
+                  ? isNearEdge
+                    ? 'grabbing'
+                    : 'default'
+                  : 'grabbing',
           },
           position: 'relative',
           transition: 'transform 0.2s ease',
           border: isWorkingSelected || groupColor ? '2px solid' : '1px solid',
           borderColor:
-            groupColor || (isWorkingSelected ? 'primary.500' : 'divider'),
+            isInCreateGroupMode || groupToEdit
+              ? isWorkingSelected
+                ? groupColor || 'primary.500'
+                : 'divider'
+              : groupColor || 'divider',
           zIndex:
-            isInCreateGroupMode &&
-            !componentGroup &&
-            ['buttonBar', 'filterArea', 'table'].includes(component.type) &&
-            '20 !important',
+            (isInCreateGroupMode &&
+              !componentGroup &&
+              ['buttonBar', 'filterArea', 'table'].includes(component.type)) ||
+            (groupToEdit && !componentGroup) ||
+            (groupToEdit && componentGroup && groupIsEditing)
+              ? '20 !important'
+              : undefined,
         }}
       >
         {renderComponent()}

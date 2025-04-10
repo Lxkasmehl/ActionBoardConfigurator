@@ -5,6 +5,7 @@ const initialState = {
   workingSelectedComponents: [],
   tableColumns: {},
   componentGroups: {},
+  groupToEdit: null,
 };
 
 const uiBuilderSlice = createSlice({
@@ -22,7 +23,6 @@ const uiBuilderSlice = createSlice({
       if (groupName) {
         if (!state.componentGroups[groupName]) {
           state.componentGroups[groupName] = {
-            name: groupName,
             components: state.workingSelectedComponents,
             color: `hsl(${Math.random() * 360}, 70%, 50%)`,
           };
@@ -36,6 +36,9 @@ const uiBuilderSlice = createSlice({
       const { componentId, columns } = action.payload;
       state.tableColumns[componentId] = columns;
     },
+    setGroupToEdit: (state, action) => {
+      state.groupToEdit = action.payload;
+    },
   },
 });
 
@@ -44,6 +47,7 @@ export const {
   setWorkingSelectedComponents,
   saveSelectedComponents,
   setTableColumns,
+  setGroupToEdit,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;
