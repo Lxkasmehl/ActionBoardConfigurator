@@ -64,12 +64,14 @@ export default function ComponentLibrary() {
     dispatch(setWorkingSelectedComponents([]));
     setGroupName('');
     setError('');
+    setShowGroupSelector(false);
   };
 
   const handleSaveEditedGroup = () => {
     dispatch(saveSelectedComponents({ groupName: groupToEdit }));
     dispatch(setWorkingSelectedComponents([]));
     dispatch(setGroupToEdit(null));
+    setShowGroupSelector(false);
   };
 
   return (

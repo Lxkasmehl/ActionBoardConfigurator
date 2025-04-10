@@ -159,58 +159,63 @@ export default function SortableComponent({ component, isOver, isLast }) {
     }
   };
 
+  const isInGroupMode = isInCreateGroupMode || groupToEdit;
+  const isTableComponent = component.type === 'table';
+  const hasElevatedZIndex =
+    (isInCreateGroupMode &&
+      !componentGroup &&
+      ['buttonBar', 'filterArea', 'table'].includes(component.type)) ||
+    (groupToEdit && !componentGroup) ||
+    (groupToEdit && componentGroup && groupIsEditing);
+
+  const cardStyles = {
+    p: 2,
+    position: 'relative',
+    transition: 'transform 0.2s ease',
+    border: isWorkingSelected || groupColor ? '2px solid' : '1px solid',
+    borderColor: isInGroupMode
+      ? isWorkingSelected
+        ? groupColor || 'primary.500'
+        : 'divider'
+      : groupColor || 'divider',
+    zIndex: hasElevatedZIndex ? '20 !important' : undefined,
+  };
+
+  const cursorStyles = {
+    cursor: isInGroupMode
+      ? 'pointer'
+      : isTableComponent
+        ? isNearEdge
+          ? 'grab'
+          : 'default'
+        : 'grab',
+    '&:active': {
+      cursor: isInGroupMode
+        ? 'pointer'
+        : isTableComponent
+          ? isNearEdge
+            ? 'grabbing'
+            : 'default'
+          : 'grabbing',
+    },
+  };
+
   return (
     <>
       <Card
         ref={setNodeRef}
         style={style}
-        onMouseMove={component.type === 'table' ? handleMouseMove : undefined}
-        onMouseLeave={
-          component.type === 'table' ? () => setIsNearEdge(false) : undefined
-        }
+        onMouseMove={isTableComponent ? handleMouseMove : undefined}
+        onMouseLeave={isTableComponent ? () => setIsNearEdge(false) : undefined}
         onClick={handleClick}
-        {...(component.type === 'table'
+        {...(isTableComponent
           ? isNearEdge
             ? { ...attributes, ...listeners }
             : {}
           : { ...attributes, ...listeners })}
         sx={{
-          p: 2,
-          cursor:
-            isInCreateGroupMode || groupToEdit
-              ? 'pointer'
-              : component.type === 'table'
-                ? isNearEdge
-                  ? 'grab'
-                  : 'default'
-                : 'grab',
-          '&:active': {
-            cursor:
-              isInCreateGroupMode || groupToEdit
-                ? 'pointer'
-                : component.type === 'table'
-                  ? isNearEdge
-                    ? 'grabbing'
-                    : 'default'
-                  : 'grabbing',
-          },
-          position: 'relative',
-          transition: 'transform 0.2s ease',
-          border: isWorkingSelected || groupColor ? '2px solid' : '1px solid',
-          borderColor:
-            isInCreateGroupMode || groupToEdit
-              ? isWorkingSelected
-                ? groupColor || 'primary.500'
-                : 'divider'
-              : groupColor || 'divider',
-          zIndex:
-            (isInCreateGroupMode &&
-              !componentGroup &&
-              ['buttonBar', 'filterArea', 'table'].includes(component.type)) ||
-            (groupToEdit && !componentGroup) ||
-            (groupToEdit && componentGroup && groupIsEditing)
-              ? '20 !important'
-              : undefined,
+          ...cardStyles,
+          ...cursorStyles,
         }}
       >
         {renderComponent()}
