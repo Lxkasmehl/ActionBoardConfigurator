@@ -19,6 +19,7 @@ import {
   saveSelectedComponents,
   setWorkingSelectedComponents,
   setGroupToEdit,
+  checkAndDeleteEmptyGroups,
 } from '@/redux/uiBuilderSlice';
 import { useState } from 'react';
 
@@ -57,6 +58,7 @@ export default function ComponentLibrary() {
     dispatch(setIsInCreateGroupMode(false));
     dispatch(setWorkingSelectedComponents([]));
     setGroupName('');
+    dispatch(checkAndDeleteEmptyGroups());
   };
 
   const handleCancelCreateGroup = () => {
@@ -65,6 +67,7 @@ export default function ComponentLibrary() {
     setGroupName('');
     setError('');
     setShowGroupSelector(false);
+    dispatch(checkAndDeleteEmptyGroups());
   };
 
   const handleSaveEditedGroup = () => {
@@ -72,6 +75,7 @@ export default function ComponentLibrary() {
     dispatch(setWorkingSelectedComponents([]));
     dispatch(setGroupToEdit(null));
     setShowGroupSelector(false);
+    dispatch(checkAndDeleteEmptyGroups());
   };
 
   return (
