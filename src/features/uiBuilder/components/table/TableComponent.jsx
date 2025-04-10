@@ -10,7 +10,10 @@ import { getInitialDummyData } from '../../utils/tableUtils';
 import { DataGridPro } from '@mui/x-data-grid-pro';
 import CustomColumnMenu from './CustomColumnMenu';
 import CustomToolbar from './CustomToolbar';
-import { setTableColumns } from '../../../../redux/uiBuilderSlice';
+import {
+  setTableColumns,
+  setColumnData,
+} from '../../../../redux/uiBuilderSlice';
 
 export default function TableComponent({ component, disabled = false }) {
   const dispatch = useDispatch();
@@ -64,6 +67,19 @@ export default function TableComponent({ component, disabled = false }) {
   useEffect(() => {
     dispatch(setTableColumns({ componentId: component.id, columns }));
   }, [columns, dispatch, component.id]);
+
+  // Update Redux store whenever table data changes
+  useEffect(() => {
+    // Transform row-based data to column-based data
+    const columnBasedData = {};
+    columns.forEach((column) => {
+      columnBasedData[column.label] = tableData.map((row) => row[column.label]);
+    });
+
+    dispatch(
+      setColumnData({ componentId: component.id, data: columnBasedData }),
+    );
+  }, [tableData, dispatch, component.id, columns]);
 
   const isColumnInvalid = (column) => {
     return (
