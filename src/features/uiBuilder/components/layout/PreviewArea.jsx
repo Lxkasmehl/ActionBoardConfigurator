@@ -14,10 +14,11 @@ export default function PreviewArea({
   const isInCreateGroupMode = useSelector(
     (state) => state.uiBuilder.isInCreateGroupMode,
   );
+  const groupToEdit = useSelector((state) => state.uiBuilder.groupToEdit);
   const { setNodeRef, isOver } = useDroppable({
     id: 'preview-area',
     data: { type: 'preview-area' },
-    disabled: isInCreateGroupMode,
+    disabled: (isInCreateGroupMode || groupToEdit !== null),
   });
 
   const { setNodeRef: setInitialGapRef, isOver: isInitialGapOver } =
@@ -27,7 +28,7 @@ export default function PreviewArea({
         type: 'gap',
         componentId: components[0]?.id,
       },
-      disabled: isInCreateGroupMode,
+      disabled: (isInCreateGroupMode || groupToEdit !== null),
     });
 
   const isDraggingExistingComponent = activeDragData?.type === 'preview';

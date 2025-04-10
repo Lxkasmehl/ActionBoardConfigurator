@@ -26,6 +26,7 @@ export default function UiBuilder() {
   const isInCreateGroupMode = useSelector(
     (state) => state.uiBuilder.isInCreateGroupMode,
   );
+  const groupToEdit = useSelector((state) => state.uiBuilder.groupToEdit);
   const { activeDragData, handleDragStart, handleDragEnd } = useDragAndDrop(
     components,
     setComponents,
@@ -72,7 +73,8 @@ export default function UiBuilder() {
           </DragOverlay>
         </DndContext>
       </Box>
-      {isInCreateGroupMode && (
+      {console.log(groupToEdit)}
+      {(isInCreateGroupMode || groupToEdit !== null) && (
         <Box
           sx={{
             height: '100vh',

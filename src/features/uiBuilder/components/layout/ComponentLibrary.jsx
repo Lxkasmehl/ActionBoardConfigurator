@@ -9,6 +9,7 @@ import {
   Menu,
   MenuItem,
   Input,
+  Autocomplete,
 } from '@mui/joy';
 import { COMPONENT_CONFIGS } from '../common/constants';
 import DraggableComponent from '../dragAndDrop/DraggableComponent';
@@ -17,6 +18,7 @@ import {
   setIsInCreateGroupMode,
   saveSelectedComponents,
   setWorkingSelectedComponents,
+  setGroupToEdit,
 } from '@/redux/uiBuilderSlice';
 import { useState } from 'react';
 
@@ -32,10 +34,12 @@ export default function ComponentLibrary() {
   const workingSelectedComponents = useSelector(
     (state) => state.uiBuilder.workingSelectedComponents,
   );
+  const groupToEdit = useSelector((state) => state.uiBuilder.groupToEdit);
   const [groupName, setGroupName] = useState('');
   const [error, setError] = useState('');
+  const [showGroupSelector, setShowGroupSelector] = useState(false);
 
-  const handleSave = () => {
+  const handleSaveNewGroup = () => {
     if (!groupName.trim()) return;
 
     if (componentGroups[groupName.trim()]) {
@@ -55,11 +59,17 @@ export default function ComponentLibrary() {
     setGroupName('');
   };
 
-  const handleCancel = () => {
+  const handleCancelCreateGroup = () => {
     dispatch(setIsInCreateGroupMode(false));
     dispatch(setWorkingSelectedComponents([]));
     setGroupName('');
     setError('');
+  };
+
+  const handleSaveEditedGroup = () => {
+    dispatch(saveSelectedComponents({ groupName: groupToEdit }));
+    dispatch(setWorkingSelectedComponents([]));
+    dispatch(setGroupToEdit(null));
   };
 
   return (
@@ -85,9 +95,9 @@ export default function ComponentLibrary() {
           />
         ))}
       </Stack>
-      <Box sx={{ flexGrow: 1 }}></Box>
+      <Box sx={{ flexGrow: 1 }} />
       {isInCreateGroupMode ? (
-        <>
+        <Box sx={{ zIndex: '20 !important' }}>
           <Input
             required
             placeholder='Group Name'
@@ -104,32 +114,70 @@ export default function ComponentLibrary() {
               {error}
             </Typography>
           )}
-          <div className='flex flex-row gap-1 z-20'>
-            <Button color='danger' onClick={handleCancel} sx={{ flex: 1 }}>
+          <div className='flex flex-row gap-1'>
+            <Button
+              color='danger'
+              onClick={handleCancelCreateGroup}
+              sx={{ flex: 1 }}
+            >
               Cancel
             </Button>
             <Button
               color='success'
               sx={{ flex: 1 }}
-              onClick={handleSave}
+              onClick={handleSaveNewGroup}
               disabled={!groupName.trim()}
             >
               Save
             </Button>
           </div>
-        </>
+        </Box>
+      ) : groupToEdit ? (
+        <div className='flex flex-row gap-1 z-20'>
+          <Button
+            color='danger'
+            onClick={() => dispatch(setGroupToEdit(null))}
+            sx={{ flex: 1 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            color='success'
+            sx={{ flex: 1 }}
+            onClick={handleSaveEditedGroup}
+          >
+            Save Changes
+          </Button>
+        </div>
       ) : (
-        <Dropdown>
-          <MenuButton color='primary' variant='solid'>
-            Create / Edit Group
-          </MenuButton>
-          <Menu>
-            <MenuItem onClick={() => dispatch(setIsInCreateGroupMode(true))}>
-              Create New Group
-            </MenuItem>
-            <MenuItem>Edit Existing Group</MenuItem>
-          </Menu>
-        </Dropdown>
+        <Box>
+          {showGroupSelector && (
+            <Autocomplete
+              options={Object.keys(componentGroups)}
+              onChange={(e, value) => {
+                if (value) {
+                  dispatch(setGroupToEdit(value));
+                }
+              }}
+              onBlur={() => setShowGroupSelector(false)}
+              placeholder='Select Group'
+              sx={{ marginBottom: 2 }}
+            />
+          )}
+          <Dropdown>
+            <MenuButton color='primary' variant='solid' sx={{ width: '100%' }}>
+              Create / Edit Group
+            </MenuButton>
+            <Menu>
+              <MenuItem onClick={() => dispatch(setIsInCreateGroupMode(true))}>
+                Create New Group
+              </MenuItem>
+              <MenuItem onClick={() => setShowGroupSelector(true)}>
+                Edit Existing Group
+              </MenuItem>
+            </Menu>
+          </Dropdown>
+        </Box>
       )}
     </Card>
   );
