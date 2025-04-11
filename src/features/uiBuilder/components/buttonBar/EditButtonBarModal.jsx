@@ -16,60 +16,8 @@ import {
 } from '@mui/joy';
 import { Delete, Add } from '@mui/icons-material';
 import * as Icons from '@mui/icons-material';
-import { Autocomplete } from '@mui/joy';
-
-// Predefined button configurations
-const PREDEFINED_BUTTONS = [
-  {
-    type: 'button',
-    'text/icon': 'Apply filter',
-    label: 'Apply Filter',
-    description: 'Applies the current filter settings',
-    onClick: () => console.log('Applying filters...'),
-  },
-  {
-    type: 'button',
-    'text/icon': 'Clear all filter',
-    label: 'Clear Filters',
-    description: 'Clears all applied filters',
-    onClick: () => console.log('Clearing all filters...'),
-  },
-  {
-    type: 'iconButton',
-    'text/icon': 'Settings',
-    label: 'Settings',
-    description: 'Open settings menu',
-    onClick: () => console.log('Opening settings...'),
-  },
-  {
-    type: 'iconButton',
-    'text/icon': 'Refresh',
-    label: 'Refresh',
-    description: 'Refresh the current view',
-    onClick: () => console.log('Refreshing view...'),
-  },
-  {
-    type: 'iconButton',
-    'text/icon': 'Download',
-    label: 'Download',
-    description: 'Download current data',
-    onClick: () => console.log('Downloading data...'),
-  },
-  {
-    type: 'autocomplete',
-    'text/icon': 'Templates',
-    label: 'Templates',
-    description: 'Select from available templates',
-    onClick: () => console.log('Opening templates...'),
-  },
-  {
-    type: 'autocomplete',
-    'text/icon': 'Search',
-    label: 'Search',
-    description: 'Search within the current view',
-    onClick: () => console.log('Initiating search...'),
-  },
-];
+import { PREDEFINED_BUTTONS } from './predefinedButtons';
+import ButtonField from './ButtonField';
 
 const getIconComponent = (iconName) => {
   const Icon = Icons[iconName];
@@ -110,58 +58,6 @@ export default function EditButtonBarModal({
     onClose();
   };
 
-  const renderField = (field, index) => {
-    let IconComponent;
-    switch (field.type) {
-      case 'iconButton':
-        IconComponent = Icons[field['text/icon']];
-        return (
-          <div key={index} className='relative group'>
-            <Tooltip title={field.description}>
-              <IconButton
-                size='sm'
-                variant='solid'
-                color='primary'
-                className='group-hover:opacity-50 transition-opacity'
-              >
-                <IconComponent />
-              </IconButton>
-            </Tooltip>
-          </div>
-        );
-      case 'autocomplete':
-        return (
-          <div key={index} className='relative group'>
-            <Tooltip title={field.description}>
-              <Autocomplete
-                size='sm'
-                placeholder={field['text/icon']}
-                options={[]}
-                className='group-hover:opacity-50 transition-opacity'
-                sx={{
-                  width: '170px',
-                }}
-              />
-            </Tooltip>
-          </div>
-        );
-      case 'button':
-      default:
-        return (
-          <div key={index} className='relative group'>
-            <Tooltip title={field.description}>
-              <Button
-                size='sm'
-                className='group-hover:opacity-50 transition-opacity'
-              >
-                {field['text/icon']}
-              </Button>
-            </Tooltip>
-          </div>
-        );
-    }
-  };
-
   return (
     <Modal open={open} onClose={onClose}>
       <ModalDialog
@@ -181,7 +77,11 @@ export default function EditButtonBarModal({
           <div className='flex gap-2 flex-wrap flex-col'>
             {currentButtons.map((button, index) => (
               <div key={index} className='relative group'>
-                {renderField(button, index)}
+                <Tooltip title={button.description}>
+                  <div>
+                    <ButtonField field={button} />
+                  </div>
+                </Tooltip>
                 <IconButton
                   variant='plain'
                   color='danger'
