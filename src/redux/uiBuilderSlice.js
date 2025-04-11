@@ -7,6 +7,8 @@ const initialState = {
   columnData: {},
   componentGroups: {},
   groupToEdit: null,
+  groupFilters: {},
+  groupFiltersEnabled: {},
 };
 
 const uiBuilderSlice = createSlice({
@@ -27,6 +29,7 @@ const uiBuilderSlice = createSlice({
             components: state.workingSelectedComponents,
             color: `hsl(${Math.random() * 360}, 70%, 50%)`,
           };
+          state.groupFiltersEnabled[groupName] = false;
         } else {
           state.componentGroups[groupName].components =
             state.workingSelectedComponents;
@@ -40,6 +43,7 @@ const uiBuilderSlice = createSlice({
       Object.keys(state.componentGroups).forEach((groupName) => {
         if (state.componentGroups[groupName].components.length === 0) {
           delete state.componentGroups[groupName];
+          delete state.groupFiltersEnabled[groupName];
         }
       });
     },
@@ -54,6 +58,14 @@ const uiBuilderSlice = createSlice({
     setGroupToEdit: (state, action) => {
       state.groupToEdit = action.payload;
     },
+    setGroupFilters: (state, action) => {
+      const { groupName, filters } = action.payload;
+      state.groupFilters[groupName] = filters;
+    },
+    setGroupFiltersEnabled: (state, action) => {
+      const { groupName, enabled } = action.payload;
+      state.groupFiltersEnabled[groupName] = enabled;
+    },
   },
 });
 
@@ -66,6 +78,8 @@ export const {
   setTableColumns,
   setColumnData,
   setGroupToEdit,
+  setGroupFilters,
+  setGroupFiltersEnabled,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;

@@ -4,9 +4,21 @@ import { Edit } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import EditButtonBarModal from './EditButtonBarModal';
 import ButtonField from './ButtonField';
+import { useSelector } from 'react-redux';
 
 export default function ButtonBar({ component, disabled = false }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const componentGroups = useSelector(
+    (state) => state.uiBuilder.componentGroups,
+  );
+
+  const componentGroup = Object.values(componentGroups).find((group) =>
+    group.components.includes(component.id),
+  );
+
+  const groupName = Object.keys(componentGroups).find(
+    (key) => componentGroups[key] === componentGroup,
+  );
 
   const handleEditButtonBar = () => {
     setIsEditModalOpen(true);
@@ -24,6 +36,7 @@ export default function ButtonBar({ component, disabled = false }) {
             key={index}
             field={{ ...field, id: index + 1 }}
             disabled={disabled}
+            groupName={groupName}
           />
         ))}
       </div>
@@ -54,6 +67,7 @@ export default function ButtonBar({ component, disabled = false }) {
 
 ButtonBar.propTypes = {
   component: PropTypes.shape({
+    id: PropTypes.string.isRequired,
     props: PropTypes.shape({
       fields: PropTypes.arrayOf(
         PropTypes.shape({

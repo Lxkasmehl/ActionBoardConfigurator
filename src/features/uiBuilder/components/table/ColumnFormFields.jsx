@@ -301,7 +301,7 @@ const ColumnFormFields = forwardRef(
         )}
         {(editedItem.entity &&
           mainEntity &&
-          editedItem.entity.name !== mainEntity.name) ||
+          editedItem?.entity?.name !== mainEntity?.name) ||
         isIframeValidationError ? (
           <FormControl sx={{ mt: 2, maxWidth: '500px' }}>
             <FormLabel>Relationship to Main Entity</FormLabel>

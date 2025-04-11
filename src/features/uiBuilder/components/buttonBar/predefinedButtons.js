@@ -1,3 +1,5 @@
+import { setGroupFiltersEnabled } from '../../../../redux/uiBuilderSlice';
+
 export const PREDEFINED_BUTTONS = [
   {
     type: 'button',
@@ -5,7 +7,9 @@ export const PREDEFINED_BUTTONS = [
     label: 'Apply Filter',
     description: 'Applies the current filter settings',
     variant: 'solid',
-    onClick: () => console.log('Applying filters...'),
+    onClick: (dispatch, groupName) => {
+      dispatch(setGroupFiltersEnabled({ groupName, enabled: true }));
+    },
   },
   {
     type: 'button',
@@ -13,7 +17,9 @@ export const PREDEFINED_BUTTONS = [
     label: 'Clear Filters',
     description: 'Clears all applied filters',
     variant: 'solid',
-    onClick: () => console.log('Clearing all filters...'),
+    onClick: (dispatch, groupName) => {
+      dispatch(setGroupFiltersEnabled({ groupName, enabled: false }));
+    },
   },
   {
     type: 'iconButton',
