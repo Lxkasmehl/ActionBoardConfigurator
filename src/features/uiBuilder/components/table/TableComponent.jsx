@@ -2,7 +2,7 @@ import { IconButton } from '@mui/joy';
 import { Add } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import EditModal from '../common/EditModal';
+import EditModal from './EditModal';
 import PropTypes from 'prop-types';
 import { useTableData } from '../../hooks/useTableData';
 import { useSendRequest } from '../../hooks/useSendRequest';

@@ -51,9 +51,9 @@ export const COMPONENT_CONFIGS = {
       fields: [
         {
           type: 'autocomplete',
-          label: 'Gender',
+          label: 'Recruiter',
         },
-        { type: 'autocomplete', label: 'Country' },
+        { type: 'autocomplete', label: 'External Title' },
         {
           type: 'autocomplete',
           label: 'Division',

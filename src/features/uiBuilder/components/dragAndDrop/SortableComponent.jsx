@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { COMPONENT_CONFIGS } from '../common/constants';
 import FilterArea from '../FilterArea';
 import { useDroppable } from '@dnd-kit/core';
-import ButtonBar from '../ButtonBar';
+import ButtonBar from '../buttonBar/ButtonBar';
 import TableComponent from '../table/TableComponent';
 import HeadingComponent from '../text/HeadingComponent';
 import ParagraphComponent from '../text/ParagraphComponent';

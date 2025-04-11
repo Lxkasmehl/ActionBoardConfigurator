@@ -1,50 +1,19 @@
 import { useState } from 'react';
 import { Button, IconButton, Autocomplete } from '@mui/joy';
+import { Edit } from '@mui/icons-material';
 import * as Icons from '@mui/icons-material';
-import { Add } from '@mui/icons-material';
-import EditModal from './common/EditModal';
-import EditButton from './common/EditButton';
 import PropTypes from 'prop-types';
+import EditButtonBarModal from './EditButtonBarModal';
 
 export default function ButtonBar({ component, disabled = false }) {
-  const [fields, setFields] = useState(
-    component.props.fields.map((field, index) => ({
-      id: index + 1,
-      type: field.type,
-      'text/icon': field['text/icon'],
-    })),
-  );
-  const [editingField, setEditingField] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const handleAddField = () => {
-    if (disabled) return;
-    setFields([
-      ...fields,
-      {
-        id: Date.now(),
-        type: 'button',
-        'text/icon': 'Button',
-      },
-    ]);
+  const handleEditButtonBar = () => {
+    setIsEditModalOpen(true);
   };
 
-  const handleEditField = (field) => {
-    if (disabled) return;
-    setEditingField(field);
-  };
-
-  const handleSaveField = (editedField) => {
-    if (disabled) return;
-    setFields(
-      fields.map((field) =>
-        field.id === editedField.id ? editedField : field,
-      ),
-    );
-  };
-
-  const handleDeleteField = (fieldId) => {
-    if (disabled) return;
-    setFields(fields.filter((field) => field.id !== fieldId));
+  const handleSave = (updatedComponent) => {
+    component.props.fields = updatedComponent.props.fields;
   };
 
   const renderField = (field) => {
@@ -60,10 +29,10 @@ export default function ButtonBar({ component, disabled = false }) {
               color='primary'
               className='group-hover:opacity-50 transition-opacity'
               disabled={disabled}
+              onClick={field.onClick}
             >
               <IconComponent />
             </IconButton>
-            {!disabled && <EditButton onClick={() => handleEditField(field)} />}
           </div>
         );
       case 'autocomplete':
@@ -78,8 +47,8 @@ export default function ButtonBar({ component, disabled = false }) {
                 width: '170px',
               }}
               disabled={disabled}
+              onChange={(_, value) => field.onClick(value)}
             />
-            {!disabled && <EditButton onClick={() => handleEditField(field)} />}
           </div>
         );
       case 'button':
@@ -90,10 +59,10 @@ export default function ButtonBar({ component, disabled = false }) {
               size='sm'
               className='group-hover:opacity-50 transition-opacity'
               disabled={disabled}
+              onClick={field.onClick}
             >
               {field['text/icon']}
             </Button>
-            {!disabled && <EditButton onClick={() => handleEditField(field)} />}
           </div>
         );
     }
@@ -101,12 +70,16 @@ export default function ButtonBar({ component, disabled = false }) {
 
   return (
     <>
-      <div className='flex gap-2 flex-wrap'>{fields.map(renderField)}</div>
+      <div className='flex gap-2 flex-wrap'>
+        {component.props.fields.map((field, index) =>
+          renderField({ ...field, id: index + 1 }),
+        )}
+      </div>
       {!disabled && (
         <IconButton
           variant='solid'
           color='primary'
-          onClick={handleAddField}
+          onClick={handleEditButtonBar}
           sx={{
             position: 'absolute',
             top: '-10px',
@@ -114,20 +87,15 @@ export default function ButtonBar({ component, disabled = false }) {
             borderRadius: '50%',
           }}
         >
-          <Add />
+          <Edit />
         </IconButton>
       )}
-      {editingField && !disabled && (
-        <EditModal
-          open={!!editingField}
-          onClose={() => setEditingField(null)}
-          item={editingField}
-          onSave={handleSaveField}
-          onDelete={handleDeleteField}
-          type='field'
-          title='Edit Field'
-        />
-      )}
+      <EditButtonBarModal
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        component={component}
+        onSave={handleSave}
+      />
     </>
   );
 }
