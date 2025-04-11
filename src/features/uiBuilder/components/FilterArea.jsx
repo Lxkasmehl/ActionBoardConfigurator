@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Autocomplete, FormLabel, IconButton, Tooltip } from '@mui/joy';
 import { Add, Delete, Edit } from '@mui/icons-material';
 import PropTypes from 'prop-types';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { setGroupFilters } from '../../../redux/uiBuilderSlice';
 
 export default function FilterArea({ component, disabled = false }) {
+  const dispatch = useDispatch();
   const [filters, setFilters] = useState(
     component.props.fields.map((field, index) => ({
       id: index + 1,
@@ -12,12 +14,21 @@ export default function FilterArea({ component, disabled = false }) {
       options: [],
     })),
   );
+  const [selectedOptions, setSelectedOptions] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
   const tableColumns = useSelector((state) => state.uiBuilder.tableColumns);
   const columnData = useSelector((state) => state.uiBuilder.columnData);
   const componentGroups = useSelector(
     (state) => state.uiBuilder.componentGroups,
+  );
+
+  const componentGroup = Object.values(componentGroups).find((group) =>
+    group.components.includes(component.id),
+  );
+
+  const groupName = Object.keys(componentGroups).find(
+    (key) => componentGroups[key] === componentGroup,
   );
 
   const handleAddFilter = () => {
@@ -44,10 +55,6 @@ export default function FilterArea({ component, disabled = false }) {
     setEditingId(filter.id);
     setEditingValue(filter.label);
   };
-
-  const componentGroup = Object.values(componentGroups).find((group) =>
-    group.components.includes(component.id),
-  );
 
   const tableComponentId = componentGroup?.components?.find(
     (id) => tableColumns[id],
@@ -84,6 +91,25 @@ export default function FilterArea({ component, disabled = false }) {
       handleEditComplete();
     }
   };
+
+  useEffect(() => {
+    if (componentGroup) {
+      const filtersWithOptions = filters
+        .filter((filter) => selectedOptions[filter.id]?.length > 0)
+        .map((filter) => ({
+          id: filter.id,
+          column: filter.label,
+          selectedOptions: selectedOptions[filter.id] || [],
+        }));
+
+      dispatch(
+        setGroupFilters({
+          groupName: groupName,
+          filters: filtersWithOptions,
+        }),
+      );
+    }
+  }, [filters, selectedOptions, componentGroup, dispatch, groupName]);
 
   return (
     <div
@@ -165,10 +191,19 @@ export default function FilterArea({ component, disabled = false }) {
           <Autocomplete
             size='sm'
             placeholder='Select an option'
-            options={columnData[tableComponentId]?.[filter.label] || []}
+            options={(
+              columnData[tableComponentId]?.[filter.label] || []
+            ).filter((option) => option !== undefined)}
             disabled={disabled}
             getOptionLabel={(option) => option.toString() || ''}
             multiple
+            value={selectedOptions[filter.id] || []}
+            onChange={(event, newValue) => {
+              setSelectedOptions((prev) => ({
+                ...prev,
+                [filter.id]: newValue,
+              }));
+            }}
           />
         </div>
       ))}

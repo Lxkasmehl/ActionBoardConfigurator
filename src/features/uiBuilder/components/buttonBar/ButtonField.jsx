@@ -1,13 +1,15 @@
 import { Button, IconButton, Autocomplete } from '@mui/joy';
 import * as Icons from '@mui/icons-material';
 import PropTypes from 'prop-types';
+import { useDispatch } from 'react-redux';
 
-export default function ButtonField({ field, disabled = false }) {
+export default function ButtonField({ field, disabled = false, groupName }) {
+  const dispatch = useDispatch();
   let IconComponent;
   const commonProps = {
     size: 'sm',
     disabled,
-    onClick: field.onClick,
+    onClick: () => field.onClick(dispatch, groupName),
     variant: field.variant || 'solid',
   };
 
@@ -31,7 +33,7 @@ export default function ButtonField({ field, disabled = false }) {
             sx={{
               width: '170px',
             }}
-            onChange={(_, value) => field.onClick(value)}
+            onChange={(_, value) => field.onClick(dispatch, groupName, value)}
           />
         </div>
       );
@@ -53,4 +55,5 @@ ButtonField.propTypes = {
     variant: PropTypes.oneOf(['plain', 'outlined', 'soft', 'solid']),
   }).isRequired,
   disabled: PropTypes.bool,
+  groupName: PropTypes.string,
 };

@@ -1,7 +1,7 @@
 import { IconButton } from '@mui/joy';
 import { Add } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import EditModal from './EditModal';
 import PropTypes from 'prop-types';
 import { useTableData } from '../../hooks/useTableData';
@@ -31,6 +31,24 @@ export default function TableComponent({ component, disabled = false }) {
   );
   const [relationData, setRelationData] = useState({});
   const sendRequest = useSendRequest();
+  const groupFilters = useSelector((state) => state.uiBuilder.groupFilters);
+  const groupFiltersEnabled = useSelector(
+    (state) => state.uiBuilder.groupFiltersEnabled,
+  );
+  const componentGroups = useSelector(
+    (state) => state.uiBuilder.componentGroups,
+  );
+
+  const componentGroup = Object.values(componentGroups).find((group) =>
+    group.components.includes(component.id),
+  );
+
+  const groupName = Object.keys(componentGroups).find(
+    (key) => componentGroups[key] === componentGroup,
+  );
+
+  const groupFiltersForTable = groupFilters[groupName];
+  const filtersEnabled = groupFiltersEnabled[groupName] || false;
 
   useEffect(() => {
     const fetchRelationData = async () => {
@@ -237,12 +255,28 @@ export default function TableComponent({ component, disabled = false }) {
     };
   });
 
+  // Apply filters from groupFiltersForTable only when filters are enabled
+  const filteredRows = rows.filter((row) => {
+    if (
+      !filtersEnabled ||
+      !groupFiltersForTable ||
+      groupFiltersForTable.length === 0
+    ) {
+      return true;
+    }
+
+    return groupFiltersForTable.every((filter) => {
+      const columnValue = row[filter.column];
+      return filter.selectedOptions.includes(columnValue);
+    });
+  });
+
   return (
     <div
       style={{ maxHeight: 500, width: '100%', maxWidth: 'calc(100vw - 460px)' }}
     >
       <DataGridPro
-        rows={rows}
+        rows={filteredRows}
         columns={sortedColumns}
         disableRowSelectionOnClick
         experimentalFeatures={{ newEditingApi: true }}
@@ -316,6 +350,7 @@ export default function TableComponent({ component, disabled = false }) {
           onDelete={handleDeleteColumn}
           type='column'
           title='Edit Column'
+          mainEntity={mainEntity}
         />
       )}
     </div>
