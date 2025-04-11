@@ -1,18 +1,9 @@
 /* eslint-disable react/prop-types */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Modal,
-  ModalDialog,
-  ModalClose,
-  Typography,
-  Button,
-  CircularProgress,
-} from '@mui/joy';
-import ColumnFormFields from '../table/ColumnFormFields';
-import FieldFormFields from '../table/FieldFormFields';
+import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
+import ColumnFormFields from './ColumnFormFields';
 import { useSelector } from 'react-redux';
-import useFetchEntities from '../../../../shared/hooks/useFetchEntities';
 
 export default function EditModal({
   open,
@@ -20,12 +11,10 @@ export default function EditModal({
   item,
   onSave,
   onDelete,
-  type,
   title,
   mainEntity,
 }) {
   const [editedItem, setEditedItem] = useState(item);
-  const [inputValue, setInputValue] = useState('');
   const columnFormRef = useRef(null);
   const [isWaitingForIframeData, setIsWaitingForIframeData] = useState(false);
   const [isIFrame, setIsIFrame] = useState(false);
@@ -35,8 +24,6 @@ export default function EditModal({
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
-
-  const loading = useFetchEntities();
 
   const isEntityMismatch = useCallback(
     (newColumnData) => {
@@ -170,34 +157,29 @@ export default function EditModal({
   ]);
 
   const handleSave = useCallback(() => {
-    if (type === 'column') {
-      if (
-        editedItem.entity &&
-        !editedItem.isMainEntity &&
-        !editedItem.relation &&
-        mainEntity &&
-        editedItem.entity.name !== mainEntity.name
-      ) {
-        setValidationError(
-          `This column cannot be saved because its entity (${editedItem.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity, choose a different entity, or define a relationship between the entities.`,
-        );
-        setIsIframeValidationError(false);
-        return;
-      }
-      setValidationError('');
+    if (
+      editedItem.entity &&
+      !editedItem.isMainEntity &&
+      !editedItem.relation &&
+      mainEntity &&
+      editedItem.entity.name !== mainEntity.name
+    ) {
+      setValidationError(
+        `This column cannot be saved because its entity (${editedItem.entity.name}) does not match the main entity (${mainEntity.name}). Either make it the main entity, choose a different entity, or define a relationship between the entities.`,
+      );
+      setIsIframeValidationError(false);
+      return;
+    }
+    setValidationError('');
 
-      if (columnFormRef.current && isIFrame) {
-        setIsWaitingForIframeData(true);
-        columnFormRef.current.triggerIframeDataFetch();
-      } else {
-        onSave(editedItem);
-        onClose();
-      }
+    if (columnFormRef.current && isIFrame) {
+      setIsWaitingForIframeData(true);
+      columnFormRef.current.triggerIframeDataFetch();
     } else {
       onSave(editedItem);
       onClose();
     }
-  }, [editedItem, onSave, onClose, type, isIFrame, mainEntity]);
+  }, [editedItem, onSave, onClose, isIFrame, mainEntity]);
 
   const handleDelete = useCallback(() => {
     onDelete(item.id);
@@ -209,66 +191,51 @@ export default function EditModal({
       <ModalDialog>
         <ModalClose onClick={onClose} />
         <Typography level='h4'>{title}</Typography>
-        {loading ? (
-          <div className='flex justify-center items-center p-4'>
-            <CircularProgress />
-          </div>
-        ) : (
-          <div className='flex justify-center items-center flex-col'>
-            {type === 'column' ? (
-              <ColumnFormFields
-                ref={columnFormRef}
-                editedItem={editedItem}
-                setEditedItem={setEditedItem}
-                isIFrame={isIFrame}
-                setIsIFrame={setIsIFrame}
-                setIsWaitingForIframeData={setIsWaitingForIframeData}
-                mainEntity={mainEntity}
-                isIframeValidationError={isIframeValidationError}
-                columnData={columnData}
-                setColumnData={setColumnData}
-              />
-            ) : (
-              <FieldFormFields
-                editedItem={editedItem}
-                setEditedItem={setEditedItem}
-                inputValue={inputValue}
-                setInputValue={setInputValue}
-              />
-            )}
-            <div className='flex flex-col gap-4 mt-3 max-w-[500px] w-[100%]'>
-              <Button
-                variant='outlined'
-                color='danger'
-                onClick={handleDelete}
-                className='w-full'
-              >
-                Delete {type === 'column' ? 'Column' : 'Field'}
+        <div className='flex justify-center items-center flex-col'>
+          <ColumnFormFields
+            ref={columnFormRef}
+            editedItem={editedItem}
+            setEditedItem={setEditedItem}
+            isIFrame={isIFrame}
+            setIsIFrame={setIsIFrame}
+            setIsWaitingForIframeData={setIsWaitingForIframeData}
+            mainEntity={mainEntity}
+            isIframeValidationError={isIframeValidationError}
+            columnData={columnData}
+            setColumnData={setColumnData}
+          />
+          <div className='flex flex-col gap-4 mt-3 max-w-[500px] w-[100%]'>
+            <Button
+              variant='outlined'
+              color='danger'
+              onClick={handleDelete}
+              className='w-full'
+            >
+              Delete Column
+            </Button>
+            <div className='flex justify-end gap-2'>
+              <Button variant='plain' color='neutral' onClick={onClose}>
+                Cancel
               </Button>
-              <div className='flex justify-end gap-2'>
-                <Button variant='plain' color='neutral' onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  loading={isWaitingForIframeData}
-                  disabled={!!validationError && !isIframeValidationError}
-                >
-                  Save
-                </Button>
-              </div>
-              {validationError && (
-                <Typography
-                  color='danger'
-                  level='body-sm'
-                  sx={{ mt: 1, maxWidth: '400px' }}
-                >
-                  {validationError}
-                </Typography>
-              )}
+              <Button
+                onClick={handleSave}
+                loading={isWaitingForIframeData}
+                disabled={!!validationError && !isIframeValidationError}
+              >
+                Save
+              </Button>
             </div>
+            {validationError && (
+              <Typography
+                color='danger'
+                level='body-sm'
+                sx={{ mt: 1, maxWidth: '400px' }}
+              >
+                {validationError}
+              </Typography>
+            )}
           </div>
-        )}
+        </div>
       </ModalDialog>
     </Modal>
   );
