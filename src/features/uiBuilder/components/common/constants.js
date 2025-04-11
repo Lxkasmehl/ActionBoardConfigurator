@@ -1,3 +1,5 @@
+import { PREDEFINED_BUTTONS } from '../buttonBar/predefinedButtons';
+
 export const COMPONENT_TYPES = {
   HEADING: 'heading',
   PARAGRAPH: 'paragraph',
@@ -69,21 +71,7 @@ export const COMPONENT_CONFIGS = {
     label: 'ButtonBar',
     icon: 'ViewSidebar',
     defaultProps: {
-      fields: [
-        {
-          type: 'button',
-          'text/icon': 'Apply filter',
-        },
-        { type: 'button', 'text/icon': 'Clear all filter' },
-        {
-          type: 'iconButton',
-          'text/icon': 'Settings',
-        },
-        {
-          type: 'autocomplete',
-          'text/icon': 'Templates',
-        },
-      ],
+      fields: PREDEFINED_BUTTONS.slice(0, 4),
     },
   },
   [COMPONENT_TYPES.TABLE]: {
