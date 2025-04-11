@@ -1,4 +1,7 @@
-import { setGroupFiltersEnabled } from '../../../../redux/uiBuilderSlice';
+import {
+  setGroupFiltersEnabled,
+  reloadTableData,
+} from '../../../../redux/uiBuilderSlice';
 
 export const PREDEFINED_BUTTONS = [
   {
@@ -59,7 +62,9 @@ export const PREDEFINED_BUTTONS = [
     label: 'Reload Data',
     description: 'Reload the current table data',
     variant: 'solid',
-    onClick: () => console.log('Reloading data...'),
+    onClick: (dispatch, groupName) => {
+      dispatch(reloadTableData({ groupName }));
+    },
   },
   {
     type: 'button',
