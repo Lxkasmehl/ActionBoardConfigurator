@@ -13,6 +13,7 @@ import CustomToolbar from './CustomToolbar';
 import {
   setTableColumns,
   setColumnData,
+  setSortModalOpen,
 } from '../../../../redux/uiBuilderSlice';
 
 export default function TableComponent({ component, disabled = false }) {
@@ -38,6 +39,9 @@ export default function TableComponent({ component, disabled = false }) {
   const componentGroups = useSelector(
     (state) => state.uiBuilder.componentGroups,
   );
+  const groupSortConfigs = useSelector(
+    (state) => state.uiBuilder.groupSortConfigs,
+  );
 
   const componentGroup = Object.values(componentGroups).find((group) =>
     group.components.includes(component.id),
@@ -49,6 +53,10 @@ export default function TableComponent({ component, disabled = false }) {
 
   const groupFiltersForTable = groupFilters[groupName];
   const filtersEnabled = groupFiltersEnabled[groupName] || false;
+  const sortConfig = groupSortConfigs[groupName] || {
+    field: null,
+    direction: 'asc',
+  };
 
   useEffect(() => {
     const fetchRelationData = async () => {
@@ -271,12 +279,31 @@ export default function TableComponent({ component, disabled = false }) {
     });
   });
 
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    if (!sortConfig.field) return 0;
+
+    const aValue = a[sortConfig.field];
+    const bValue = b[sortConfig.field];
+
+    if (aValue === bValue) return 0;
+    if (aValue === null || aValue === undefined) return 1;
+    if (bValue === null || bValue === undefined) return -1;
+
+    const comparison = aValue < bValue ? -1 : 1;
+    return sortConfig.direction === 'asc' ? comparison : -comparison;
+  });
+
+  // Pass setSortModalOpen to the button bar
+  const buttonProps = {
+    setSortModalOpen,
+  };
+
   return (
     <div
       style={{ maxHeight: 500, width: '100%', maxWidth: 'calc(100vw - 460px)' }}
     >
       <DataGridPro
-        rows={filteredRows}
+        rows={sortedRows}
         columns={sortedColumns}
         disableRowSelectionOnClick
         experimentalFeatures={{ newEditingApi: true }}
@@ -284,7 +311,9 @@ export default function TableComponent({ component, disabled = false }) {
         hideFooter
         loading={isLoading}
         slots={{
-          toolbar: CustomToolbar,
+          toolbar: (props) => (
+            <CustomToolbar {...props} buttonProps={buttonProps} />
+          ),
           columnMenu: (props) => (
             <CustomColumnMenu
               {...props}

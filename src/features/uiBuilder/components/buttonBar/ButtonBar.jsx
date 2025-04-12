@@ -4,10 +4,17 @@ import { Edit } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import EditButtonBarModal from './EditButtonBarModal';
 import ButtonField from './ButtonField';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import SortModal from './SortModal';
+import {
+  setSortModalOpen,
+  setSortConfig,
+} from '../../../../redux/uiBuilderSlice';
 
 export default function ButtonBar({ component, disabled = false }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const dispatch = useDispatch();
+  const sortModalOpen = useSelector((state) => state.uiBuilder.sortModalOpen);
   const componentGroups = useSelector(
     (state) => state.uiBuilder.componentGroups,
   );
@@ -26,6 +33,10 @@ export default function ButtonBar({ component, disabled = false }) {
 
   const handleSave = (updatedComponent) => {
     component.props.fields = updatedComponent.props.fields;
+  };
+
+  const handleApplySort = (field, direction) => {
+    dispatch(setSortConfig({ groupName, config: { field, direction } }));
   };
 
   return (
@@ -60,6 +71,12 @@ export default function ButtonBar({ component, disabled = false }) {
         onClose={() => setIsEditModalOpen(false)}
         component={component}
         onSave={handleSave}
+      />
+      <SortModal
+        open={sortModalOpen}
+        onClose={() => dispatch(setSortModalOpen(false))}
+        onApplySort={handleApplySort}
+        componentId={component.id}
       />
     </>
   );
