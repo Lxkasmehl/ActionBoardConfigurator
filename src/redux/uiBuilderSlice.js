@@ -5,6 +5,7 @@ const initialState = {
   workingSelectedComponents: [],
   tableColumns: {},
   columnData: {},
+  tableData: {},
   componentGroups: {},
   groupToEdit: null,
   groupFilters: {},
@@ -58,6 +59,10 @@ const uiBuilderSlice = createSlice({
       const { componentId, data } = action.payload;
       state.columnData[componentId] = data;
     },
+    setTableData: (state, action) => {
+      const { componentId, data } = action.payload;
+      state.tableData[componentId] = data;
+    },
     setGroupToEdit: (state, action) => {
       state.groupToEdit = action.payload;
     },
@@ -79,6 +84,7 @@ const uiBuilderSlice = createSlice({
     reloadTableData: (state) => {
       state.tableColumns = { ...state.tableColumns };
       state.columnData = { ...state.columnData };
+      state.tableData = { ...state.tableData };
     },
     setSortModalOpen: (state, action) => {
       state.sortModalOpen = action.payload;
@@ -98,6 +104,7 @@ export const {
   checkAndDeleteEmptyGroups,
   setTableColumns,
   setColumnData,
+  setTableData,
   setGroupToEdit,
   setGroupFilters,
   setGroupFiltersEnabled,

@@ -14,6 +14,7 @@ import {
   setTableColumns,
   setColumnData,
   setSortModalOpen,
+  setTableData as setTableDataRedux,
 } from '../../../../redux/uiBuilderSlice';
 
 export default function TableComponent({ component, disabled = false }) {
@@ -105,6 +106,7 @@ export default function TableComponent({ component, disabled = false }) {
     dispatch(
       setColumnData({ componentId: component.id, data: columnBasedData }),
     );
+    dispatch(setTableDataRedux({ componentId: component.id, data: tableData }));
   }, [tableData, dispatch, component.id, columns]);
 
   const isColumnInvalid = (column) => {

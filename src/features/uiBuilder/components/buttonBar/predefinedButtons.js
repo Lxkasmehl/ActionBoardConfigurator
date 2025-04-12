@@ -3,6 +3,7 @@ import {
   reloadTableData,
   setSortModalOpen,
 } from '../../../../redux/uiBuilderSlice';
+import * as XLSX from 'xlsx';
 
 export const PREDEFINED_BUTTONS = [
   {
@@ -39,6 +40,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Templates',
     description: 'Select from available templates',
     variant: 'outlined',
+    color: 'neutral',
     onClick: () => console.log('Opening templates...'),
   },
   {
@@ -55,6 +57,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Action',
     description: 'Select an action to perform',
     variant: 'outlined',
+    color: 'neutral',
     onClick: () => console.log('Initiating action...'),
   },
   {
@@ -68,12 +71,50 @@ export const PREDEFINED_BUTTONS = [
     },
   },
   {
-    type: 'button',
+    type: 'menu',
     'text/icon': 'Export',
     label: 'Export',
     description: 'Export the current table data',
     variant: 'plain',
-    onClick: () => console.log('Exporting data...'),
+    color: 'primary',
+    menuItems: [
+      {
+        label: 'All columns',
+        onClick: (dispatch, groupName, tableData) => {
+          if (!tableData || tableData.length === 0) {
+            console.log('No data to export');
+            return;
+          }
+
+          const wb = XLSX.utils.book_new();
+
+          const ws = XLSX.utils.json_to_sheet(tableData);
+
+          XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+          const excelBuffer = XLSX.write(wb, {
+            bookType: 'xlsx',
+            type: 'array',
+          });
+
+          const blob = new Blob([excelBuffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'table_export.xlsx';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        },
+      },
+      {
+        label: 'Only visible columns',
+        onClick: () => console.log('Exporting selected columns...'),
+      },
+    ],
   },
   {
     type: 'button',

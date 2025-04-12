@@ -1,16 +1,47 @@
-import { Button, IconButton, Autocomplete } from '@mui/joy';
+import {
+  Button,
+  IconButton,
+  Autocomplete,
+  Menu,
+  MenuItem,
+  Dropdown,
+  MenuButton,
+} from '@mui/joy';
 import * as Icons from '@mui/icons-material';
 import PropTypes from 'prop-types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-export default function ButtonField({ field, disabled = false, groupName }) {
+export default function ButtonField({
+  field,
+  disabled = false,
+  groupName,
+  componentId,
+}) {
   const dispatch = useDispatch();
+  const tableData = useSelector((state) => {
+    const componentGroups = state.uiBuilder.componentGroups;
+    const componentGroup = Object.values(componentGroups).find((group) =>
+      group.components.includes(componentId),
+    );
+    if (!componentGroup) return null;
+
+    const tableComponentId = componentGroup.components.find(
+      (id) => state.uiBuilder.tableData[id],
+    );
+    return tableComponentId
+      ? state.uiBuilder.tableData[tableComponentId]
+      : null;
+  });
+
   let IconComponent;
   const commonProps = {
     size: 'sm',
     disabled,
-    onClick: () => field.onClick(dispatch, groupName),
+    ...(field.onClick && {
+      onClick: () => field.onClick(dispatch, groupName, tableData),
+    }),
     variant: field.variant || 'solid',
+    color: field.color || 'primary',
   };
 
   switch (field.type) {
@@ -37,6 +68,26 @@ export default function ButtonField({ field, disabled = false, groupName }) {
           />
         </div>
       );
+    case 'menu':
+      return (
+        <div>
+          <Dropdown>
+            <MenuButton {...commonProps}>{field['text/icon']}</MenuButton>
+            <Menu>
+              {field.menuItems?.map((item, index) => (
+                <MenuItem
+                  {...commonProps}
+                  color='neutral'
+                  key={index}
+                  onClick={() => item.onClick(dispatch, groupName, tableData)}
+                >
+                  {item.label}
+                </MenuItem>
+              ))}
+            </Menu>
+          </Dropdown>
+        </div>
+      );
     case 'button':
     default:
       return (
@@ -53,7 +104,15 @@ ButtonField.propTypes = {
     'text/icon': PropTypes.string.isRequired,
     onClick: PropTypes.func,
     variant: PropTypes.oneOf(['plain', 'outlined', 'soft', 'solid']),
+    color: PropTypes.string,
+    menuItems: PropTypes.arrayOf(
+      PropTypes.shape({
+        label: PropTypes.string.isRequired,
+        onClick: PropTypes.func.isRequired,
+      }),
+    ),
   }).isRequired,
   disabled: PropTypes.bool,
   groupName: PropTypes.string,
+  componentId: PropTypes.string,
 };
