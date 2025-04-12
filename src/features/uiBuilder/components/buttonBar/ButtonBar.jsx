@@ -48,6 +48,7 @@ export default function ButtonBar({ component, disabled = false }) {
             field={{ ...field, id: index + 1 }}
             disabled={disabled}
             groupName={groupName}
+            componentId={component.id}
           />
         ))}
       </div>

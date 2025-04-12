@@ -29,7 +29,8 @@ function isInteractiveElement(element) {
         currentElement.classList.contains('MuiAutocomplete-listbox') ||
         currentElement.classList.contains('MuiAutocomplete-option') ||
         currentElement.classList.contains('MuiDataGrid-menu') ||
-        currentElement.classList.contains('MuiDataGrid-menuList'))
+        currentElement.classList.contains('MuiDataGrid-menuList') ||
+        currentElement.classList.contains('MuiMenuItem-root'))
     ) {
       return true;
     }
