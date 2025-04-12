@@ -7,6 +7,7 @@ import {
   setGroupFilters,
   setSelectedFilterOptions,
 } from '../../../redux/uiBuilderSlice';
+import { useTableColumns } from '../hooks/useTableColumns';
 
 export default function FilterArea({ component, disabled = false }) {
   const dispatch = useDispatch();
@@ -19,7 +20,6 @@ export default function FilterArea({ component, disabled = false }) {
   );
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
-  const tableColumns = useSelector((state) => state.uiBuilder.tableColumns);
   const columnData = useSelector((state) => state.uiBuilder.columnData);
   const componentGroups = useSelector(
     (state) => state.uiBuilder.componentGroups,
@@ -27,6 +27,7 @@ export default function FilterArea({ component, disabled = false }) {
   const selectedFilterOptions = useSelector(
     (state) => state.uiBuilder.selectedFilterOptions,
   );
+  const { tableComponentId, getColumnOptions } = useTableColumns(component.id);
 
   const componentGroup = Object.values(componentGroups).find((group) =>
     group.components.includes(component.id),
@@ -64,21 +65,6 @@ export default function FilterArea({ component, disabled = false }) {
     if (disabled) return;
     setEditingId(filter.id);
     setEditingValue(filter.label);
-  };
-
-  const tableComponentId = componentGroup?.components?.find(
-    (id) => tableColumns[id],
-  );
-
-  const getColumnOptions = () => {
-    if (!tableComponentId) return [];
-
-    return (
-      tableColumns[tableComponentId]?.map((column) => ({
-        label: column.label,
-        value: column.id,
-      })) || []
-    );
   };
 
   const handleEditComplete = () => {

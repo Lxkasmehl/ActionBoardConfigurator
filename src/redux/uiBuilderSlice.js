@@ -10,6 +10,8 @@ const initialState = {
   groupFilters: {},
   groupFiltersEnabled: {},
   selectedFilterOptions: {},
+  sortModalOpen: false,
+  groupSortConfigs: {},
 };
 
 const uiBuilderSlice = createSlice({
@@ -78,6 +80,13 @@ const uiBuilderSlice = createSlice({
       state.tableColumns = { ...state.tableColumns };
       state.columnData = { ...state.columnData };
     },
+    setSortModalOpen: (state, action) => {
+      state.sortModalOpen = action.payload;
+    },
+    setSortConfig: (state, action) => {
+      const { groupName, config } = action.payload;
+      state.groupSortConfigs[groupName] = config;
+    },
   },
 });
 
@@ -94,6 +103,8 @@ export const {
   setGroupFiltersEnabled,
   setSelectedFilterOptions,
   reloadTableData,
+  setSortModalOpen,
+  setSortConfig,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;

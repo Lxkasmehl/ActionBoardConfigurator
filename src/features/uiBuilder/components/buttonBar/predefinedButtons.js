@@ -1,6 +1,7 @@
 import {
   setGroupFiltersEnabled,
   reloadTableData,
+  setSortModalOpen,
 } from '../../../../redux/uiBuilderSlice';
 
 export const PREDEFINED_BUTTONS = [
@@ -88,7 +89,9 @@ export const PREDEFINED_BUTTONS = [
     label: 'Sort',
     description: 'Sort the current table data',
     variant: 'plain',
-    onClick: () => console.log('Sorting data...'),
+    onClick: (dispatch) => {
+      dispatch(setSortModalOpen(true));
+    },
   },
   {
     type: 'button',
