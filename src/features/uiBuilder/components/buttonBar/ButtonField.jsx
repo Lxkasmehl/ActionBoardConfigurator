@@ -10,6 +10,8 @@ import {
 import * as Icons from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
+import { useState } from 'react';
+import NoTableDataModal from './NoTableDataModal';
 
 export default function ButtonField({
   field,
@@ -18,6 +20,7 @@ export default function ButtonField({
   componentId,
 }) {
   const dispatch = useDispatch();
+  const [isNoTableDataModalOpen, setIsNoTableDataModalOpen] = useState(false);
   const tableData = useSelector((state) => {
     const componentGroups = state.uiBuilder.componentGroups;
     const componentGroup = Object.values(componentGroups).find((group) =>
@@ -38,10 +41,24 @@ export default function ButtonField({
     size: 'sm',
     disabled,
     ...(field.onClick && {
-      onClick: () => field.onClick(dispatch, groupName, tableData),
+      onClick: () => {
+        if (!tableData) {
+          setIsNoTableDataModalOpen(true);
+          return;
+        }
+        field.onClick(dispatch, groupName);
+      },
     }),
     variant: field.variant || 'solid',
     color: field.color || 'primary',
+  };
+
+  const handleMenuItemClick = (item) => {
+    if (!tableData) {
+      setIsNoTableDataModalOpen(true);
+      return;
+    }
+    item.onClick(dispatch, groupName, tableData);
   };
 
   switch (field.type) {
@@ -52,6 +69,10 @@ export default function ButtonField({
           <IconButton {...commonProps} color='primary'>
             <IconComponent />
           </IconButton>
+          <NoTableDataModal
+            open={isNoTableDataModalOpen}
+            onClose={() => setIsNoTableDataModalOpen(false)}
+          />
         </div>
       );
     case 'autocomplete':
@@ -64,7 +85,17 @@ export default function ButtonField({
             sx={{
               width: '170px',
             }}
-            onChange={(_, value) => field.onClick(dispatch, groupName, value)}
+            onChange={() => {
+              if (!tableData) {
+                setIsNoTableDataModalOpen(true);
+                return;
+              }
+              field.onClick(dispatch, groupName);
+            }}
+          />
+          <NoTableDataModal
+            open={isNoTableDataModalOpen}
+            onClose={() => setIsNoTableDataModalOpen(false)}
           />
         </div>
       );
@@ -79,13 +110,17 @@ export default function ButtonField({
                   {...commonProps}
                   color='neutral'
                   key={index}
-                  onClick={() => item.onClick(dispatch, groupName, tableData)}
+                  onClick={() => handleMenuItemClick(item)}
                 >
                   {item.label}
                 </MenuItem>
               ))}
             </Menu>
           </Dropdown>
+          <NoTableDataModal
+            open={isNoTableDataModalOpen}
+            onClose={() => setIsNoTableDataModalOpen(false)}
+          />
         </div>
       );
     case 'button':
@@ -93,6 +128,10 @@ export default function ButtonField({
       return (
         <div>
           <Button {...commonProps}>{field['text/icon']}</Button>
+          <NoTableDataModal
+            open={isNoTableDataModalOpen}
+            onClose={() => setIsNoTableDataModalOpen(false)}
+          />
         </div>
       );
   }
