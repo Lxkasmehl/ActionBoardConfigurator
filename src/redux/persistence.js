@@ -1,8 +1,22 @@
 const STORAGE_KEY = 'dataPickerState';
 
+const getLocalStorage = () => {
+  // If we're in an iframe, use the parent window's localStorage
+  if (window.parent !== window) {
+    try {
+      return window.parent.localStorage;
+    } catch (e) {
+      console.warn('Could not access parent localStorage:', e);
+      return localStorage;
+    }
+  }
+  return localStorage;
+};
+
 export const loadState = () => {
   try {
-    const serializedState = localStorage.getItem(STORAGE_KEY);
+    const storage = getLocalStorage();
+    const serializedState = storage.getItem(STORAGE_KEY);
 
     if (serializedState === null) {
       return undefined;
@@ -51,6 +65,7 @@ export const loadState = () => {
 
 export const saveState = (state) => {
   try {
+    const storage = getLocalStorage();
     const serializedState = JSON.stringify({
       config: state.config.config,
       propertyOptions: state.dataPicker.propertyOptions,
@@ -65,10 +80,21 @@ export const saveState = (state) => {
     });
 
     try {
-      localStorage.setItem(STORAGE_KEY, serializedState);
+      storage.setItem(STORAGE_KEY, serializedState);
+
+      // If we're in an iframe, also notify the parent window
+      if (window.parent !== window) {
+        window.parent.postMessage(
+          {
+            type: 'DATAPICKER_STATE_SAVED',
+            payload: serializedState,
+          },
+          window.location.origin,
+        );
+      }
     } catch (quotaError) {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.setItem(STORAGE_KEY, serializedState);
+      storage.removeItem(STORAGE_KEY);
+      storage.setItem(STORAGE_KEY, serializedState);
     }
   } catch (err) {
     console.error('Error saving state to localStorage:', err);
