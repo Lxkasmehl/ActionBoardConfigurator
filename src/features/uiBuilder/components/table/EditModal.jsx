@@ -111,7 +111,7 @@ export default function EditModal({
 
               const baseColumnData = {
                 data: extractedData,
-                label: `${entityName} -> ${propertyName}`,
+                label: editedItem.label || `${entityName} -> ${propertyName}`,
                 isNewColumn: index > 0 || propertyIndex > 0,
                 entity: completeEntity,
                 property: completeProperty,

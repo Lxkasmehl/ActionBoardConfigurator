@@ -210,14 +210,12 @@ const ColumnFormFields = forwardRef(
           setColumnData((prev) => ({
             ...prev,
             entity: data.entity,
-            label: data.label,
             isNewColumn: data.isNewColumn,
           }));
         } else {
           setEditedItem((prev) => ({
             ...prev,
             entity: data.entity,
-            label: data.label,
             isNewColumn: data.isNewColumn,
           }));
         }
@@ -241,7 +239,7 @@ const ColumnFormFields = forwardRef(
         <FormControl sx={{ maxWidth: '500px', width: '100%' }}>
           <FormLabel>Label</FormLabel>
           <Input
-            value={editedItem.label}
+            value={editedItem.label || ''}
             onChange={(e) =>
               setEditedItem({ ...editedItem, label: e.target.value })
             }
