@@ -1,7 +1,8 @@
 import { Typography, IconButton } from '@mui/joy';
 import { Edit, Check, Close } from '@mui/icons-material';
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import DataSelectionModal from './DataSelectionModal';
 
 export default function EditableTextComponent({
   component,
@@ -13,6 +14,10 @@ export default function EditableTextComponent({
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(component.props.text);
   const [previousText, setPreviousText] = useState(component.props.text);
+  const [isDataSelectionOpen, setIsDataSelectionOpen] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const lastKeyRef = useRef(null);
+  const modalRef = useRef(null);
 
   const handleEditClick = () => {
     if (disabled) return;
@@ -43,9 +48,52 @@ export default function EditableTextComponent({
       e.stopPropagation();
       handleCancel();
     } else if (e.key === ' ') {
-      e.preventDefault();
-      setEditedText((prev) => prev + ' ');
+      e.stopPropagation();
+    } else if (e.key === '[') {
+      if (lastKeyRef.current === '[') {
+        e.preventDefault();
+        const textBeforeCursor = editedText.slice(0, cursorPosition - 1);
+        const textAfterCursor = editedText.slice(cursorPosition);
+        setEditedText(textBeforeCursor + '[[]]' + textAfterCursor);
+        setCursorPosition(cursorPosition + 2);
+        setIsDataSelectionOpen(true);
+      }
+      lastKeyRef.current = '[';
+    } else {
+      lastKeyRef.current = null;
     }
+  };
+
+  const handleInputChange = (e) => {
+    setEditedText(e.target.value);
+    setCursorPosition(e.target.selectionStart);
+  };
+
+  const handleDataSelected = (data) => {
+    // Find the position of the last '[[' in the text
+    const lastOpenBraces = editedText.lastIndexOf('[[]]');
+    const textBeforeBraces = editedText.slice(0, lastOpenBraces);
+    const textAfterBraces = editedText.slice(lastOpenBraces + 4);
+
+    // Extract the relevant data from the response
+    let selectedData = '';
+    if (data && data[0].d && data[0].d.results) {
+      const results = data[0].d.results;
+      if (results.length > 0) {
+        const firstResult = results[0];
+        const propertyNames = Object.keys(firstResult).filter(
+          (key) => key !== '__metadata',
+        );
+        if (propertyNames.length > 0) {
+          selectedData = firstResult[propertyNames[0]];
+        }
+      }
+    }
+
+    const newText =
+      textBeforeBraces + '[[' + selectedData + ']]' + textAfterBraces;
+    setEditedText(newText);
+    setCursorPosition(lastOpenBraces + selectedData.length + 4);
   };
 
   return (
@@ -54,7 +102,7 @@ export default function EditableTextComponent({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <InputComponent
             value={editedText}
-            onChange={(e) => setEditedText(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             autoFocus
             sx={{ flex: 1 }}
@@ -100,6 +148,12 @@ export default function EditableTextComponent({
           </IconButton>
         </>
       )}
+      <DataSelectionModal
+        ref={modalRef}
+        open={isDataSelectionOpen}
+        onClose={() => setIsDataSelectionOpen(false)}
+        onDataSelected={handleDataSelected}
+      />
     </>
   );
 }
