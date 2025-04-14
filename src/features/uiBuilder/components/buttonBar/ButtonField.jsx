@@ -12,6 +12,7 @@ import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useState } from 'react';
 import NoTableDataModal from './NoTableDataModal';
+import { useTableColumns } from '../../hooks/useTableColumns';
 
 export default function ButtonField({
   field,
@@ -36,6 +37,18 @@ export default function ButtonField({
       : null;
   });
 
+  const { tableComponentId } = useTableColumns(componentId);
+
+  const allVisibleColumns = useSelector(
+    (state) => state.uiBuilder.visibleColumns || {},
+  );
+  const allTableColumns = useSelector(
+    (state) => state.uiBuilder.tableColumns || {},
+  );
+
+  const visibleColumns = allVisibleColumns[tableComponentId] || [];
+  const tableColumns = allTableColumns[tableComponentId] || [];
+
   let IconComponent;
   const commonProps = {
     size: 'sm',
@@ -46,7 +59,14 @@ export default function ButtonField({
           setIsNoTableDataModalOpen(true);
           return;
         }
-        field.onClick(dispatch, groupName, tableData, componentId);
+        field.onClick(
+          dispatch,
+          groupName,
+          tableData,
+          componentId,
+          visibleColumns,
+          tableColumns,
+        );
       },
     }),
     variant: field.variant || 'solid',
@@ -58,7 +78,14 @@ export default function ButtonField({
       setIsNoTableDataModalOpen(true);
       return;
     }
-    item.onClick(dispatch, groupName, tableData, componentId);
+    item.onClick(
+      dispatch,
+      groupName,
+      tableData,
+      componentId,
+      visibleColumns,
+      tableColumns,
+    );
   };
 
   switch (field.type) {
