@@ -3,7 +3,12 @@ import { Typography } from '@mui/joy';
 import { useRef, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
-const DataPickerIframe = ({ onWarning, onDataFetch, onEntitySelected }) => {
+const DataPickerIframe = ({
+  onWarning,
+  onDataFetch,
+  onEntitySelected,
+  titleText,
+}) => {
   const iframeRef = useRef(null);
 
   const filteredEntities = useSelector(
@@ -66,7 +71,7 @@ const DataPickerIframe = ({ onWarning, onDataFetch, onEntitySelected }) => {
         sx={{ textAlign: 'center', marginBottom: 2, maxWidth: '500px' }}
       >
         Select a node in the DataPicker Flow to display its corresponding
-        backend result in the table column
+        backend result in the {titleText}
       </Typography>
       <iframe
         ref={iframeRef}
@@ -86,6 +91,7 @@ DataPickerIframe.propTypes = {
   onWarning: PropTypes.func.isRequired,
   onDataFetch: PropTypes.func.isRequired,
   onEntitySelected: PropTypes.func.isRequired,
+  titleText: PropTypes.string.isRequired,
 };
 
 export default DataPickerIframe;
