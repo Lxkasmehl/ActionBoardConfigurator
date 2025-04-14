@@ -6,6 +6,61 @@ import {
 } from '../../../../redux/uiBuilderSlice';
 import * as XLSX from 'xlsx';
 
+const exportToExcel = (tableData, visibleColumns, tableColumns, fileName) => {
+  if (!tableData || tableData.length === 0) {
+    console.log('No data to export');
+    return;
+  }
+
+  // Create a map of column IDs to labels
+  const columnMap = {};
+  if (tableColumns) {
+    tableColumns.forEach((column) => {
+      columnMap[column.id] = column.label;
+    });
+  }
+
+  // Filter table data to only include visible columns
+  const filteredData = tableData.map((row) => {
+    const filteredRow = {};
+    if (visibleColumns) {
+      visibleColumns.forEach((columnId) => {
+        const columnLabel = columnMap[columnId];
+        if (columnLabel && row[columnLabel] !== undefined) {
+          filteredRow[columnLabel] = row[columnLabel];
+        }
+      });
+    } else {
+      // If no visible columns specified, export all columns
+      Object.entries(row).forEach(([key, value]) => {
+        filteredRow[key] = value;
+      });
+    }
+    return filteredRow;
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(filteredData);
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+  const excelBuffer = XLSX.write(wb, {
+    bookType: 'xlsx',
+    type: 'array',
+  });
+
+  const blob = new Blob([excelBuffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
 export const PREDEFINED_BUTTONS = [
   {
     type: 'button',
@@ -82,38 +137,26 @@ export const PREDEFINED_BUTTONS = [
       {
         label: 'All columns',
         onClick: (dispatch, groupName, tableData) => {
-          if (!tableData || tableData.length === 0) {
-            console.log('No data to export');
-            return;
-          }
-
-          const wb = XLSX.utils.book_new();
-
-          const ws = XLSX.utils.json_to_sheet(tableData);
-
-          XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-
-          const excelBuffer = XLSX.write(wb, {
-            bookType: 'xlsx',
-            type: 'array',
-          });
-
-          const blob = new Blob([excelBuffer], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = 'table_export.xlsx';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
+          exportToExcel(tableData, null, null, 'table_export.xlsx');
         },
       },
       {
         label: 'Only visible columns',
-        onClick: () => console.log('Exporting selected columns...'),
+        onClick: (
+          dispatch,
+          groupName,
+          tableData,
+          componentId,
+          visibleColumns,
+          tableColumns,
+        ) => {
+          exportToExcel(
+            tableData,
+            visibleColumns,
+            tableColumns,
+            'table_export_visible_columns.xlsx',
+          );
+        },
       },
     ],
   },
