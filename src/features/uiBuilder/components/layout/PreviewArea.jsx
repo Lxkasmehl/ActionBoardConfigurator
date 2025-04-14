@@ -1,18 +1,24 @@
 import { Box, Card, Typography } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { useDroppable } from '@dnd-kit/core';
-import SortableComponent from './SortableComponent';
-import EmptyState from './EmptyState';
+import SortableComponent from '../dragAndDrop/SortableComponent';
+import EmptyState from '../layout/EmptyState';
 import TrashBin from './TrashBin';
+import { useSelector } from 'react-redux';
 
 export default function PreviewArea({
   components,
   activeDragData,
   onTrashOver,
 }) {
+  const isInCreateGroupMode = useSelector(
+    (state) => state.uiBuilder.isInCreateGroupMode,
+  );
+  const groupToEdit = useSelector((state) => state.uiBuilder.groupToEdit);
   const { setNodeRef, isOver } = useDroppable({
     id: 'preview-area',
     data: { type: 'preview-area' },
+    disabled: (isInCreateGroupMode || groupToEdit !== null),
   });
 
   const { setNodeRef: setInitialGapRef, isOver: isInitialGapOver } =
@@ -22,6 +28,7 @@ export default function PreviewArea({
         type: 'gap',
         componentId: components[0]?.id,
       },
+      disabled: (isInCreateGroupMode || groupToEdit !== null),
     });
 
   const isDraggingExistingComponent = activeDragData?.type === 'preview';
@@ -65,6 +72,7 @@ export default function PreviewArea({
                 height: '16px',
                 width: '100%',
                 position: 'relative',
+                flexShrink: 0,
                 '&::after': {
                   content: '""',
                   position: 'absolute',

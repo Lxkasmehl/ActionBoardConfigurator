@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
@@ -16,10 +16,11 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 
 import { selectPropertyOptions } from '../../../redux/selectors/entitySelectors';
+import { removeEntityConfig } from '../../../redux/configSlice';
 import {
-  removeEntityConfig,
   removeFormData,
-} from '../../../redux/entitiesSlice';
+  setSelectedPropertiesInAccordions,
+} from '../../../redux/dataPickerSlice';
 import { useEntityChangeHandler } from '../hooks/useEntityChangeHandler';
 import { useModalState } from '../hooks/useModalState';
 import { useSelectedPropertyChangeHandler } from '../hooks/useSelectedPropertyChangeHandler';
@@ -27,19 +28,36 @@ import {
   sortEntities,
   sortProperties,
   filterUniqueProperties,
-} from '../utils/entity/entityOperations';
+} from '../../../shared/utils/entityOperations';
 
 import FilterModal from './FilterModal';
 import PropertySelector from './PropertySelector';
 
 import '@xyflow/react/dist/style.css';
 
-export default function EntitySection({ id }) {
-  const [matchingEntitiesState, setMatchingEntitiesState] = useState([]);
+export default function EntitySection({ id, data }) {
+  const config = useSelector((state) => state.config.config);
+  const matchingEntitiesForAccordions = useSelector(
+    (state) => state.dataPicker.matchingEntitiesForAccordions,
+  );
+
+  const [matchingEntitiesState, setMatchingEntitiesState] = useState(
+    matchingEntitiesForAccordions[id] || [],
+  );
+
   const [selectedPropertiesSectionState, setSelectedPropertiesSectionState] =
-    useState([]);
+    useState(
+      Object.values(config[id] || {})
+        .find((obj) => obj?.selectedProperties)
+        ?.selectedProperties?.filter((prop) => !prop.includes('/')) || [],
+    );
+
+  const selectedPropertiesInAccordions = useSelector(
+    (state) => state.dataPicker.selectedPropertiesInAccordions,
+  );
+
   const [accordionSelectedProperties, setAccordionSelectedProperties] =
-    useState({});
+    useState(selectedPropertiesInAccordions[id] || {});
 
   const dispatch = useDispatch();
   const { isOpen, openModal, closeModal } = useModalState();
@@ -49,12 +67,11 @@ export default function EntitySection({ id }) {
   const isTargetOfEdge = edges.some((edge) => edge.target === id);
 
   const filteredEntities = useSelector(
-    (state) => state.entities.filteredEntities,
+    (state) => state.fetchedData.filteredEntities,
   );
-  const config = useSelector((state) => state.entities.config);
-  const formData = useSelector((state) => state.entities.formData);
+  const formData = useSelector((state) => state.dataPicker.formData);
   const selectedEntities = useSelector(
-    (state) => state.entities.selectedEntities,
+    (state) => state.dataPicker.selectedEntities,
   );
   const selectedEntity = selectedEntities[id];
   const propertyOptions = useSelector((state) =>
@@ -66,6 +83,15 @@ export default function EntitySection({ id }) {
   const uniqueSortedPropertyOptions = filterUniqueProperties(
     sortedPropertyOptions,
   );
+
+  useEffect(() => {
+    dispatch(
+      setSelectedPropertiesInAccordions({
+        id,
+        accordionSelectedProperties,
+      }),
+    );
+  }, [dispatch, id, accordionSelectedProperties]);
 
   const handleEntityChange = useEntityChangeHandler(
     id,
@@ -98,7 +124,7 @@ export default function EntitySection({ id }) {
     <div>
       <Card
         data-testid='entity-section'
-        color={isTargetOfEdge ? 'primary' : 'neutral'}
+        color={data.selected ? 'primary' : 'neutral'}
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -108,19 +134,27 @@ export default function EntitySection({ id }) {
           maxWidth: '780px',
           width: 'auto',
           padding: 3,
+          border: isTargetOfEdge && '2px solid',
+          boxShadow: isTargetOfEdge ? '0 0 8px rgba(0, 0, 0, 0.2)' : 'none',
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': {
+            boxShadow: '0 0 12px rgba(0, 0, 0, 0.15)',
+          },
         }}
       >
         <div className='flex flex-row gap-6 items-center'>
           <Autocomplete
             data-testid='entity-autocomplete'
             options={sortedEntities}
-            groupBy={(option) =>
-              (option['sap:label'] || option.name || '').charAt(0).toUpperCase()
-            }
-            getOptionLabel={(option) => option['sap:label'] || option.name}
+            groupBy={(option) => (option.name || '').charAt(0).toUpperCase()}
+            getOptionLabel={(option) => option?.name || option || ''}
             placeholder='Select an entity'
             onChange={handleEntityChange}
-            isOptionEqualToValue={(option, value) => option.name === value.name}
+            isOptionEqualToValue={(option, value) => {
+              if (!option || !value) return false;
+              return option.name === value || option?.name === value?.name;
+            }}
+            value={selectedEntity}
             sx={{ width: '14rem', height: 'fit-content' }}
           />
           <div className='flex items-center'>
@@ -302,4 +336,7 @@ export default function EntitySection({ id }) {
 
 EntitySection.propTypes = {
   id: PropTypes.number.isRequired,
+  data: PropTypes.shape({
+    selected: PropTypes.bool,
+  }),
 };

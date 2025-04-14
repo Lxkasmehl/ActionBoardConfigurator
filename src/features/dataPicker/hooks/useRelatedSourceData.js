@@ -2,14 +2,14 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useReactFlow } from '@xyflow/react';
 import { useSendRequest } from './useSendRequest';
-import { typeUtils } from '../utils/entity/entityOperations';
+import { typeUtils } from '../../../shared/utils/entityOperations';
 
 export default function useRelatedSourceData(propertyOptionsId, propertyType) {
   const [relatedSourceData, setRelatedSourceData] = useState([]);
 
-  const config = useSelector((state) => state.entities.config);
+  const config = useSelector((state) => state.config.config);
   const propertiesBySection = useSelector(
-    (state) => state.entities.propertiesBySection || {},
+    (state) => state.dataPicker.propertiesBySection || {},
   );
   const { getEdges } = useReactFlow();
 

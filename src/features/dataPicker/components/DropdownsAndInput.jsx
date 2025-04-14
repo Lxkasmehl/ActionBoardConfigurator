@@ -8,17 +8,17 @@ import {
 import PropertyTypeInput from './PropertyTypeInput';
 import useDropdownsAndInputState from '../hooks/useDropdownsAndInputState';
 import { useSelector } from 'react-redux';
-import { sortProperties } from '../utils/entity/entityOperations';
+import { sortProperties } from '../../../shared/utils/entityOperations';
 
 export default function DropdownsAndInput({
   propertyOptionsId,
   fieldIdentifierId,
   ...props
 }) {
-  const { state, handleValueChange, handlePropertyChange, localDispatch } =
+  const { state, handleValueChange, handlePropertyChange, setOperator } =
     useDropdownsAndInputState(propertyOptionsId, fieldIdentifierId);
   const propertyOptions = useSelector(
-    (state) => state.entities.propertyOptions[propertyOptionsId],
+    (state) => state.dataPicker.propertyOptions[propertyOptionsId],
   );
   const sortedPropertyOptions = sortProperties(propertyOptions);
 
@@ -37,8 +37,8 @@ export default function DropdownsAndInput({
         type='hidden'
         name={`matchingEntityObject_${fieldIdentifierId}`}
         value={
-          state.matchingEntityObjectState
-            ? JSON.stringify(state.matchingEntityObjectState)
+          state.matchingEntityState
+            ? JSON.stringify(state.matchingEntityState)
             : ''
         }
       />
@@ -46,14 +46,14 @@ export default function DropdownsAndInput({
         type='hidden'
         name={`fullPath_${fieldIdentifierId}`}
         defaultValue={
-          state.matchingEntityObjectState
-            ? state.matchingEntityObjectState.path
+          state.matchingEntityState
+            ? state.matchingEntityState.path
             : state.property?.Name || ''
         }
       />
 
-      {Object.keys(state.matchingEntityObjectState?.matchingEntity || {})
-        .length > 0 && (
+      {Object.keys(state.matchingEntityState?.matchingEntity || {}).length >
+        0 && (
         <Card
           sx={{
             height: '36px',
@@ -72,17 +72,17 @@ export default function DropdownsAndInput({
         {...commonAutocompleteProps}
         key={state.autocompleteKey}
         options={
-          Object.keys(state.matchingEntityObjectState?.matchingEntity || {})
-            .length > 0
+          Object.keys(state.matchingEntityState?.matchingEntity || {}).length >
+          0
             ? [
                 ...Object.values(
-                  state.matchingEntityObjectState?.matchingEntity?.properties
+                  state.matchingEntityState?.matchingEntity?.properties
                     ?.properties || {},
                 )
                   .flat()
                   .filter((prop) => prop['sap:filterable'] === 'true'),
                 ...Object.values(
-                  state.matchingEntityObjectState?.matchingEntity?.properties
+                  state.matchingEntityState?.matchingEntity?.properties
                     ?.navigationProperties || {},
                 )
                   .flat()
@@ -97,7 +97,7 @@ export default function DropdownsAndInput({
         isOptionEqualToValue={(option, value) => option.Name === value?.Name}
         sx={{
           ...AUTOCOMPLETE_STYLES,
-          ...(state.matchingEntityObjectState?.matchingEntity && {
+          ...(state.matchingEntityState?.matchingEntity && {
             borderTopLeftRadius: 0,
             borderBottomLeftRadius: 0,
           }),
@@ -107,9 +107,7 @@ export default function DropdownsAndInput({
         data-testid='filter-operator-dropdown'
         name={`operator_${fieldIdentifierId}`}
         value={state.operator || ''}
-        onChange={(e, newValue) =>
-          localDispatch({ type: 'SET_OPERATOR', payload: newValue })
-        }
+        onChange={(e, newValue) => setOperator(newValue)}
         required
         sx={SELECT_STYLES}
       >

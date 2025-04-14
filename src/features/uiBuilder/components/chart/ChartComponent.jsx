@@ -41,7 +41,7 @@ const sampleData = {
   },
 };
 
-export default function ChartComponent({ component }) {
+export default function ChartComponent({ component, disabled = false }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [chartData, setChartData] = useState(
     component.props.data ||
@@ -51,10 +51,12 @@ export default function ChartComponent({ component }) {
   const [chartType, setChartType] = useState(component.props.type);
 
   const handleEditClick = () => {
+    if (disabled) return;
     setIsEditModalOpen(true);
   };
 
   const handleSave = (updatedComponent) => {
+    if (disabled) return;
     setChartData(
       updatedComponent.props.data ||
         sampleData[updatedComponent.props.type] ||
@@ -67,28 +69,32 @@ export default function ChartComponent({ component }) {
   const ChartWrapper = ({ children }) => (
     <>
       {children}
-      <IconButton
-        variant='solid'
-        color='primary'
-        onClick={handleEditClick}
-        sx={{
-          position: 'absolute',
-          top: '-10px',
-          right: '-10px',
-          borderRadius: '50%',
-        }}
-      >
-        <Edit />
-      </IconButton>
-      <ChartEditModal
-        open={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        component={{
-          ...component,
-          props: { ...component.props, data: chartData, type: chartType },
-        }}
-        onSave={handleSave}
-      />
+      {!disabled && (
+        <IconButton
+          variant='solid'
+          color='primary'
+          onClick={handleEditClick}
+          sx={{
+            position: 'absolute',
+            top: '-10px',
+            right: '-10px',
+            borderRadius: '50%',
+          }}
+        >
+          <Edit />
+        </IconButton>
+      )}
+      {isEditModalOpen && !disabled && (
+        <ChartEditModal
+          open={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          component={{
+            ...component,
+            props: { ...component.props, data: chartData, type: chartType },
+          }}
+          onSave={handleSave}
+        />
+      )}
     </>
   );
 
@@ -100,25 +106,25 @@ export default function ChartComponent({ component }) {
     case 'bars':
       return (
         <ChartWrapper>
-          <BarChart {...chartData} height={300} />
+          <BarChart {...chartData} height={300} skipAnimation />
         </ChartWrapper>
       );
     case 'lines':
       return (
         <ChartWrapper>
-          <LineChart {...chartData} height={300} />
+          <LineChart {...chartData} height={300} skipAnimation />
         </ChartWrapper>
       );
     case 'pie':
       return (
         <ChartWrapper>
-          <PieChart {...chartData} height={300} />
+          <PieChart {...chartData} height={300} skipAnimation />
         </ChartWrapper>
       );
     case 'scatter':
       return (
         <ChartWrapper>
-          <ScatterChart {...chartData} height={300} />
+          <ScatterChart {...chartData} height={300} skipAnimation />
         </ChartWrapper>
       );
     default:
@@ -134,4 +140,5 @@ ChartComponent.propTypes = {
       data: PropTypes.object,
     }).isRequired,
   }).isRequired,
+  disabled: PropTypes.bool,
 };

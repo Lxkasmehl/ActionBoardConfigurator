@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import { createNewComponent } from '../utils/componentUtils';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  checkAndDeleteEmptyGroups,
+  updateComponentGroups,
+} from '@/redux/uiBuilderSlice';
 
 export const useDragAndDrop = (components, setComponents) => {
   const [activeDragData, setActiveDragData] = useState(null);
+  const dispatch = useDispatch();
+  const componentGroups = useSelector(
+    (state) => state.uiBuilder.componentGroups,
+  );
 
   const handleDragStart = (event) => {
     const { active } = event;
@@ -36,7 +45,26 @@ export const useDragAndDrop = (components, setComponents) => {
 
     // Handle component deletion
     if (active.id.startsWith('component-') && over.id === 'trash-bin') {
+      // Remove component from any groups it might be in
+      const updatedGroups = { ...componentGroups };
+      Object.keys(updatedGroups).forEach((groupId) => {
+        const group = updatedGroups[groupId];
+        if (group.components.includes(active.id)) {
+          updatedGroups[groupId] = {
+            ...group,
+            components: group.components.filter((id) => id !== active.id),
+          };
+        }
+      });
+
+      // Update the component groups in Redux store
+      dispatch(updateComponentGroups(updatedGroups));
+
+      // Remove the component from the components list
       setComponents((items) => items.filter((item) => item.id !== active.id));
+
+      // Check and delete any empty groups
+      dispatch(checkAndDeleteEmptyGroups());
       return;
     }
 

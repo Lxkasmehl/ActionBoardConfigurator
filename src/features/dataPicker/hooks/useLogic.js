@@ -1,13 +1,16 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { setEntityLogic, setGroupedEntityLogic } from '../../../redux/entitiesSlice';
+import {
+  setEntityLogic,
+  setGroupedEntityLogic,
+} from '../../../redux/dataPickerSlice';
 import { useCallback } from 'react';
 
 export const useLogic = (id, groupIndex) => {
   const dispatch = useDispatch();
-  const formData = useSelector((state) => state.entities.formData);
-  const entityLogic = useSelector((state) => state.entities.entityLogic);
+  const formData = useSelector((state) => state.dataPicker.formData);
+  const entityLogic = useSelector((state) => state.dataPicker.entityLogic);
   const groupedEntityLogic = useSelector(
-    (state) => state.entities.groupedEntityLogic,
+    (state) => state.dataPicker.groupedEntityLogic,
   );
 
   const selectedLogic =

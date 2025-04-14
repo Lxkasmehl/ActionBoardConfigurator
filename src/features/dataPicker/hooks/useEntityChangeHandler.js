@@ -1,11 +1,13 @@
 import { useDispatch } from 'react-redux';
+import { addEntity, removeEntity } from '../../../redux/configSlice';
 import {
-  addEntity,
-  removeEntity,
-  removeFormData,
-  setPropertyOptions,
   setSelectedEntity,
-} from '../../../redux/entitiesSlice';
+  setMatchingEntitiesForAccordions,
+} from '../../../redux/dataPickerSlice';
+import {
+  setPropertyOptions,
+  removeFormData,
+} from '../../../redux/dataPickerSlice';
 
 export function useEntityChangeHandler(
   id,
@@ -41,6 +43,7 @@ export function useEntityChangeHandler(
 
     setSelectedPropertiesSectionState([]);
     setMatchingEntitiesState([]);
+    dispatch(setMatchingEntitiesForAccordions({ id, matchingEntities: [] }));
   };
 
   return handleEntityChange;

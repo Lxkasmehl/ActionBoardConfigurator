@@ -28,7 +28,7 @@ test('use complex filter with one entity section and one selected property', asy
   page,
 }) => {
   await setupFlowConnection(page);
-  await selectFromAutocomplete(page, 'entity-autocomplete', 'Business Unit');
+  await selectFromAutocomplete(page, 'entity-autocomplete', 'FOBusinessUnit');
 
   const filterConditions = {
     groupConditions: [
@@ -70,7 +70,12 @@ test('use selected properties from one entity section as filter values in anothe
   await sections.first().locator('div[class*="source"]').click();
   await sections.last().locator('div[class*="target"]').click();
 
-  await selectFromAutocomplete(page, 'entity-autocomplete', 'Business Unit', 0);
+  await selectFromAutocomplete(
+    page,
+    'entity-autocomplete',
+    'FOBusinessUnit',
+    0,
+  );
   await setupFilterCondition(page, 'externalCode', '=', 'BU_003', 0);
   await selectFromAutocomplete(page, 'property-selector', 'createdDateTime', 0);
 

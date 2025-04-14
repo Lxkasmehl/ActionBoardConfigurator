@@ -12,7 +12,7 @@ import {
   TableChart,
   Addchart,
 } from '@mui/icons-material';
-import { COMPONENT_CONFIGS } from './constants';
+import { COMPONENT_CONFIGS } from '../common/constants';
 
 export const DragOverlayComponent = ({ activeDragData, isOverTrash }) => {
   if (!activeDragData) return null;
@@ -53,7 +53,7 @@ export const DragOverlayComponent = ({ activeDragData, isOverTrash }) => {
         bgcolor: isOverTrash ? 'danger.400' : 'background.level1',
         position: 'fixed',
         pointerEvents: 'none',
-        zIndex: 1000,
+        zIndex: 10000,
       }}
     >
       {renderIcon(config.icon)}
