@@ -19,6 +19,7 @@ export default function ButtonField({
   disabled = false,
   groupName,
   componentId,
+  onClickDisabled = false,
 }) {
   const dispatch = useDispatch();
   const [isNoTableDataModalOpen, setIsNoTableDataModalOpen] = useState(false);
@@ -55,6 +56,7 @@ export default function ButtonField({
     disabled,
     ...(field.onClick && {
       onClick: () => {
+        if (onClickDisabled) return;
         if (!tableData) {
           setIsNoTableDataModalOpen(true);
           return;
@@ -181,4 +183,5 @@ ButtonField.propTypes = {
   disabled: PropTypes.bool,
   groupName: PropTypes.string,
   componentId: PropTypes.string,
+  onClickDisabled: PropTypes.bool,
 };
