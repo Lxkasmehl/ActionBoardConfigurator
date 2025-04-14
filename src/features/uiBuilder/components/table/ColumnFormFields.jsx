@@ -297,6 +297,7 @@ const ColumnFormFields = forwardRef(
             }}
             onDataFetch={() => setIsWaitingForIframeData(true)}
             onEntitySelected={handleEntitySelected}
+            titleText='table column'
           />
         )}
         {(editedItem.entity &&

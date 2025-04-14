@@ -41,6 +41,7 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
             ref={iframeRef}
             onWarning={handleWarning}
             onDataFetch={handleDataFetch}
+            titleText='text area'
           />
           {warningMessage && (
             <Typography color='warning' level='body-sm'>
