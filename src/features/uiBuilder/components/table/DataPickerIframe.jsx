@@ -1,7 +1,18 @@
 import PropTypes from 'prop-types';
 import { Typography } from '@mui/joy';
 import { useRef, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  setSelectedEntity,
+  setSelectedProperties,
+  setFilterStorageForNodesNotConnectedToEdges,
+  setEdgesForFlow,
+} from '@/redux/dataPickerSlice';
+import {
+  addEntity,
+  setEntityFilter,
+  setPropertySelection,
+} from '@/redux/configSlice';
 
 const DataPickerIframe = ({
   onWarning,
@@ -10,6 +21,7 @@ const DataPickerIframe = ({
   titleText,
 }) => {
   const iframeRef = useRef(null);
+  const dispatch = useDispatch();
 
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
@@ -36,9 +48,53 @@ const DataPickerIframe = ({
             isNewColumn: false,
           });
         }
+      } else if (event.data.type === 'DATAPICKER_STATE_UPDATE') {
+        const { payload } = event.data;
+        // Update Redux state with the received state
+        if (payload.selectedEntities) {
+          Object.entries(payload.selectedEntities).forEach(
+            ([id, entityName]) => {
+              dispatch(setSelectedEntity({ id, entityName }));
+            },
+          );
+        }
+        dispatch(setSelectedProperties(payload.selectedProperties));
+        dispatch(
+          setFilterStorageForNodesNotConnectedToEdges(
+            payload.filterStorageForNodesNotConnectedToEdges,
+          ),
+        );
+        dispatch(setEdgesForFlow(payload.edgesForFlow));
+
+        // Update config state using the available actions
+        if (payload.config) {
+          Object.entries(payload.config).forEach(([id, entityConfig]) => {
+            Object.entries(entityConfig).forEach(([entityName, config]) => {
+              dispatch(addEntity({ id, entityName }));
+              if (config.filter) {
+                dispatch(
+                  setEntityFilter({
+                    id,
+                    entityName,
+                    filterObject: config.filter,
+                  }),
+                );
+              }
+              if (config.selectedProperties) {
+                dispatch(
+                  setPropertySelection({
+                    id,
+                    entityName,
+                    propertyNames: config.selectedProperties,
+                  }),
+                );
+              }
+            });
+          });
+        }
       }
     },
-    [onWarning, onDataFetch, onEntitySelected, filteredEntities],
+    [onWarning, onDataFetch, onEntitySelected, filteredEntities, dispatch],
   );
 
   useEffect(() => {
