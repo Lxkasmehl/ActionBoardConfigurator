@@ -12,12 +12,25 @@ import {
   ListItemDecorator,
   IconButton,
   Divider,
-  Tooltip,
 } from '@mui/joy';
-import { Delete, Add } from '@mui/icons-material';
+import { Add } from '@mui/icons-material';
 import * as Icons from '@mui/icons-material';
 import { PREDEFINED_BUTTONS } from './predefinedButtons';
-import ButtonField from './ButtonField';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import SortableButton from './SortableButton';
+import { ButtonBarPointerSensor } from '../../utils/buttonBarPointerSensor';
 
 const getIconComponent = (iconName) => {
   const Icon = Icons[iconName];
@@ -47,6 +60,23 @@ export default function EditButtonBarModal({
     setCurrentButtons(currentButtons.filter((_, i) => i !== index));
   };
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setCurrentButtons((items) => {
+        const oldIndex = items.findIndex(
+          (item) => item['text/icon'] === active.id,
+        );
+        const newIndex = items.findIndex(
+          (item) => item['text/icon'] === over.id,
+        );
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const handleSave = () => {
     onSave({
       ...component,
@@ -57,6 +87,13 @@ export default function EditButtonBarModal({
     });
     onClose();
   };
+
+  const sensors = useSensors(
+    useSensor(ButtonBarPointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -74,32 +111,27 @@ export default function EditButtonBarModal({
 
         <Stack spacing={2}>
           <Typography level='title-sm'>Current Buttons</Typography>
-          <div className='flex gap-2 flex-wrap flex-col'>
-            {currentButtons.map((button, index) => (
-              <div key={index} className='relative group'>
-                <Tooltip title={button.description}>
-                  <div>
-                    <ButtonField field={button} />
-                  </div>
-                </Tooltip>
-                <IconButton
-                  variant='plain'
-                  color='danger'
-                  onClick={() => handleRemoveButton(index)}
-                  sx={{
-                    position: 'absolute',
-                    top: '-8px',
-                    right: '-8px',
-                    borderRadius: '50%',
-                    padding: '2px',
-                    fontSize: '0.75rem',
-                  }}
-                >
-                  <Delete fontSize='small' />
-                </IconButton>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={currentButtons.map((button) => button['text/icon'])}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className='flex gap-2 flex-wrap flex-col'>
+                {currentButtons.map((button, index) => (
+                  <SortableButton
+                    key={button['text/icon']}
+                    button={button}
+                    index={index}
+                    onRemove={handleRemoveButton}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
 
           <Divider />
 
