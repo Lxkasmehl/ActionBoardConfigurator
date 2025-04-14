@@ -9,9 +9,12 @@
  * @returns {Array} Sorted array of entities
  */
 export const sortEntities = (entities) => {
+  if (!entities || !Array.isArray(entities)) {
+    return [];
+  }
   return [...entities].sort((a, b) => {
-    const labelA = (a['sap:label'] || a.Name || '').toLowerCase();
-    const labelB = (b['sap:label'] || b.Name || '').toLowerCase();
+    const labelA = (a.name || '').toLowerCase();
+    const labelB = (b.name || '').toLowerCase();
     return labelA.localeCompare(labelB);
   });
 };

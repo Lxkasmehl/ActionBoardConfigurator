@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { setPropertySelection } from '../../../redux/configSlice';
 import {
   setSelectedProperties,
-  setPropertySelection,
   setPropertiesBySection,
-} from '../../../redux/entitiesSlice';
+  setMatchingEntitiesForAccordions,
+} from '../../../redux/dataPickerSlice';
 import {
   findMatchingEntity,
   getNavigationProperties,
@@ -19,20 +20,45 @@ export function useSelectedPropertyChangeHandler(
   accordionSelectedProperties,
 ) {
   const dispatch = useDispatch();
+  const config = useSelector((state) => state.config.config);
 
-  const [selectedPropertiesState, setSelectedPropertiesState] = useState({});
+  const [selectedPropertiesState, setSelectedPropertiesState] = useState(() => {
+    const result = {};
+
+    if (!config[id]) return result;
+
+    const configKey = Object.keys(config[id])[0];
+    const configEntry = config[id][configKey];
+    const selectedProperties = configEntry?.selectedProperties || [];
+
+    selectedProperties.forEach((property) => {
+      const isNestedProperty = property.includes('/');
+      const key = isNestedProperty
+        ? property.substring(0, property.lastIndexOf('/'))
+        : 'mainAutocomplete';
+      const value = isNestedProperty
+        ? property.substring(property.lastIndexOf('/') + 1)
+        : property;
+
+      if (!result[key]) {
+        result[key] = [];
+      }
+      result[key].push(value);
+    });
+
+    return result;
+  });
   const [previousKeys, setPreviousKeys] = useState([]);
 
-  const allEntities = useSelector((state) => state.entities.allEntities);
+  const allEntities = useSelector((state) => state.fetchedData.allEntities);
   const associationSets = useSelector(
-    (state) => state.entities.associationSets,
+    (state) => state.fetchedData.associationSets,
   );
   const filteredEntities = useSelector(
-    (state) => state.entities.filteredEntities,
+    (state) => state.fetchedData.filteredEntities,
   );
-  const config = useSelector((state) => state.entities.config);
   const selectedEntities = useSelector(
-    (state) => state.entities.selectedEntities,
+    (state) => state.dataPicker.selectedEntities,
   );
   const selectedEntity = selectedEntities[id];
 
@@ -62,8 +88,6 @@ export function useSelectedPropertyChangeHandler(
 
     if (Object.keys(removedValues).length > 0) {
       Object.entries(removedValues).forEach(([key, values]) => {
-        console.log(`Removed ${key}/${values}`);
-
         Object.keys(newSelectedProperties).forEach((k) => {
           if (key === 'mainAutocomplete') {
             if (k.startsWith(values)) {
@@ -227,6 +251,7 @@ export function useSelectedPropertyChangeHandler(
       }
     });
 
+    dispatch(setMatchingEntitiesForAccordions({ id, matchingEntities }));
     setMatchingEntitiesState(matchingEntities);
     console.log(config);
   };

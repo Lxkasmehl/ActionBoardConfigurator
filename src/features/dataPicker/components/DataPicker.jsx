@@ -1,7 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
-import useFetchEntities from '../hooks/useFetchEntities.js';
+import useFetchEntities from '../../../shared/hooks/useFetchEntities.js';
 import { useSendRequest } from '../hooks/useSendRequest.js';
 import { formatUtils } from '../utils/odata/oDataQueries.js';
 
@@ -15,10 +15,13 @@ import {
   setPropertySelection,
   setEntityFilter,
   removeEntityConfig,
+} from '../../../redux/configSlice.js';
+import {
   removeFormData,
   setSelectedProperties,
-  setCustomFilter,
-} from '../../../redux/entitiesSlice.js';
+  setFilterStorageForNodesNotConnectedToEdges,
+  setEdgesForFlow,
+} from '../../../redux/dataPickerSlice';
 
 import AddIcon from '@mui/icons-material/Add';
 import {
@@ -36,8 +39,14 @@ export default function DataPicker() {
   const loading = useFetchEntities();
   const dispatch = useDispatch();
 
-  const { config, selectedEntities, selectedProperties, customFilters } =
-    useSelector((state) => state.entities);
+  const {
+    selectedEntities,
+    selectedProperties,
+    filterStorageForNodesNotConnectedToEdges,
+    edgesForFlow,
+  } = useSelector((state) => state.dataPicker);
+
+  const { config } = useSelector((state) => state.config);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -45,12 +54,83 @@ export default function DataPicker() {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState(null);
+
+  useEffect(() => {
+    window.parent.postMessage(
+      {
+        type: 'SELECTED_NODE_CHANGED',
+        payload: {
+          nodeId: selectedNode,
+          selectedEntity: selectedNode ? selectedEntities[selectedNode] : null,
+        },
+      },
+      window.location.origin,
+    );
+  }, [selectedNode, selectedEntities]);
 
   const createNodeId = useCallback(() => crypto.randomUUID(), []);
 
   const forceRerenderEntitySection = useCallback(() => {
     setRenderKey((prevKey) => prevKey + 1);
   }, []);
+
+  const onNodeClick = useCallback((event, node) => {
+    setSelectedNode(node.id);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
+  }, []);
+
+  useEffect(() => {
+    if (config && Object.keys(config).length > 0) {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      setNodes(() => {
+        const configKeys = Object.keys(config);
+
+        const entityNodes = configKeys.map((id, index) => {
+          let nodeX = windowWidth / 2 - 320 + index * 120;
+          let nodeY = windowHeight / 2 - 55 + index * 120;
+
+          return {
+            id: id,
+            position: {
+              x: nodeX,
+              y: nodeY,
+            },
+            type: 'EntitySection',
+          };
+        });
+
+        return [
+          {
+            id: '0',
+            position: {
+              x: window.innerWidth / 2 - 100,
+              y: 50,
+            },
+            type: 'FlowStart',
+            draggable: false,
+          },
+          ...entityNodes,
+        ];
+      });
+
+      if (edgesForFlow?.length > 0) {
+        setEdges(edgesForFlow);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (edges?.length > 0) {
+      dispatch(setEdgesForFlow(edges));
+    }
+  }, [edges, dispatch]);
 
   const onConnect = useCallback(
     (connection) => {
@@ -79,7 +159,8 @@ export default function DataPicker() {
               setEntityFilter({
                 id: targetNodeId,
                 entityName: selectedEntity,
-                filterObject: customFilters[targetNodeId],
+                filterObject:
+                  filterStorageForNodesNotConnectedToEdges[targetNodeId],
               }),
             );
           }
@@ -93,7 +174,7 @@ export default function DataPicker() {
       dispatch,
       selectedEntities,
       selectedProperties,
-      customFilters,
+      filterStorageForNodesNotConnectedToEdges,
       forceRerenderEntitySection,
     ],
   );
@@ -131,7 +212,12 @@ export default function DataPicker() {
                 propertyNames: properties,
               }),
             );
-            dispatch(setCustomFilter({ id: targetNodeId, filterObject }));
+            dispatch(
+              setFilterStorageForNodesNotConnectedToEdges({
+                id: targetNodeId,
+                filterObject,
+              }),
+            );
           }
         }
       }
@@ -189,6 +275,73 @@ export default function DataPicker() {
     }
   };
 
+  useEffect(() => {
+    const handleMessage = async (event) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data.type === 'FETCH_DATA_REQUEST') {
+        try {
+          if (!selectedNode) {
+            window.parent.postMessage(
+              {
+                type: 'IFRAME_WARNING',
+                payload: {
+                  message:
+                    'No node selected. Please select a node before fetching data.',
+                  requestId: crypto.randomUUID(),
+                },
+              },
+              window.location.origin,
+            );
+            return;
+          }
+
+          const results = await handleSendRequest(selectedNode);
+
+          window.parent.postMessage(
+            {
+              type: 'IFRAME_DATA_RESPONSE',
+              payload: results,
+            },
+            window.location.origin,
+          );
+        } catch (error) {
+          window.parent.postMessage(
+            {
+              type: 'IFRAME_ERROR',
+              payload: error.message,
+            },
+            window.location.origin,
+          );
+        }
+      } else if (event.data.type === 'IFRAME_WARNING_RESPONSE') {
+        if (event.data.payload.confirmed) {
+          try {
+            const results = await handleSendRequest();
+            window.parent.postMessage(
+              {
+                type: 'IFRAME_DATA_RESPONSE',
+                payload: results,
+              },
+              window.location.origin,
+            );
+          } catch (error) {
+            window.parent.postMessage(
+              {
+                type: 'IFRAME_ERROR',
+                payload: error.message,
+              },
+              window.location.origin,
+            );
+          }
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [handleSendRequest, selectedNode]);
+
   if (loading) {
     return (
       <div className='flex justify-center items-center w-screen h-screen'>
@@ -205,12 +358,15 @@ export default function DataPicker() {
           data: {
             ...node.data,
             key: renderKey,
+            selected: node.id === selectedNode,
           },
         }))}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={customOnEdgesChange}
         onConnect={onConnect}
+        onNodeClick={onNodeClick}
+        onPaneClick={onPaneClick}
         nodeTypes={NODE_TYPES}
         edgeTypes={EDGE_TYPES}
         proOptions={{ hideAttribution: true }}
@@ -249,10 +405,12 @@ export default function DataPicker() {
         onClick={addSection}
         variant='solid'
         aria-label='Add new entity section'
+        size='lg'
         sx={{
           position: 'fixed',
           bottom: '40px',
           right: '40px',
+          borderRadius: '50%',
         }}
       >
         <AddIcon />

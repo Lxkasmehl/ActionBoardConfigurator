@@ -1,4 +1,4 @@
-import { COMPONENT_CONFIGS } from '../components/constants';
+import { COMPONENT_CONFIGS } from '../components/common/constants';
 
 export const createNewComponent = (componentType) => {
   const config = COMPONENT_CONFIGS[componentType];

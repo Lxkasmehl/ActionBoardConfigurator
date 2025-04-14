@@ -1,9 +1,16 @@
-import { useState } from 'react';
-import { Autocomplete, FormLabel, IconButton, Input } from '@mui/joy';
+import { useState, useEffect, useMemo } from 'react';
+import { Autocomplete, FormLabel, IconButton, Tooltip } from '@mui/joy';
 import { Add, Delete, Edit } from '@mui/icons-material';
 import PropTypes from 'prop-types';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  setGroupFilters,
+  setSelectedFilterOptions,
+} from '../../../redux/uiBuilderSlice';
+import { useTableColumns } from '../hooks/useTableColumns';
 
-export default function FilterArea({ component }) {
+export default function FilterArea({ component, disabled = false }) {
+  const dispatch = useDispatch();
   const [filters, setFilters] = useState(
     component.props.fields.map((field, index) => ({
       id: index + 1,
@@ -13,8 +20,30 @@ export default function FilterArea({ component }) {
   );
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
+  const columnData = useSelector((state) => state.uiBuilder.columnData);
+  const componentGroups = useSelector(
+    (state) => state.uiBuilder.componentGroups,
+  );
+  const selectedFilterOptions = useSelector(
+    (state) => state.uiBuilder.selectedFilterOptions,
+  );
+  const { tableComponentId, getColumnOptions } = useTableColumns(component.id);
+
+  const componentGroup = Object.values(componentGroups).find((group) =>
+    group.components.includes(component.id),
+  );
+
+  const groupName = Object.keys(componentGroups).find(
+    (key) => componentGroups[key] === componentGroup,
+  );
+
+  const currentSelectedOptions = useMemo(
+    () => selectedFilterOptions[groupName] || {},
+    [selectedFilterOptions, groupName],
+  );
 
   const handleAddFilter = () => {
+    if (disabled) return;
     setFilters([
       ...filters,
       {
@@ -26,17 +55,20 @@ export default function FilterArea({ component }) {
   };
 
   const handleRemoveFilter = (id) => {
+    if (disabled) return;
     if (filters.length > 1) {
       setFilters(filters.filter((filter) => filter.id !== id));
     }
   };
 
   const handleEditStart = (filter) => {
+    if (disabled) return;
     setEditingId(filter.id);
     setEditingValue(filter.label);
   };
 
   const handleEditComplete = () => {
+    if (disabled) return;
     if (editingId) {
       setFilters(
         filters.map((filter) =>
@@ -48,12 +80,32 @@ export default function FilterArea({ component }) {
   };
 
   const handleKeyDown = (e) => {
+    if (disabled) return;
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
       handleEditComplete();
     }
   };
+
+  useEffect(() => {
+    if (componentGroup) {
+      const filtersWithOptions = filters
+        .filter((filter) => currentSelectedOptions[filter.id]?.length > 0)
+        .map((filter) => ({
+          id: filter.id,
+          column: filter.label,
+          selectedOptions: currentSelectedOptions[filter.id] || [],
+        }));
+
+      dispatch(
+        setGroupFilters({
+          groupName: groupName,
+          filters: filtersWithOptions,
+        }),
+      );
+    }
+  }, [filters, currentSelectedOptions, componentGroup, dispatch, groupName]);
 
   return (
     <div
@@ -67,14 +119,31 @@ export default function FilterArea({ component }) {
         >
           <div className='grid grid-cols-[1fr,auto,auto] items-center gap-2'>
             {editingId === filter.id ? (
-              <Input
-                size='sm'
-                value={editingValue}
-                onChange={(e) => setEditingValue(e.target.value)}
-                onBlur={handleEditComplete}
-                onKeyDown={handleKeyDown}
-                autoFocus
-              />
+              <Tooltip
+                title={
+                  getColumnOptions().length === 0 &&
+                  'Please create a group with a table to select table columns as options'
+                }
+                placement='top'
+                sx={{
+                  maxWidth: '300px',
+                }}
+              >
+                <Autocomplete
+                  size='sm'
+                  placeholder='Select Column'
+                  disabled={disabled}
+                  onBlur={handleEditComplete}
+                  onKeyDown={handleKeyDown}
+                  options={getColumnOptions()}
+                  getOptionLabel={(option) => option.label}
+                  onChange={(event, newValue) => {
+                    if (newValue) {
+                      setEditingValue(newValue.label);
+                    }
+                  }}
+                />
+              </Tooltip>
             ) : (
               <FormLabel
                 size='sm'
@@ -92,16 +161,18 @@ export default function FilterArea({ component }) {
                 {filter.label}
               </FormLabel>
             )}
-            <IconButton
-              size='sm'
-              variant='plain'
-              color='neutral'
-              onClick={() => handleEditStart(filter)}
-              className='opacity-0 group-hover:opacity-100 transition-opacity'
-            >
-              <Edit />
-            </IconButton>
-            {filters.length > 1 && (
+            {!disabled && editingId !== filter.id && (
+              <IconButton
+                size='sm'
+                variant='plain'
+                color='neutral'
+                onClick={() => handleEditStart(filter)}
+                className='opacity-0 group-hover:opacity-100 transition-opacity'
+              >
+                <Edit />
+              </IconButton>
+            )}
+            {filters.length > 1 && !disabled && (
               <IconButton
                 size='sm'
                 variant='plain'
@@ -116,30 +187,50 @@ export default function FilterArea({ component }) {
           <Autocomplete
             size='sm'
             placeholder='Select an option'
-            options={filter.options}
+            options={(
+              columnData[tableComponentId]?.[filter.label] || []
+            ).filter((option) => option !== undefined)}
+            disabled={disabled}
+            getOptionLabel={(option) => option.toString() || ''}
+            multiple
+            value={currentSelectedOptions[filter.id] || []}
+            onChange={(event, newValue) => {
+              dispatch(
+                setSelectedFilterOptions({
+                  groupName,
+                  options: {
+                    ...currentSelectedOptions,
+                    [filter.id]: newValue,
+                  },
+                }),
+              );
+            }}
           />
         </div>
       ))}
 
-      <IconButton
-        variant='solid'
-        color='primary'
-        onClick={handleAddFilter}
-        sx={{
-          position: 'absolute',
-          top: '-10px',
-          right: '-10px',
-          borderRadius: '50%',
-        }}
-      >
-        <Add />
-      </IconButton>
+      {!disabled && (
+        <IconButton
+          variant='solid'
+          color='primary'
+          onClick={handleAddFilter}
+          sx={{
+            position: 'absolute',
+            top: '-10px',
+            right: '-10px',
+            borderRadius: '50%',
+          }}
+        >
+          <Add />
+        </IconButton>
+      )}
     </div>
   );
 }
 
 FilterArea.propTypes = {
   component: PropTypes.shape({
+    id: PropTypes.string.isRequired,
     props: PropTypes.shape({
       fields: PropTypes.arrayOf(
         PropTypes.shape({
@@ -148,4 +239,5 @@ FilterArea.propTypes = {
       ).isRequired,
     }).isRequired,
   }).isRequired,
+  disabled: PropTypes.bool,
 };

@@ -1,84 +1,28 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  filteredEntities: [],
-  allEntities: [],
-  associationSets: [],
-  config: {},
   propertyOptions: {},
   formData: {},
   entityLogic: {},
   groupedEntityLogic: {},
   selectedEntities: {},
   selectedProperties: {},
-  customFilters: {},
+  filterStorageForNodesNotConnectedToEdges: {},
   propertiesBySection: {},
   matchingEntityObjects: {},
+  matchingEntitiesForAccordions: {},
+  selectedPropertiesInAccordions: {},
+  conditionsForFilterModal: {},
+  edgesForFlow: [],
 };
 
-const initializeEntityConfig = (state, id, entityName) => {
-  if (!state.config[id]) {
-    state.config[id] = {};
-  }
-  if (!state.config[id][entityName]) {
-    state.config[id][entityName] = {
-      filter: {},
-      selectedProperties: [],
-    };
-  }
-};
-
-const entitiesSlice = createSlice({
-  name: 'entities',
+const dataPickerSlice = createSlice({
+  name: 'dataPicker',
   initialState,
   reducers: {
-    setFilteredEntities(state, action) {
-      state.filteredEntities = action.payload;
-    },
-
-    setAllEntities(state, action) {
-      state.allEntities = action.payload;
-    },
-
-    setAssociationSets(state, action) {
-      state.associationSets = action.payload;
-    },
-
-    addEntity(state, action) {
-      const { id, entityName } = action.payload;
-      initializeEntityConfig(state, id, entityName);
-    },
-
-    removeEntity(state, action) {
-      const { id, entityName } = action.payload;
-      if (state.config[id] && state.config[id][entityName]) {
-        delete state.config[id][entityName];
-      }
-    },
-
     setPropertyOptions(state, action) {
       const { id, properties } = action.payload;
       state.propertyOptions[id] = properties;
-    },
-
-    setEntityFilter(state, action) {
-      const { id, entityName, filterObject } = action.payload;
-      initializeEntityConfig(state, id, entityName);
-      state.config[id][entityName].filter = { ...filterObject };
-    },
-
-    setPropertySelection(state, action) {
-      const { id, entityName, propertyNames } = action.payload;
-      initializeEntityConfig(state, id, entityName);
-      state.config[id][entityName].selectedProperties = propertyNames;
-    },
-
-    removeEntityConfig(state, action) {
-      const { id, entityName } = action.payload;
-      initializeEntityConfig(state, id, entityName);
-      if (state.config[id]) {
-        delete state.config[id];
-      }
     },
 
     setFormData(state, action) {
@@ -121,9 +65,9 @@ const entitiesSlice = createSlice({
       state.selectedProperties[id] = propertyNames;
     },
 
-    setCustomFilter(state, action) {
+    setFilterStorageForNodesNotConnectedToEdges(state, action) {
       const { id, filterObject } = action.payload;
-      state.customFilters[id] = { ...filterObject };
+      state.filterStorageForNodesNotConnectedToEdges[id] = { ...filterObject };
     },
 
     setPropertiesBySection(state, action) {
@@ -135,19 +79,30 @@ const entitiesSlice = createSlice({
       const { id, matchingEntityObjects } = action.payload;
       state.matchingEntityObjects[id] = matchingEntityObjects;
     },
+
+    setMatchingEntitiesForAccordions(state, action) {
+      const { id, matchingEntities } = action.payload;
+      state.matchingEntitiesForAccordions[id] = matchingEntities;
+    },
+
+    setSelectedPropertiesInAccordions(state, action) {
+      const { id, accordionSelectedProperties } = action.payload;
+      state.selectedPropertiesInAccordions[id] = accordionSelectedProperties;
+    },
+
+    setConditionsForFilterModal(state, action) {
+      const { id, conditions } = action.payload;
+      state.conditionsForFilterModal[id] = conditions;
+    },
+
+    setEdgesForFlow(state, action) {
+      state.edgesForFlow = action.payload;
+    },
   },
 });
 
 export const {
-  setFilteredEntities,
-  setAllEntities,
-  setAssociationSets,
-  addEntity,
-  removeEntity,
   setPropertyOptions,
-  setEntityFilter,
-  setPropertySelection,
-  removeEntityConfig,
   setFormData,
   removeFormData,
   setEntityLogic,
@@ -155,9 +110,13 @@ export const {
   removeGroupedEntityLogic,
   setSelectedEntity,
   setSelectedProperties,
-  setCustomFilter,
+  setFilterStorageForNodesNotConnectedToEdges,
   setPropertiesBySection,
   setMatchingEntityObjects,
-} = entitiesSlice.actions;
+  setMatchingEntitiesForAccordions,
+  setSelectedPropertiesInAccordions,
+  setConditionsForFilterModal,
+  setEdgesForFlow,
+} = dataPickerSlice.actions;
 
-export default entitiesSlice.reducer;
+export default dataPickerSlice.reducer;

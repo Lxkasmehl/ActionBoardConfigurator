@@ -4,14 +4,16 @@ import PropTypes from 'prop-types';
 import Condition from './Condition';
 import ConditionGroup from './ConditionGroup';
 import { useDispatch } from 'react-redux';
+import { setEntityFilter } from '../../../redux/configSlice';
 import {
-  setEntityFilter,
-  setFormData,
   removeGroupedEntityLogic,
-  setCustomFilter,
+  setFormData,
+  setFilterStorageForNodesNotConnectedToEdges,
   setMatchingEntityObjects,
-} from '../../../redux/entitiesSlice';
+  setConditionsForFilterModal,
+} from '../../../redux/dataPickerSlice';
 import { useReactFlow } from '@xyflow/react';
+import { useSelector } from 'react-redux';
 
 const buildConditions = (obj) => {
   const conditions = [];
@@ -80,7 +82,10 @@ const buildFilterObject = (obj) => {
 };
 
 export default function FilterModal({ open, onClose, entity, id }) {
-  const [conditions, setConditions] = useState([]);
+  const conditionsForFilterModal = useSelector(
+    (state) => state.dataPicker.conditionsForFilterModal[id],
+  );
+  const [conditions, setConditions] = useState(conditionsForFilterModal || []);
   const dispatch = useDispatch();
 
   const addCondition = useCallback(() => {
@@ -164,11 +169,14 @@ export default function FilterModal({ open, onClose, entity, id }) {
 
     dispatch(setFormData({ id, formObject }));
     dispatch(setMatchingEntityObjects({ id, matchingEntityObjects }));
+    dispatch(setConditionsForFilterModal({ id, conditions }));
 
     if (isTargetOfEdge) {
       dispatch(setEntityFilter({ entityName: entity, id, filterObject }));
     } else {
-      dispatch(setCustomFilter({ id, filterObject }));
+      dispatch(
+        setFilterStorageForNodesNotConnectedToEdges({ id, filterObject }),
+      );
     }
 
     onClose();
