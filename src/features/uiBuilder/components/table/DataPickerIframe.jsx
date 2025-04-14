@@ -44,7 +44,6 @@ const DataPickerIframe = ({
         if (selectedEntity && completeEntity) {
           onEntitySelected({
             entity: completeEntity,
-            label: selectedEntity,
             isNewColumn: false,
           });
         }

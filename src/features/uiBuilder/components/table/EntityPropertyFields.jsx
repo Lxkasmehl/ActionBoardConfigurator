@@ -52,7 +52,6 @@ export default function EntityPropertyFields({
             setEditedItem({
               ...editedItem,
               entity: value,
-              label: value?.name || editedItem.label,
             });
           }}
           options={sortedEntities}
@@ -71,10 +70,6 @@ export default function EntityPropertyFields({
             setEditedItem({
               ...editedItem,
               property: value,
-              label:
-                editedItem.entity?.name && value?.name
-                  ? `${editedItem.entity.name} -> ${value.name}`
-                  : editedItem.label,
             });
           }}
           options={propertyOptions}
