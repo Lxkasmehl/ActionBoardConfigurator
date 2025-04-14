@@ -46,7 +46,7 @@ export default function ButtonField({
           setIsNoTableDataModalOpen(true);
           return;
         }
-        field.onClick(dispatch, groupName);
+        field.onClick(dispatch, groupName, tableData, componentId);
       },
     }),
     variant: field.variant || 'solid',
@@ -58,7 +58,7 @@ export default function ButtonField({
       setIsNoTableDataModalOpen(true);
       return;
     }
-    item.onClick(dispatch, groupName, tableData);
+    item.onClick(dispatch, groupName, tableData, componentId);
   };
 
   switch (field.type) {

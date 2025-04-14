@@ -6,15 +6,20 @@ import EditButtonBarModal from './EditButtonBarModal';
 import ButtonField from './ButtonField';
 import { useSelector, useDispatch } from 'react-redux';
 import SortModal from './SortModal';
+import ColumnSelectorModal from './ColumnSelectorModal';
 import {
   setSortModalOpen,
   setSortConfig,
+  setColumnSelectorModalOpen,
 } from '../../../../redux/uiBuilderSlice';
 
 export default function ButtonBar({ component, disabled = false }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const dispatch = useDispatch();
   const sortModalOpen = useSelector((state) => state.uiBuilder.sortModalOpen);
+  const columnSelectorModalOpen = useSelector(
+    (state) => state.uiBuilder.columnSelectorModalOpen,
+  );
   const componentGroups = useSelector(
     (state) => state.uiBuilder.componentGroups,
   );
@@ -74,9 +79,25 @@ export default function ButtonBar({ component, disabled = false }) {
         onSave={handleSave}
       />
       <SortModal
-        open={sortModalOpen}
-        onClose={() => dispatch(setSortModalOpen(false))}
+        open={
+          sortModalOpen.isOpen && sortModalOpen.componentId === component.id
+        }
+        onClose={() =>
+          dispatch(setSortModalOpen({ isOpen: false, componentId: null }))
+        }
         onApplySort={handleApplySort}
+        componentId={component.id}
+      />
+      <ColumnSelectorModal
+        open={
+          columnSelectorModalOpen.isOpen &&
+          columnSelectorModalOpen.componentId === component.id
+        }
+        onClose={() =>
+          dispatch(
+            setColumnSelectorModalOpen({ isOpen: false, componentId: null }),
+          )
+        }
         componentId={component.id}
       />
     </>

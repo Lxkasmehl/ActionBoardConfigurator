@@ -11,8 +11,10 @@ const initialState = {
   groupFilters: {},
   groupFiltersEnabled: {},
   selectedFilterOptions: {},
-  sortModalOpen: false,
+  sortModalOpen: { isOpen: false, componentId: null },
   groupSortConfigs: {},
+  visibleColumns: {},
+  columnSelectorModalOpen: { isOpen: false, componentId: null },
 };
 
 const uiBuilderSlice = createSlice({
@@ -54,6 +56,10 @@ const uiBuilderSlice = createSlice({
     setTableColumns: (state, action) => {
       const { componentId, columns } = action.payload;
       state.tableColumns[componentId] = columns;
+      // Initialize visible columns if not already set
+      if (!state.visibleColumns[componentId]) {
+        state.visibleColumns[componentId] = columns.map((col) => col.id);
+      }
     },
     setColumnData: (state, action) => {
       const { componentId, data } = action.payload;
@@ -93,6 +99,13 @@ const uiBuilderSlice = createSlice({
       const { groupName, config } = action.payload;
       state.groupSortConfigs[groupName] = config;
     },
+    setVisibleColumns: (state, action) => {
+      const { tableComponentId, columnIds } = action.payload;
+      state.visibleColumns[tableComponentId] = columnIds;
+    },
+    setColumnSelectorModalOpen: (state, action) => {
+      state.columnSelectorModalOpen = action.payload;
+    },
   },
 });
 
@@ -112,6 +125,8 @@ export const {
   reloadTableData,
   setSortModalOpen,
   setSortConfig,
+  setVisibleColumns,
+  setColumnSelectorModalOpen,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;

@@ -1,6 +1,6 @@
 import { IconButton } from '@mui/joy';
 import { Add } from '@mui/icons-material';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import EditModal from './EditModal';
 import PropTypes from 'prop-types';
@@ -15,6 +15,7 @@ import {
   setColumnData,
   setSortModalOpen,
   setTableData as setTableDataRedux,
+  setVisibleColumns,
 } from '../../../../redux/uiBuilderSlice';
 
 export default function TableComponent({ component, disabled = false }) {
@@ -43,6 +44,10 @@ export default function TableComponent({ component, disabled = false }) {
   const groupSortConfigs = useSelector(
     (state) => state.uiBuilder.groupSortConfigs,
   );
+  const visibleColumns = useSelector(
+    (state) => state.uiBuilder.visibleColumns[component.id] || [],
+  );
+  const isInitialized = useRef(false);
 
   const componentGroup = Object.values(componentGroups).find((group) =>
     group.components.includes(component.id),
@@ -93,7 +98,17 @@ export default function TableComponent({ component, disabled = false }) {
   // Update Redux store whenever columns change
   useEffect(() => {
     dispatch(setTableColumns({ componentId: component.id, columns }));
-  }, [columns, dispatch, component.id]);
+    // Initialize visible columns if not already set
+    if (!isInitialized.current && visibleColumns.length === 0) {
+      dispatch(
+        setVisibleColumns({
+          componentId: component.id,
+          columnIds: columns.map((col) => col.id),
+        }),
+      );
+      isInitialized.current = true;
+    }
+  }, [columns, dispatch, component.id, visibleColumns.length]);
 
   // Update Redux store whenever table data changes
   useEffect(() => {
@@ -221,8 +236,13 @@ export default function TableComponent({ component, disabled = false }) {
     };
   });
 
+  // Filter columns based on visible columns
+  const filteredColumns = gridColumns.filter((column) =>
+    visibleColumns.includes(column.columnId),
+  );
+
   // Sort columns to put main entity first
-  const sortedColumns = [...gridColumns].sort((a, b) => {
+  const sortedColumns = [...filteredColumns].sort((a, b) => {
     const colA = columns.find((col) => col.id === a.columnId);
     const colB = columns.find((col) => col.id === b.columnId);
     if (colA.isMainEntity) return -1;
