@@ -15,6 +15,7 @@ const store = configureStore({
     uiBuilder: uiBuilderReducer,
   },
   preloadedState,
+  devTools: true,
 });
 
 store.subscribe(() => {

@@ -2,6 +2,7 @@ import {
   setGroupFiltersEnabled,
   reloadTableData,
   setSortModalOpen,
+  setColumnSelectorModalOpen,
 } from '../../../../redux/uiBuilderSlice';
 import * as XLSX from 'xlsx';
 
@@ -130,8 +131,8 @@ export const PREDEFINED_BUTTONS = [
     label: 'Sort',
     description: 'Sort the current table data',
     variant: 'plain',
-    onClick: (dispatch) => {
-      dispatch(setSortModalOpen(true));
+    onClick: (dispatch, groupName, tableData, componentId) => {
+      dispatch(setSortModalOpen({ isOpen: true, componentId }));
     },
   },
   {
@@ -140,6 +141,8 @@ export const PREDEFINED_BUTTONS = [
     label: 'Column Selector',
     description: 'Select columns to display',
     variant: 'plain',
-    onClick: () => console.log('Selecting columns...'),
+    onClick: (dispatch, groupName, tableData, componentId) => {
+      dispatch(setColumnSelectorModalOpen({ isOpen: true, componentId }));
+    },
   },
 ];
