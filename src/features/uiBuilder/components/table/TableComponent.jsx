@@ -190,6 +190,17 @@ export default function TableComponent({ component, disabled = false }) {
       });
 
       setColumns(updatedColumns);
+
+      // Add new column to visible columns
+      if (editedColumn.isNewColumn) {
+        const newColumnId = updatedColumns[updatedColumns.length - 1].id;
+        dispatch(
+          setVisibleColumns({
+            tableComponentId: component.id,
+            columnIds: [...visibleColumns, newColumnId],
+          }),
+        );
+      }
     } else {
       const updatedColumns = columns.map((col) =>
         col.id === editingColumn.id ? editedColumn : col,

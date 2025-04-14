@@ -111,7 +111,11 @@ export default function EditModal({
 
               const baseColumnData = {
                 data: extractedData,
-                label: editedItem.label || `${entityName} -> ${propertyName}`,
+                label: editedItem.label
+                  ? index > 0 || propertyIndex > 0
+                    ? `${editedItem.label} - ${propertyName}`
+                    : editedItem.label
+                  : `${entityName} -> ${propertyName}`,
                 isNewColumn: index > 0 || propertyIndex > 0,
                 entity: completeEntity,
                 property: completeProperty,
@@ -121,6 +125,8 @@ export default function EditModal({
                 ...(isIframeValidationError ? columnData : editedItem),
                 ...baseColumnData,
               };
+
+              console.log('newColumnData', newColumnData);
 
               setColumnData(newColumnData);
 
