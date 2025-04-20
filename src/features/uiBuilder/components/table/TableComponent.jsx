@@ -166,6 +166,27 @@ export default function TableComponent({ component, disabled = false }) {
 
     const updatedColumns = [...columns, newColumn];
     setColumns(updatedColumns);
+
+    // Update Redux store
+    dispatch(
+      setTableColumns({ componentId: component.id, columns: updatedColumns }),
+    );
+
+    // Add new column to visible columns
+    dispatch(
+      setVisibleColumns({
+        tableComponentId: component.id,
+        columnIds: [...visibleColumns, newColumn.id],
+      }),
+    );
+
+    // Add new column to column order
+    dispatch(
+      setColumnOrder({
+        componentId: component.id,
+        columnOrder: [...columnOrder, newColumn.id],
+      }),
+    );
   };
 
   const handleEditColumn = (columnId) => {

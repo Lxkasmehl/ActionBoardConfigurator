@@ -164,7 +164,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
   const hasElevatedZIndex =
     (isInCreateGroupMode &&
       !componentGroup &&
-      ['buttonBar', 'filterArea', 'table'].includes(component.type)) ||
+      ['buttonBar', 'filterArea', 'table', 'chart'].includes(component.type)) ||
     (groupToEdit && !componentGroup) ||
     (groupToEdit && componentGroup && groupIsEditing);
 

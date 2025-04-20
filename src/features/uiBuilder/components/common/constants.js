@@ -98,7 +98,7 @@ export const COMPONENT_CONFIGS = {
     label: 'Chart',
     icon: 'Addchart',
     defaultProps: {
-      type: 'lines',
+      type: 'bars',
     },
   },
 };
