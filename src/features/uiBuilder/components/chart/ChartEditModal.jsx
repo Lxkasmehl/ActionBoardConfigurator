@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Modal,
@@ -7,56 +7,97 @@ import {
   Typography,
   FormControl,
   FormLabel,
-  Select,
-  Option,
+  Autocomplete,
   Button,
-  Input,
   Stack,
   FormHelperText,
+  Alert,
 } from '@mui/joy';
+import { useTableColumns } from '../../hooks/useTableColumns';
+import { useSelector } from 'react-redux';
 
-export default function ChartEditModal({ open, onClose, component, onSave }) {
+export default function ChartEditModal({
+  open,
+  onClose,
+  component,
+  onSave,
+  componentId,
+}) {
   const [editedComponent, setEditedComponent] = useState(component);
-  const [dataInput, setDataInput] = useState('');
+  const [selectedColumn, setSelectedColumn] = useState(null);
+  const { tableComponentId, getColumnOptions } = useTableColumns(componentId);
+  const tableData = useSelector(
+    (state) => state.uiBuilder.tableData[tableComponentId] || [],
+  );
+  const columnOptions = getColumnOptions();
+  const hasTableConnection = !!tableComponentId;
+
+  useEffect(() => {
+    // Remove the automatic selection of first column
+  }, [columnOptions, selectedColumn]);
 
   const handleSave = () => {
+    if (!hasTableConnection) {
+      onSave({
+        ...editedComponent,
+        props: {
+          ...editedComponent.props,
+          data: null,
+        },
+      });
+      onClose();
+      return;
+    }
+
+    if (!selectedColumn || !tableData.length) {
+      onSave({
+        ...editedComponent,
+        props: {
+          ...editedComponent.props,
+          data: null,
+        },
+      });
+      onClose();
+      return;
+    }
+
+    const columnLabel = columnOptions.find(
+      (opt) => opt.value === selectedColumn,
+    )?.label;
+    const columnData = tableData.map((row) => row[columnLabel]);
+
+    // Count occurrences for categorical data (like cities)
+    const valueCounts = columnData.reduce((acc, value) => {
+      acc[value] = (acc[value] || 0) + 1;
+      return acc;
+    }, {});
+
     let parsedData = null;
 
-    if (dataInput.trim()) {
-      try {
-        const numbers = dataInput
-          .split(',')
-          .map((num) => parseFloat(num.trim()));
-        if (numbers.every((num) => !isNaN(num))) {
-          parsedData = {
-            xAxis: [
-              {
-                data:
-                  editedComponent.props.type === 'bars'
-                    ? Array.from({ length: numbers.length }, (_, i) =>
-                        String.fromCharCode(65 + i),
-                      )
-                    : Array.from({ length: numbers.length }, (_, i) => i + 1),
-                ...(editedComponent.props.type === 'bars' && {
-                  scaleType: 'band',
-                }),
-              },
-            ],
-            series: [{ data: numbers }],
-          };
-        } else {
-          parsedData = JSON.parse(dataInput);
-          if (editedComponent.props.type === 'bars' && parsedData.xAxis) {
-            parsedData.xAxis = parsedData.xAxis.map((axis) => ({
-              ...axis,
-              scaleType: 'band',
-            }));
-          }
-        }
-      } catch (error) {
-        console.error('Invalid data format:', error);
-        return;
-      }
+    if (editedComponent.props.type === 'bars') {
+      // For bar charts, use the unique values as categories
+      const categories = Object.keys(valueCounts);
+      parsedData = {
+        xAxis: [
+          {
+            data: categories,
+            scaleType: 'band',
+          },
+        ],
+        series: [{ data: categories.map((cat) => valueCounts[cat]) }],
+      };
+    } else if (editedComponent.props.type === 'pie') {
+      // For pie charts, create data in the format: [{ value: number, label: string }]
+      parsedData = {
+        series: [
+          {
+            data: Object.entries(valueCounts).map(([label, value]) => ({
+              value,
+              label,
+            })),
+          },
+        ],
+      };
     }
 
     onSave({
@@ -69,56 +110,85 @@ export default function ChartEditModal({ open, onClose, component, onSave }) {
     onClose();
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      e.stopPropagation();
-      handleSave();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      e.stopPropagation();
-      onClose();
-    } else if (e.key === ' ') {
-      e.preventDefault();
-      setDataInput((prev) => prev + ' ');
-    }
-  };
-
   return (
     <Modal open={open} onClose={onClose}>
       <ModalDialog>
         <ModalClose onClick={onClose} />
         <Typography level='h4'>Edit Chart</Typography>
         <Stack spacing={2} sx={{ mt: 2 }}>
+          {!hasTableConnection && (
+            <Alert color='warning'>
+              This chart is not connected to a table component. Sample data will
+              be used.
+            </Alert>
+          )}
+
           <FormControl>
             <FormLabel>Chart Type</FormLabel>
-            <Select
+            <Autocomplete
               value={editedComponent.props.type}
+              options={[
+                { value: 'bars', label: 'Bar Chart' },
+                { value: 'pie', label: 'Pie Chart' },
+              ]}
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') {
+                  return option === 'bars' ? 'Bar Chart' : 'Pie Chart';
+                }
+                return option.label;
+              }}
+              isOptionEqualToValue={(option, value) => {
+                if (typeof value === 'string') {
+                  return option.value === value;
+                }
+                return option.value === value?.value;
+              }}
               onChange={(_, value) =>
                 setEditedComponent({
                   ...editedComponent,
-                  props: { ...editedComponent.props, type: value },
+                  props: { ...editedComponent.props, type: value?.value },
                 })
               }
+              placeholder='Select chart type'
               sx={{ minWidth: 200 }}
-            >
-              <Option value='lines'>Line Chart</Option>
-              <Option value='bars'>Bar Chart</Option>
-              <Option value='pie'>Pie Chart</Option>
-              <Option value='scatter'>Scatter Chart</Option>
-            </Select>
+            />
           </FormControl>
 
           <FormControl>
-            <FormLabel>Chart Data (optional)</FormLabel>
-            <Input
-              value={dataInput}
-              onChange={(e) => setDataInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder='z.B.: 1, 2, 3, 4, 5'
-              sx={{ minWidth: 300 }}
-            />
-            <FormHelperText>Leave empty to use sample data</FormHelperText>
+            <FormLabel>Data Source</FormLabel>
+            {hasTableConnection ? (
+              <>
+                <Autocomplete
+                  value={
+                    columnOptions.find((opt) => opt.value === selectedColumn) ||
+                    null
+                  }
+                  options={columnOptions}
+                  getOptionLabel={(option) => {
+                    if (typeof option === 'string') {
+                      return option;
+                    }
+                    return option?.label || '';
+                  }}
+                  isOptionEqualToValue={(option, value) => {
+                    if (typeof value === 'string') {
+                      return option.value === value;
+                    }
+                    return option.value === value?.value;
+                  }}
+                  onChange={(_, value) => setSelectedColumn(value?.value || '')}
+                  placeholder='Select data column'
+                  sx={{ minWidth: 200 }}
+                />
+                <FormHelperText>
+                  Select a column from the table in the same group
+                </FormHelperText>
+              </>
+            ) : (
+              <FormHelperText>
+                Please connect this chart to a table component to select data.
+              </FormHelperText>
+            )}
           </FormControl>
 
           <Stack direction='row' spacing={1} justifyContent='flex-end'>
@@ -144,4 +214,5 @@ ChartEditModal.propTypes = {
     }).isRequired,
   }).isRequired,
   onSave: PropTypes.func.isRequired,
+  componentId: PropTypes.string.isRequired,
 };

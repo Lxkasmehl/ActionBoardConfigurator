@@ -93,6 +93,7 @@ export default function ChartComponent({ component, disabled = false }) {
             props: { ...component.props, data: chartData, type: chartType },
           }}
           onSave={handleSave}
+          componentId={component.id}
         />
       )}
     </>
