@@ -16,6 +16,7 @@ import {
   setSortModalOpen,
   setTableData as setTableDataRedux,
   setVisibleColumns,
+  setColumnOrder,
 } from '../../../../redux/uiBuilderSlice';
 
 export default function TableComponent({ component, disabled = false }) {
@@ -46,6 +47,9 @@ export default function TableComponent({ component, disabled = false }) {
   );
   const visibleColumns = useSelector(
     (state) => state.uiBuilder.visibleColumns[component.id] || [],
+  );
+  const columnOrder = useSelector(
+    (state) => state.uiBuilder.columnOrder[component.id] || [],
   );
   const isInitialized = useRef(false);
 
@@ -98,17 +102,24 @@ export default function TableComponent({ component, disabled = false }) {
   // Update Redux store whenever columns change
   useEffect(() => {
     dispatch(setTableColumns({ componentId: component.id, columns }));
-    // Initialize visible columns if not already set
-    if (!isInitialized.current && visibleColumns.length === 0) {
+    // Initialize visible columns and column order if not already set
+    if (!isInitialized.current) {
+      const initialColumnIds = columns.map((col) => col.id);
       dispatch(
         setVisibleColumns({
           componentId: component.id,
-          columnIds: columns.map((col) => col.id),
+          columnIds: initialColumnIds,
+        }),
+      );
+      dispatch(
+        setColumnOrder({
+          componentId: component.id,
+          columnOrder: initialColumnIds,
         }),
       );
       isInitialized.current = true;
     }
-  }, [columns, dispatch, component.id, visibleColumns.length]);
+  }, [columns, dispatch, component.id]);
 
   // Update Redux store whenever table data changes
   useEffect(() => {
@@ -252,13 +263,13 @@ export default function TableComponent({ component, disabled = false }) {
     visibleColumns.includes(column.columnId),
   );
 
-  // Sort columns to put main entity first
+  // Sort columns based on column order
   const sortedColumns = [...filteredColumns].sort((a, b) => {
-    const colA = columns.find((col) => col.id === a.columnId);
-    const colB = columns.find((col) => col.id === b.columnId);
-    if (colA.isMainEntity) return -1;
-    if (colB.isMainEntity) return 1;
-    return 0;
+    const aIndex = columnOrder.indexOf(a.columnId);
+    const bIndex = columnOrder.indexOf(b.columnId);
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
   });
 
   const rows = tableData.map((row, index) => {
@@ -341,6 +352,31 @@ export default function TableComponent({ component, disabled = false }) {
         disableRowSelectionOnClick
         experimentalFeatures={{ newEditingApi: true }}
         columnReordering={!disabled}
+        onColumnOrderChange={(params) => {
+          const { column, targetIndex, oldIndex } = params;
+          if (!column || targetIndex === undefined || oldIndex === undefined)
+            return;
+
+          // Create a new array with the updated order
+          const newColumnOrder = [...columnOrder];
+          const columnId = column.columnId;
+
+          // Remove the column from its old position
+          newColumnOrder.splice(oldIndex, 1);
+          // Insert it at the new position
+          newColumnOrder.splice(targetIndex, 0, columnId);
+
+          dispatch(
+            setColumnOrder({
+              componentId: component.id,
+              columnOrder: newColumnOrder,
+            }),
+          );
+        }}
+        onColumnHeaderDragEnd={() => {
+          // Force a re-render after drag ends
+          dispatch({ type: 'FORCE_RERENDER' });
+        }}
         hideFooter
         loading={isLoading}
         slots={{

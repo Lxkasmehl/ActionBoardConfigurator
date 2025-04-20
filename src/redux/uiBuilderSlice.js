@@ -15,6 +15,7 @@ const initialState = {
   groupSortConfigs: {},
   visibleColumns: {},
   columnSelectorModalOpen: { isOpen: false, componentId: null },
+  columnOrder: {},
 };
 
 const uiBuilderSlice = createSlice({
@@ -106,6 +107,10 @@ const uiBuilderSlice = createSlice({
     setColumnSelectorModalOpen: (state, action) => {
       state.columnSelectorModalOpen = action.payload;
     },
+    setColumnOrder: (state, action) => {
+      const { componentId, columnOrder } = action.payload;
+      state.columnOrder[componentId] = columnOrder;
+    },
   },
 });
 
@@ -127,6 +132,7 @@ export const {
   setSortConfig,
   setVisibleColumns,
   setColumnSelectorModalOpen,
+  setColumnOrder,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;
