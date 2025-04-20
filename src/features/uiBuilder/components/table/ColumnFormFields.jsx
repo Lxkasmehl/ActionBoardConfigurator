@@ -23,7 +23,7 @@ import {
 import EntityPropertyFields from './EntityPropertyFields';
 import WarningModal from './WarningModal';
 import CustomRelationModal from './CustomRelationModal';
-import DataPickerIframe from './DataPickerIframe';
+import DataPickerIframe from '../common/DataPickerIframe';
 
 const ColumnFormFields = forwardRef(
   (

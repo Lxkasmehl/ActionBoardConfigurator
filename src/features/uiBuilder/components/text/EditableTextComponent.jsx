@@ -3,6 +3,7 @@ import { Edit, Check, Close } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import { useState, useRef } from 'react';
 import DataSelectionModal from './DataSelectionModal';
+import PropertySelectionModal from './PropertySelectionModal';
 
 export default function EditableTextComponent({
   component,
@@ -15,6 +16,8 @@ export default function EditableTextComponent({
   const [editedText, setEditedText] = useState(component.props.text);
   const [previousText, setPreviousText] = useState(component.props.text);
   const [isDataSelectionOpen, setIsDataSelectionOpen] = useState(false);
+  const [isPropertySelectionOpen, setIsPropertySelectionOpen] = useState(false);
+  const [selectedData, setSelectedData] = useState(null);
   const [cursorPosition, setCursorPosition] = useState(0);
   const lastKeyRef = useRef(null);
   const modalRef = useRef(null);
@@ -70,30 +73,22 @@ export default function EditableTextComponent({
   };
 
   const handleDataSelected = (data) => {
+    setSelectedData(data);
+    setIsDataSelectionOpen(false);
+    setIsPropertySelectionOpen(true);
+  };
+
+  const handlePropertySelected = (property, value) => {
     // Find the position of the last '[[' in the text
     const lastOpenBraces = editedText.lastIndexOf('[[]]');
     const textBeforeBraces = editedText.slice(0, lastOpenBraces);
     const textAfterBraces = editedText.slice(lastOpenBraces + 4);
 
-    // Extract the relevant data from the response
-    let selectedData = '';
-    if (data && data[0].d && data[0].d.results) {
-      const results = data[0].d.results;
-      if (results.length > 0) {
-        const firstResult = results[0];
-        const propertyNames = Object.keys(firstResult).filter(
-          (key) => key !== '__metadata',
-        );
-        if (propertyNames.length > 0) {
-          selectedData = firstResult[propertyNames[0]];
-        }
-      }
-    }
-
     const newText =
-      textBeforeBraces + '[[' + selectedData + ']]' + textAfterBraces;
+      textBeforeBraces + '[[' + value.value + ']]' + textAfterBraces;
     setEditedText(newText);
-    setCursorPosition(lastOpenBraces + selectedData.length + 4);
+    setCursorPosition(lastOpenBraces + value.value.length + 4);
+    setIsPropertySelectionOpen(false);
   };
 
   return (
@@ -153,6 +148,12 @@ export default function EditableTextComponent({
         open={isDataSelectionOpen}
         onClose={() => setIsDataSelectionOpen(false)}
         onDataSelected={handleDataSelected}
+      />
+      <PropertySelectionModal
+        open={isPropertySelectionOpen}
+        onClose={() => setIsPropertySelectionOpen(false)}
+        onPropertySelected={handlePropertySelected}
+        data={selectedData}
       />
     </>
   );

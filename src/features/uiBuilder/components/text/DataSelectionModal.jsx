@@ -1,10 +1,11 @@
 import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { useCallback, useState, useRef } from 'react';
-import DataPickerIframe from '../table/DataPickerIframe';
+import DataPickerIframe from '../common/DataPickerIframe';
 
 export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   const [warningMessage, setWarningMessage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const iframeRef = useRef(null);
 
   const handleWarning = useCallback((message) => {
@@ -13,14 +14,15 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
 
   const handleDataFetch = useCallback(
     (data) => {
-      console.log('data', data);
       onDataSelected(data);
       onClose();
+      setIsLoading(false);
     },
     [onDataSelected, onClose],
   );
 
   const handleConfirm = useCallback(() => {
+    setIsLoading(true);
     if (iframeRef.current) {
       iframeRef.current.triggerDataFetch();
     } else {
@@ -52,7 +54,12 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
             <Button variant='plain' color='neutral' onClick={onClose}>
               Cancel
             </Button>
-            <Button variant='solid' color='primary' onClick={handleConfirm}>
+            <Button
+              variant='solid'
+              color='primary'
+              onClick={handleConfirm}
+              loading={isLoading}
+            >
               Confirm Selection
             </Button>
           </div>

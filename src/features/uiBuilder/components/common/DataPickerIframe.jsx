@@ -37,7 +37,7 @@ const DataPickerIframe = ({
         onDataFetch(event.data.payload);
       } else if (event.data.type === 'SELECTED_NODE_CHANGED') {
         const { selectedEntity } = event.data.payload;
-        const completeEntity = filteredEntities.find(
+        const completeEntity = filteredEntities?.find(
           (entity) => entity.name === selectedEntity,
         );
 
