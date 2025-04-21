@@ -7,32 +7,26 @@ test.describe('UIBuilder Drag and Drop Tests', () => {
   });
 
   test('dnd all components in preview area', async ({ page }) => {
-    const headingComponent = page.locator(
-      '[data-testid="draggable-component-heading"]',
-    );
+    const headingComponent = page.getByTestId('draggable-component-heading');
     await expect(headingComponent).toBeVisible();
-    const paragraphComponent = page.locator(
-      '[data-testid="draggable-component-paragraph"]',
+    const paragraphComponent = page.getByTestId(
+      'draggable-component-paragraph',
     );
     await expect(paragraphComponent).toBeVisible();
-    const filterAreaComponent = page.locator(
-      '[data-testid="draggable-component-filterArea"]',
+    const filterAreaComponent = page.getByTestId(
+      'draggable-component-filterArea',
     );
     await expect(filterAreaComponent).toBeVisible();
-    const buttonBarComponent = page.locator(
-      '[data-testid="draggable-component-buttonBar"]',
+    const buttonBarComponent = page.getByTestId(
+      'draggable-component-buttonBar',
     );
     await expect(buttonBarComponent).toBeVisible();
-    const tableComponent = page.locator(
-      '[data-testid="draggable-component-table"]',
-    );
+    const tableComponent = page.getByTestId('draggable-component-table');
     await expect(tableComponent).toBeVisible();
-    const chartComponent = page.locator(
-      '[data-testid="draggable-component-chart"]',
-    );
+    const chartComponent = page.getByTestId('draggable-component-chart');
     await expect(chartComponent).toBeVisible();
 
-    const dropZone = page.locator('[data-testid="preview-area"]');
+    const dropZone = page.getByTestId('preview-area');
     await expect(dropZone).toBeVisible();
 
     await headingComponent.dragTo(dropZone);
@@ -43,47 +37,45 @@ test.describe('UIBuilder Drag and Drop Tests', () => {
     await chartComponent.dragTo(dropZone);
 
     await expect(
-      dropZone.locator('[data-testid="sortable-component-heading"]'),
+      dropZone.getByTestId('sortable-component-heading'),
     ).toBeVisible();
     await expect(
-      dropZone.locator('[data-testid="sortable-component-paragraph"]'),
+      dropZone.getByTestId('sortable-component-paragraph'),
     ).toBeVisible();
     await expect(
-      dropZone.locator('[data-testid="sortable-component-filterArea"]'),
+      dropZone.getByTestId('sortable-component-filterArea'),
     ).toBeVisible();
     await expect(
-      dropZone.locator('[data-testid="sortable-component-buttonBar"]'),
+      dropZone.getByTestId('sortable-component-buttonBar'),
     ).toBeVisible();
     await expect(
-      dropZone.locator('[data-testid="sortable-component-table"]'),
+      dropZone.getByTestId('sortable-component-table'),
     ).toBeVisible();
     await expect(
-      dropZone.locator('[data-testid="sortable-component-chart"]'),
+      dropZone.getByTestId('sortable-component-chart'),
     ).toBeVisible();
   });
 
   test('delete component from preview area with trash bin', async ({
     page,
   }) => {
-    const headingComponent = page.locator(
-      '[data-testid="draggable-component-heading"]',
-    );
+    const headingComponent = page.getByTestId('draggable-component-heading');
     await expect(headingComponent).toBeVisible();
 
-    const previewArea = page.locator('[data-testid="preview-area"]');
+    const previewArea = page.getByTestId('preview-area');
     await expect(previewArea).toBeVisible();
 
-    const trashBin = page.locator('[data-testid="trash-bin"]');
+    const trashBin = page.getByTestId('trash-bin');
     await expect(trashBin).toBeHidden();
 
     await headingComponent.dragTo(previewArea);
 
     await expect(
-      previewArea.locator('[data-testid="sortable-component-heading"]'),
+      previewArea.getByTestId('sortable-component-heading'),
     ).toBeVisible();
 
-    const sortableComponent = previewArea.locator(
-      '[data-testid="sortable-component-heading"]',
+    const sortableComponent = previewArea.getByTestId(
+      'sortable-component-heading',
     );
 
     // Start dragging the component
@@ -101,7 +93,44 @@ test.describe('UIBuilder Drag and Drop Tests', () => {
     await expect(trashBin).toBeHidden();
 
     await expect(
-      previewArea.locator('[data-testid="sortable-component-heading"]'),
+      previewArea.getByTestId('sortable-component-heading'),
     ).toBeHidden();
+  });
+
+  test('edit heading component without dynamic data', async ({ page }) => {
+    const headingComponent = page.getByTestId('draggable-component-heading');
+    await expect(headingComponent).toBeVisible();
+
+    const previewArea = page.getByTestId('preview-area');
+    await expect(previewArea).toBeVisible();
+
+    await headingComponent.dragTo(previewArea);
+
+    const sortableHeadingComponent = previewArea.getByTestId(
+      'sortable-component-heading',
+    );
+    await expect(sortableHeadingComponent).toBeVisible();
+
+    // Click edit button
+    await sortableHeadingComponent
+      .getByTestId('editable-text-component-edit-button')
+      .click();
+
+    // Get the input field and edit the text
+    const inputField = sortableHeadingComponent
+      .getByTestId('editable-text-component-input')
+      .locator('input');
+    await inputField.clear();
+    await inputField.fill('Test Heading');
+
+    // Click save button
+    await sortableHeadingComponent
+      .getByTestId('editable-text-component-save-button')
+      .click();
+
+    // Verify the new text is displayed
+    await expect(
+      sortableHeadingComponent.getByText('Test Heading'),
+    ).toBeVisible();
   });
 });

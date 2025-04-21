@@ -102,6 +102,7 @@ export default function EditableTextComponent({
             autoFocus
             sx={{ flex: 1 }}
             disabled={disabled}
+            data-testid='editable-text-component-input'
             {...inputProps}
           />
           <IconButton
@@ -110,6 +111,7 @@ export default function EditableTextComponent({
             onClick={handleSave}
             sx={{ borderRadius: '50%' }}
             disabled={disabled}
+            data-testid='editable-text-component-save-button'
           >
             <Check />
           </IconButton>
@@ -138,6 +140,7 @@ export default function EditableTextComponent({
               display: disabled ? 'none' : 'block',
             }}
             disabled={disabled}
+            data-testid='editable-text-component-edit-button'
           >
             <Edit />
           </IconButton>
