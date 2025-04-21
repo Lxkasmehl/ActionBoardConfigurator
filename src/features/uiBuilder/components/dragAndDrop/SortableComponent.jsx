@@ -217,6 +217,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
           ...cardStyles,
           ...cursorStyles,
         }}
+        data-testid={`sortable-component-${component.type}`}
       >
         {renderComponent()}
       </Card>

@@ -54,6 +54,7 @@ function DraggableComponent({ type, config, index, disabled = false }) {
         transform: isDragging ? 'scale(1.02)' : 'scale(1)',
         transition: 'transform 0.2s ease',
       }}
+      data-testid={`draggable-component-${type}`}
     >
       <Stack direction='row' spacing={2} alignItems='center'>
         <Box

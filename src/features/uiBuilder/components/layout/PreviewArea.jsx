@@ -18,7 +18,7 @@ export default function PreviewArea({
   const { setNodeRef, isOver } = useDroppable({
     id: 'preview-area',
     data: { type: 'preview-area' },
-    disabled: (isInCreateGroupMode || groupToEdit !== null),
+    disabled: isInCreateGroupMode || groupToEdit !== null,
   });
 
   const { setNodeRef: setInitialGapRef, isOver: isInitialGapOver } =
@@ -28,7 +28,7 @@ export default function PreviewArea({
         type: 'gap',
         componentId: components[0]?.id,
       },
-      disabled: (isInCreateGroupMode || groupToEdit !== null),
+      disabled: isInCreateGroupMode || groupToEdit !== null,
     });
 
   const isDraggingExistingComponent = activeDragData?.type === 'preview';
@@ -61,6 +61,7 @@ export default function PreviewArea({
           position: 'relative',
           overflowY: 'auto',
         }}
+        data-testid='preview-area'
       >
         {components.length === 0 ? (
           <EmptyState isOver={isOver} />
