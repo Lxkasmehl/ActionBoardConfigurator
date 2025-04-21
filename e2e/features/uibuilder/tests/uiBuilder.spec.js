@@ -1,82 +1,55 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('UIBuilder Drag and Drop Tests', () => {
+test.describe('UIBuilder Tests', () => {
+  let components;
+  let previewArea;
+
   test.beforeEach(async ({ page }) => {
     // Navigate to the UIBuilder page
     await page.goto('http://localhost:5173/ui-builder');
+
+    // Define all components
+    components = {
+      heading: page.getByTestId('draggable-component-heading'),
+      paragraph: page.getByTestId('draggable-component-paragraph'),
+      filterArea: page.getByTestId('draggable-component-filterArea'),
+      buttonBar: page.getByTestId('draggable-component-buttonBar'),
+      table: page.getByTestId('draggable-component-table'),
+      chart: page.getByTestId('draggable-component-chart'),
+    };
+
+    // Get preview area
+    previewArea = page.getByTestId('preview-area');
+    await expect(previewArea).toBeVisible();
+
+    // Verify all components are visible
+    for (const component of Object.values(components)) {
+      await expect(component).toBeVisible();
+    }
   });
 
-  test('dnd all components in preview area', async ({ page }) => {
-    const headingComponent = page.getByTestId('draggable-component-heading');
-    await expect(headingComponent).toBeVisible();
-    const paragraphComponent = page.getByTestId(
-      'draggable-component-paragraph',
-    );
-    await expect(paragraphComponent).toBeVisible();
-    const filterAreaComponent = page.getByTestId(
-      'draggable-component-filterArea',
-    );
-    await expect(filterAreaComponent).toBeVisible();
-    const buttonBarComponent = page.getByTestId(
-      'draggable-component-buttonBar',
-    );
-    await expect(buttonBarComponent).toBeVisible();
-    const tableComponent = page.getByTestId('draggable-component-table');
-    await expect(tableComponent).toBeVisible();
-    const chartComponent = page.getByTestId('draggable-component-chart');
-    await expect(chartComponent).toBeVisible();
-
-    const dropZone = page.getByTestId('preview-area');
-    await expect(dropZone).toBeVisible();
-
-    await headingComponent.dragTo(dropZone);
-    await paragraphComponent.dragTo(dropZone);
-    await filterAreaComponent.dragTo(dropZone);
-    await buttonBarComponent.dragTo(dropZone);
-    await tableComponent.dragTo(dropZone);
-    await chartComponent.dragTo(dropZone);
-
-    await expect(
-      dropZone.getByTestId('sortable-component-heading'),
-    ).toBeVisible();
-    await expect(
-      dropZone.getByTestId('sortable-component-paragraph'),
-    ).toBeVisible();
-    await expect(
-      dropZone.getByTestId('sortable-component-filterArea'),
-    ).toBeVisible();
-    await expect(
-      dropZone.getByTestId('sortable-component-buttonBar'),
-    ).toBeVisible();
-    await expect(
-      dropZone.getByTestId('sortable-component-table'),
-    ).toBeVisible();
-    await expect(
-      dropZone.getByTestId('sortable-component-chart'),
-    ).toBeVisible();
+  test('dnd all components in preview area', async () => {
+    // Drag all components to preview area
+    for (const [componentName, component] of Object.entries(components)) {
+      await component.dragTo(previewArea);
+      await expect(
+        previewArea.getByTestId(`sortable-component-${componentName}`),
+      ).toBeVisible();
+    }
   });
 
   test('delete component from preview area with trash bin', async ({
     page,
   }) => {
-    const headingComponent = page.getByTestId('draggable-component-heading');
-    await expect(headingComponent).toBeVisible();
-
-    const previewArea = page.getByTestId('preview-area');
-    await expect(previewArea).toBeVisible();
-
     const trashBin = page.getByTestId('trash-bin');
     await expect(trashBin).toBeHidden();
 
-    await headingComponent.dragTo(previewArea);
-
-    await expect(
-      previewArea.getByTestId('sortable-component-heading'),
-    ).toBeVisible();
-
+    // Drag heading component to preview
+    await components.heading.dragTo(previewArea);
     const sortableComponent = previewArea.getByTestId(
       'sortable-component-heading',
     );
+    await expect(sortableComponent).toBeVisible();
 
     // Start dragging the component
     await sortableComponent.hover();
@@ -91,21 +64,11 @@ test.describe('UIBuilder Drag and Drop Tests', () => {
     );
     await page.mouse.up();
     await expect(trashBin).toBeHidden();
-
-    await expect(
-      previewArea.getByTestId('sortable-component-heading'),
-    ).toBeHidden();
+    await expect(sortableComponent).toBeHidden();
   });
 
-  test('edit heading component without dynamic data', async ({ page }) => {
-    const headingComponent = page.getByTestId('draggable-component-heading');
-    await expect(headingComponent).toBeVisible();
-
-    const previewArea = page.getByTestId('preview-area');
-    await expect(previewArea).toBeVisible();
-
-    await headingComponent.dragTo(previewArea);
-
+  test('edit heading component without dynamic data', async () => {
+    await components.heading.dragTo(previewArea);
     const sortableHeadingComponent = previewArea.getByTestId(
       'sortable-component-heading',
     );
