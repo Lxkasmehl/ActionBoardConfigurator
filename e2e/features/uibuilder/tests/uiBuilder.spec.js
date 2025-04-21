@@ -61,4 +61,47 @@ test.describe('UIBuilder Drag and Drop Tests', () => {
       dropZone.locator('[data-testid="sortable-component-chart"]'),
     ).toBeVisible();
   });
+
+  test('delete component from preview area with trash bin', async ({
+    page,
+  }) => {
+    const headingComponent = page.locator(
+      '[data-testid="draggable-component-heading"]',
+    );
+    await expect(headingComponent).toBeVisible();
+
+    const previewArea = page.locator('[data-testid="preview-area"]');
+    await expect(previewArea).toBeVisible();
+
+    const trashBin = page.locator('[data-testid="trash-bin"]');
+    await expect(trashBin).toBeHidden();
+
+    await headingComponent.dragTo(previewArea);
+
+    await expect(
+      previewArea.locator('[data-testid="sortable-component-heading"]'),
+    ).toBeVisible();
+
+    const sortableComponent = previewArea.locator(
+      '[data-testid="sortable-component-heading"]',
+    );
+
+    // Start dragging the component
+    await sortableComponent.hover();
+    await page.mouse.down();
+    await expect(trashBin).toBeVisible();
+
+    // Complete the drag to trash bin
+    const trashBinBox = await trashBin.boundingBox();
+    await page.mouse.move(
+      trashBinBox.x + trashBinBox.width / 2,
+      trashBinBox.y + trashBinBox.height / 2,
+    );
+    await page.mouse.up();
+    await expect(trashBin).toBeHidden();
+
+    await expect(
+      previewArea.locator('[data-testid="sortable-component-heading"]'),
+    ).toBeHidden();
+  });
 });
