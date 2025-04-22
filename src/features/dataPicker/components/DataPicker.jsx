@@ -84,30 +84,6 @@ export default function DataPicker() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (window.parent !== window) {
-      window.parent.postMessage(
-        {
-          type: 'DATAPICKER_STATE_UPDATE',
-          payload: {
-            selectedEntities,
-            selectedProperties,
-            filterStorageForNodesNotConnectedToEdges,
-            edgesForFlow,
-            config,
-          },
-        },
-        window.location.origin,
-      );
-    }
-  }, [
-    selectedEntities,
-    selectedProperties,
-    filterStorageForNodesNotConnectedToEdges,
-    edgesForFlow,
-    config,
-  ]);
-
-  useEffect(() => {
     window.parent.postMessage(
       {
         type: 'SELECTED_NODE_CHANGED',
