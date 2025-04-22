@@ -59,6 +59,7 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
               color='primary'
               onClick={handleConfirm}
               loading={isLoading}
+              data-testid='confirm-selection-button'
             >
               Confirm Selection
             </Button>
