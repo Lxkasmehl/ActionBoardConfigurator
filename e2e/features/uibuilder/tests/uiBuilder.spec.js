@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test';
+import {
+  selectFromAutocomplete,
+  setupFilterCondition,
+} from '../../../helpers/filterSetup';
+import { setupFlowConnection } from '../../../helpers/flowSetup';
 
 test.describe('UIBuilder Tests', () => {
   let components;
@@ -94,6 +99,76 @@ test.describe('UIBuilder Tests', () => {
     // Verify the new text is displayed
     await expect(
       sortableHeadingComponent.getByText('Test Heading'),
+    ).toBeVisible();
+  });
+
+  test('edit heading component with dynamic data', async ({ page }) => {
+    // Set viewport to a larger size
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    test.setTimeout(45000);
+
+    await components.heading.dragTo(previewArea);
+    const sortableHeadingComponent = previewArea.getByTestId(
+      'sortable-component-heading',
+    );
+    await expect(sortableHeadingComponent).toBeVisible();
+
+    await sortableHeadingComponent
+      .getByTestId('editable-text-component-edit-button')
+      .click();
+
+    const inputField = sortableHeadingComponent
+      .getByTestId('editable-text-component-input')
+      .locator('input');
+
+    // Position cursor before "Heading" and type square brackets
+    await inputField.click();
+    await inputField.press('ArrowLeft');
+    await inputField.press('ArrowLeft');
+    await inputField.press('ArrowLeft');
+    await inputField.press('ArrowLeft');
+    await inputField.press('ArrowLeft');
+    await inputField.press('ArrowLeft');
+    await inputField.press('ArrowLeft');
+    await inputField.press('ArrowLeft');
+    await inputField.type(' [');
+    await inputField.type('[');
+
+    const iFrame = page.getByTestId('data-picker-iframe');
+    await expect(iFrame).toBeVisible();
+
+    // Wait for the iframe to load and its content to be ready
+    const frameLocator = page.frameLocator(
+      '[data-testid="data-picker-iframe"]',
+    );
+
+    await setupFlowConnection(frameLocator, true);
+
+    await selectFromAutocomplete(
+      frameLocator,
+      'entity-autocomplete',
+      'InterviewOverallAssessment',
+    );
+    await setupFilterCondition(
+      frameLocator,
+      'interviewOverallAssessmentId',
+      '=',
+      '21',
+    );
+    await selectFromAutocomplete(
+      frameLocator,
+      'property-selector',
+      'averageRating',
+    );
+
+    await page.getByTestId('confirm-selection-button').click();
+
+    await sortableHeadingComponent
+      .getByTestId('editable-text-component-save-button')
+      .click({ timeout: 20000 });
+
+    await expect(
+      sortableHeadingComponent.getByText('New [[3.75]] Heading'),
     ).toBeVisible();
   });
 });

@@ -22,10 +22,41 @@ const DataPickerIframe = ({
 }) => {
   const iframeRef = useRef(null);
   const dispatch = useDispatch();
+  const store = useSelector((state) => state);
 
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
+
+  // Send initial state to iframe after it loads
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    const handleIframeLoad = () => {
+      if (iframe) {
+        iframe.contentWindow.postMessage(
+          {
+            type: 'INIT_IFRAME_STATE',
+            payload: {
+              config: store.config,
+              dataPicker: store.dataPicker,
+              fetchedData: store.fetchedData,
+            },
+          },
+          window.location.origin,
+        );
+      }
+    };
+
+    if (iframe) {
+      iframe.addEventListener('load', handleIframeLoad);
+    }
+
+    return () => {
+      if (iframe) {
+        iframe.removeEventListener('load', handleIframeLoad);
+      }
+    };
+  }, [store]);
 
   const handleMessage = useCallback(
     (event) => {
@@ -129,6 +160,7 @@ const DataPickerIframe = ({
         backend result in the {titleText}
       </Typography>
       <iframe
+        data-testid='data-picker-iframe'
         ref={iframeRef}
         src='/data-picker'
         style={{
