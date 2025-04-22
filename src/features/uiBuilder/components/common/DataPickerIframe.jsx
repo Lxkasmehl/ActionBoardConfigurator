@@ -11,6 +11,8 @@ const DataPickerIframe = ({
 }) => {
   const iframeRef = useRef(null);
 
+  const store = useSelector((state) => state);
+
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
