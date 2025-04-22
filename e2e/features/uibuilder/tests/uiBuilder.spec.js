@@ -5,6 +5,38 @@ import {
 } from '../../../helpers/filterSetup';
 import { setupFlowConnection } from '../../../helpers/flowSetup';
 
+// Helper function to drag and verify a component
+async function dragAndVerifyComponent(component, previewArea, componentName) {
+  await component.dragTo(previewArea);
+  await expect(
+    previewArea.getByTestId(`sortable-component-${componentName}`),
+  ).toBeVisible();
+  return previewArea.getByTestId(`sortable-component-${componentName}`);
+}
+
+// Helper function to edit text component
+async function editTextComponent(
+  sortableComponent,
+  newText,
+  isTextarea = false,
+) {
+  await sortableComponent
+    .getByTestId('editable-text-component-edit-button')
+    .click();
+
+  const inputField = sortableComponent
+    .getByTestId('editable-text-component-input')
+    .locator(isTextarea ? 'textarea:not([aria-hidden="true"])' : 'input');
+
+  await inputField.clear();
+  await inputField.fill(newText);
+
+  await sortableComponent
+    .getByTestId('editable-text-component-save-button')
+    .click();
+  await expect(sortableComponent.getByText(newText)).toBeVisible();
+}
+
 test.describe('UIBuilder Tests', () => {
   let components;
   let previewArea;
@@ -36,10 +68,7 @@ test.describe('UIBuilder Tests', () => {
   test('dnd all components in preview area', async () => {
     // Drag all components to preview area
     for (const [componentName, component] of Object.entries(components)) {
-      await component.dragTo(previewArea);
-      await expect(
-        previewArea.getByTestId(`sortable-component-${componentName}`),
-      ).toBeVisible();
+      await dragAndVerifyComponent(component, previewArea, componentName);
     }
   });
 
@@ -50,11 +79,11 @@ test.describe('UIBuilder Tests', () => {
     await expect(trashBin).toBeHidden();
 
     // Drag heading component to preview
-    await components.heading.dragTo(previewArea);
-    const sortableComponent = previewArea.getByTestId(
-      'sortable-component-heading',
+    const sortableComponent = await dragAndVerifyComponent(
+      components.heading,
+      previewArea,
+      'heading',
     );
-    await expect(sortableComponent).toBeVisible();
 
     // Start dragging the component
     await sortableComponent.hover();
@@ -73,33 +102,12 @@ test.describe('UIBuilder Tests', () => {
   });
 
   test('edit heading component without dynamic data', async () => {
-    await components.heading.dragTo(previewArea);
-    const sortableHeadingComponent = previewArea.getByTestId(
-      'sortable-component-heading',
+    const sortableHeadingComponent = await dragAndVerifyComponent(
+      components.heading,
+      previewArea,
+      'heading',
     );
-    await expect(sortableHeadingComponent).toBeVisible();
-
-    // Click edit button
-    await sortableHeadingComponent
-      .getByTestId('editable-text-component-edit-button')
-      .click();
-
-    // Get the input field and edit the text
-    const inputField = sortableHeadingComponent
-      .getByTestId('editable-text-component-input')
-      .locator('input');
-    await inputField.clear();
-    await inputField.fill('Test Heading');
-
-    // Click save button
-    await sortableHeadingComponent
-      .getByTestId('editable-text-component-save-button')
-      .click();
-
-    // Verify the new text is displayed
-    await expect(
-      sortableHeadingComponent.getByText('Test Heading'),
-    ).toBeVisible();
+    await editTextComponent(sortableHeadingComponent, 'Test Heading');
   });
 
   test('edit heading component with dynamic data', async ({ page }) => {
@@ -107,12 +115,11 @@ test.describe('UIBuilder Tests', () => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     test.setTimeout(45000);
 
-    await components.heading.dragTo(previewArea);
-    const sortableHeadingComponent = previewArea.getByTestId(
-      'sortable-component-heading',
+    const sortableHeadingComponent = await dragAndVerifyComponent(
+      components.heading,
+      previewArea,
+      'heading',
     );
-    await expect(sortableHeadingComponent).toBeVisible();
-
     await sortableHeadingComponent
       .getByTestId('editable-text-component-edit-button')
       .click();
@@ -123,16 +130,10 @@ test.describe('UIBuilder Tests', () => {
 
     // Position cursor before "Heading" and type square brackets
     await inputField.click();
-    await inputField.press('ArrowLeft');
-    await inputField.press('ArrowLeft');
-    await inputField.press('ArrowLeft');
-    await inputField.press('ArrowLeft');
-    await inputField.press('ArrowLeft');
-    await inputField.press('ArrowLeft');
-    await inputField.press('ArrowLeft');
-    await inputField.press('ArrowLeft');
-    await inputField.type(' [');
-    await inputField.type('[');
+    for (let i = 0; i < 8; i++) {
+      await inputField.press('ArrowLeft');
+    }
+    await inputField.type(' [[');
 
     const iFrame = page.getByTestId('data-picker-iframe');
     await expect(iFrame).toBeVisible();
@@ -170,5 +171,16 @@ test.describe('UIBuilder Tests', () => {
     await expect(
       sortableHeadingComponent.getByText('New [[3.75]] Heading'),
     ).toBeVisible();
+  });
+
+  test('edit paragraph component without dynamic data', async () => {
+    const sortableParagraphComponent = await dragAndVerifyComponent(
+      components.paragraph,
+      previewArea,
+      'paragraph',
+    );
+    const paragraphText =
+      "Airedale babybel gouda. Cut the cheese goat who moved my cheese when the cheese comes out everybody's happy boursin fromage red leicester macaroni cheese. Fromage croque monsieur boursin mascarpone brie swiss cow mozzarella. Feta cheese and wine everyone loves say cheese red leicester bavarian bergkase chalk and cheese smelly cheese. Fromage frais brie goat taleggio who moved my cheese emmental manchego cheese and wine. Brie cauliflower cheese mozzarella caerphilly cheese and wine manchego danish fontina cheesy feet. Fondue edam port-salut roquefort babybel.";
+    await editTextComponent(sortableParagraphComponent, paragraphText, true);
   });
 });
