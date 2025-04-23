@@ -9,6 +9,9 @@ import {
   setupDynamicDataEditing,
   createAndVerifyGroup,
   setupComponentsInPreview,
+  editGroup,
+  verifyBorderColorsDifferent,
+  setupAndCreateGroup,
 } from '../../../helpers/uiBuilderSetup';
 
 test.describe('UIBuilder Tests', () => {
@@ -193,49 +196,50 @@ test.describe('UIBuilder Tests', () => {
   test('create two groups with table and buttonBar', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
 
-    // Create first group
-    const firstGroupTypes = ['buttonBar', 'table'];
-    const firstGroupComponents = await setupComponentsInPreview(
+    const groupTypes = ['buttonBar', 'table'];
+    const firstGroup = await setupAndCreateGroup(
       page,
       previewArea,
-      firstGroupTypes,
-    );
-    await createAndVerifyGroup(
-      page,
-      Object.values(firstGroupComponents),
+      groupTypes,
       'Test Group 1',
     );
-
-    // Get border color of first group
-    const firstGroupBorderColor = await Object.values(
-      firstGroupComponents,
-    )[0].evaluate((el) => {
-      const style = window.getComputedStyle(el);
-      return style.borderColor;
-    });
-
-    // Create second group
-    const secondGroupTypes = ['buttonBar', 'table'];
-    const secondGroupComponents = await setupComponentsInPreview(
+    const secondGroup = await setupAndCreateGroup(
       page,
       previewArea,
-      secondGroupTypes,
-    );
-    await createAndVerifyGroup(
-      page,
-      Object.values(secondGroupComponents),
+      groupTypes,
       'Test Group 2',
     );
 
-    // Get border color of second group
-    const secondGroupBorderColor = await Object.values(
-      secondGroupComponents,
-    )[0].evaluate((el) => {
-      const style = window.getComputedStyle(el);
-      return style.borderColor;
-    });
+    expect(firstGroup.borderColor).not.toBe(secondGroup.borderColor);
+  });
 
-    // Verify that the border colors are different
-    expect(firstGroupBorderColor).not.toBe(secondGroupBorderColor);
+  test('create two groups with table and buttonBar and edit the two groups', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+
+    const groupTypes = ['buttonBar', 'table'];
+    const firstGroup = await setupAndCreateGroup(
+      page,
+      previewArea,
+      groupTypes,
+      'Test Group 1',
+    );
+    const secondGroup = await setupAndCreateGroup(
+      page,
+      previewArea,
+      groupTypes,
+      'Test Group 2',
+    );
+
+    expect(firstGroup.borderColor).not.toBe(secondGroup.borderColor);
+
+    // Edit groups
+    await editGroup(page, 'Test Group 1', [0]);
+    await editGroup(page, 'Test Group 2', [0, 1]);
+    await editGroup(page, 'Test Group 1', [1]);
+
+    // Verify border colors after editing
+    await verifyBorderColorsDifferent(page, firstGroup, secondGroup);
   });
 });
