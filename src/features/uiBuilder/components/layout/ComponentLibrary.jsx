@@ -171,6 +171,7 @@ export default function ComponentLibrary() {
               onBlur={() => setShowGroupSelector(false)}
               placeholder='Select Group'
               sx={{ marginBottom: 2 }}
+              data-testid='group-selector'
             />
           )}
           <Dropdown>
@@ -189,7 +190,10 @@ export default function ComponentLibrary() {
               >
                 Create New Group
               </MenuItem>
-              <MenuItem onClick={() => setShowGroupSelector(true)}>
+              <MenuItem
+                onClick={() => setShowGroupSelector(true)}
+                data-testid='edit-existing-group-button'
+              >
                 Edit Existing Group
               </MenuItem>
             </Menu>

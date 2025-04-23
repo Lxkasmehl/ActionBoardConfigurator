@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { setupFlowConnection } from './flowSetup';
+import { selectFromAutocomplete } from './filterSetup';
 
 // Helper function to drag and verify a component
 export async function dragAndVerifyComponent(
@@ -119,6 +120,23 @@ export async function createAndVerifyGroup(page, components, groupName) {
   }
 }
 
+// Helper function to create and verify a group with border color checking
+export async function createAndVerifyGroupWithBorderCheck(
+  page,
+  components,
+  groupName,
+) {
+  await createAndVerifyGroup(page, components, groupName);
+
+  // Get border color of the group
+  const groupBorderColor = await components[0].evaluate((el) => {
+    const style = window.getComputedStyle(el);
+    return style.borderColor;
+  });
+
+  return groupBorderColor;
+}
+
 // Helper function to setup multiple components in preview area
 export async function setupComponentsInPreview(
   page,
@@ -135,4 +153,72 @@ export async function setupComponentsInPreview(
     );
   }
   return components;
+}
+
+export async function editGroup(page, groupName, buttonBarIndices) {
+  await page.getByTestId('create-edit-group-button').click();
+  await page.getByTestId('edit-existing-group-button').click();
+
+  await selectFromAutocomplete(page, 'group-selector', groupName, 0, {
+    useSection: false,
+  });
+
+  for (const index of buttonBarIndices) {
+    await page.getByTestId('sortable-component-buttonBar').nth(index).click({
+      force: true,
+    });
+  }
+
+  await page.getByTestId('save-edited-group-button').click();
+}
+
+// Helper function to get border color of an element
+export async function getBorderColor(element) {
+  return element.evaluate((el) => {
+    const style = window.getComputedStyle(el);
+    return style.borderColor;
+  });
+}
+
+// Helper function to setup and create a group
+export async function setupAndCreateGroup(
+  page,
+  previewArea,
+  groupTypes,
+  groupName,
+) {
+  const components = await setupComponentsInPreview(
+    page,
+    previewArea,
+    groupTypes,
+  );
+  const borderColor = await createAndVerifyGroupWithBorderCheck(
+    page,
+    Object.values(components),
+    groupName,
+  );
+  return { components, borderColor };
+}
+
+// Helper function to verify border colors are different
+export async function verifyBorderColorsDifferent(
+  page,
+) {
+  const firstButtonBarColor = await getBorderColor(
+    page.getByTestId('sortable-component-buttonBar').first(),
+  );
+  const secondButtonBarColor = await getBorderColor(
+    page.getByTestId('sortable-component-buttonBar').last(),
+  );
+  const firstTableColor = await getBorderColor(
+    page.getByTestId('sortable-component-table').first(),
+  );
+  const secondTableColor = await getBorderColor(
+    page.getByTestId('sortable-component-table').last(),
+  );
+
+  expect(firstButtonBarColor).not.toBe(secondButtonBarColor);
+  expect(firstTableColor).not.toBe(secondTableColor);
+  expect(firstButtonBarColor).toBe(secondTableColor);
+  expect(secondButtonBarColor).toBe(firstTableColor);
 }
