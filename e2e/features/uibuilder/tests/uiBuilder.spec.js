@@ -3,39 +3,11 @@ import {
   selectFromAutocomplete,
   setupFilterCondition,
 } from '../../../helpers/filterSetup';
-import { setupFlowConnection } from '../../../helpers/flowSetup';
-
-// Helper function to drag and verify a component
-async function dragAndVerifyComponent(component, previewArea, componentName) {
-  await component.dragTo(previewArea);
-  await expect(
-    previewArea.getByTestId(`sortable-component-${componentName}`),
-  ).toBeVisible();
-  return previewArea.getByTestId(`sortable-component-${componentName}`);
-}
-
-// Helper function to edit text component
-async function editTextComponent(
-  sortableComponent,
-  newText,
-  isTextarea = false,
-) {
-  await sortableComponent
-    .getByTestId('editable-text-component-edit-button')
-    .click();
-
-  const inputField = sortableComponent
-    .getByTestId('editable-text-component-input')
-    .locator(isTextarea ? 'textarea:not([aria-hidden="true"])' : 'input');
-
-  await inputField.clear();
-  await inputField.fill(newText);
-
-  await sortableComponent
-    .getByTestId('editable-text-component-save-button')
-    .click();
-  await expect(sortableComponent.getByText(newText)).toBeVisible();
-}
+import {
+  dragAndVerifyComponent,
+  editTextComponent,
+  setupDynamicDataEditing,
+} from '../../../helpers/uiBuilderSetup';
 
 test.describe('UIBuilder Tests', () => {
   let components;
@@ -111,39 +83,17 @@ test.describe('UIBuilder Tests', () => {
   });
 
   test('edit heading component with dynamic data', async ({ page }) => {
-    // Set viewport to a larger size
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    test.setTimeout(45000);
-
     const sortableHeadingComponent = await dragAndVerifyComponent(
       components.heading,
       previewArea,
       'heading',
     );
-    await sortableHeadingComponent
-      .getByTestId('editable-text-component-edit-button')
-      .click();
 
-    const inputField = sortableHeadingComponent
-      .getByTestId('editable-text-component-input')
-      .locator('input');
-
-    // Position cursor before "Heading" and type square brackets
-    await inputField.click();
-    for (let i = 0; i < 8; i++) {
-      await inputField.press('ArrowLeft');
-    }
-    await inputField.type(' [[');
-
-    const iFrame = page.getByTestId('data-picker-iframe');
-    await expect(iFrame).toBeVisible();
-
-    // Wait for the iframe to load and its content to be ready
-    const frameLocator = page.frameLocator(
-      '[data-testid="data-picker-iframe"]',
+    const { frameLocator, sortableComponent } = await setupDynamicDataEditing(
+      page,
+      sortableHeadingComponent,
+      8,
     );
-
-    await setupFlowConnection(frameLocator, true);
 
     await selectFromAutocomplete(
       frameLocator,
@@ -164,12 +114,12 @@ test.describe('UIBuilder Tests', () => {
 
     await page.getByTestId('confirm-selection-button').click();
 
-    await sortableHeadingComponent
+    await sortableComponent
       .getByTestId('editable-text-component-save-button')
       .click({ timeout: 20000 });
 
     await expect(
-      sortableHeadingComponent.getByText('New [[3.75]] Heading'),
+      sortableComponent.getByText('New [[3.75]] Heading'),
     ).toBeVisible();
   });
 
@@ -182,5 +132,40 @@ test.describe('UIBuilder Tests', () => {
     const paragraphText =
       "Airedale babybel gouda. Cut the cheese goat who moved my cheese when the cheese comes out everybody's happy boursin fromage red leicester macaroni cheese. Fromage croque monsieur boursin mascarpone brie swiss cow mozzarella. Feta cheese and wine everyone loves say cheese red leicester bavarian bergkase chalk and cheese smelly cheese. Fromage frais brie goat taleggio who moved my cheese emmental manchego cheese and wine. Brie cauliflower cheese mozzarella caerphilly cheese and wine manchego danish fontina cheesy feet. Fondue edam port-salut roquefort babybel.";
     await editTextComponent(sortableParagraphComponent, paragraphText, true);
+  });
+
+  test('edit paragraph component with dynamic data', async ({ page }) => {
+    const sortableParagraphComponent = await dragAndVerifyComponent(
+      components.paragraph,
+      previewArea,
+      'paragraph',
+    );
+
+    const { frameLocator, sortableComponent } = await setupDynamicDataEditing(
+      page,
+      sortableParagraphComponent,
+      9,
+      true,
+    );
+
+    await selectFromAutocomplete(
+      frameLocator,
+      'entity-autocomplete',
+      'Candidate',
+    );
+    await setupFilterCondition(frameLocator, 'candidateId', '=', '81');
+    await selectFromAutocomplete(frameLocator, 'property-selector', 'address');
+
+    await page.getByTestId('confirm-selection-button').click();
+
+    await sortableComponent
+      .getByTestId('editable-text-component-save-button')
+      .click({ timeout: 20000 });
+
+    await expect(
+      sortableComponent.getByText(
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est [[Landsberger Str. 110]] laborum.',
+      ),
+    ).toBeVisible();
   });
 });
