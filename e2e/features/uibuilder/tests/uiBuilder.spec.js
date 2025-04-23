@@ -7,6 +7,8 @@ import {
   dragAndVerifyComponent,
   editTextComponent,
   setupDynamicDataEditing,
+  createAndVerifyGroup,
+  setupComponentsInPreview,
 } from '../../../helpers/uiBuilderSetup';
 
 test.describe('UIBuilder Tests', () => {
@@ -174,69 +176,66 @@ test.describe('UIBuilder Tests', () => {
   }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
 
-    const sortableChartComponent = await dragAndVerifyComponent(
-      components.chart,
+    const componentTypes = ['chart', 'filterArea', 'buttonBar', 'table'];
+    const sortableComponents = await setupComponentsInPreview(
+      page,
       previewArea,
-      'chart',
+      componentTypes,
     );
-    const sortableFilterAreaComponent = await dragAndVerifyComponent(
-      components.filterArea,
+
+    await createAndVerifyGroup(
+      page,
+      Object.values(sortableComponents),
+      'Test Group',
+    );
+  });
+
+  test('create two groups with table and buttonBar', async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+
+    // Create first group
+    const firstGroupTypes = ['buttonBar', 'table'];
+    const firstGroupComponents = await setupComponentsInPreview(
+      page,
       previewArea,
-      'filterArea',
+      firstGroupTypes,
     );
-    const sortableButtonBarComponent = await dragAndVerifyComponent(
-      components.buttonBar,
+    await createAndVerifyGroup(
+      page,
+      Object.values(firstGroupComponents),
+      'Test Group 1',
+    );
+
+    // Get border color of first group
+    const firstGroupBorderColor = await Object.values(
+      firstGroupComponents,
+    )[0].evaluate((el) => {
+      const style = window.getComputedStyle(el);
+      return style.borderColor;
+    });
+
+    // Create second group
+    const secondGroupTypes = ['buttonBar', 'table'];
+    const secondGroupComponents = await setupComponentsInPreview(
+      page,
       previewArea,
-      'buttonBar',
+      secondGroupTypes,
     );
-    const sortableTableComponent = await dragAndVerifyComponent(
-      components.table,
-      previewArea,
-      'table',
-    );
-
-    await page.getByTestId('create-edit-group-button').click();
-    await page.getByTestId('create-new-group-button').click();
-
-    // Wait for group creation dialog to be ready
-    await page.getByTestId('group-name-input').waitFor({ state: 'visible' });
-
-    // Click components using force: true to bypass the enabled check
-    await sortableChartComponent.click({ force: true });
-    await sortableFilterAreaComponent.click({ force: true });
-    await sortableButtonBarComponent.click({ force: true });
-    await sortableTableComponent.click({ force: true });
-
-    const groupNameInput = page
-      .getByTestId('group-name-input')
-      .locator('input');
-
-    await groupNameInput.fill('Test Group');
-    await page.getByTestId('save-new-group-button').click();
-
-    // Verify all components have the same border color
-    const groupedComponents = [
-      sortableChartComponent,
-      sortableFilterAreaComponent,
-      sortableButtonBarComponent,
-      sortableTableComponent,
-    ];
-
-    // Get the border color of the first component
-    const firstComponentBorderColor = await groupedComponents[0].evaluate(
-      (el) => {
-        const style = window.getComputedStyle(el);
-        return style.borderColor;
-      },
+    await createAndVerifyGroup(
+      page,
+      Object.values(secondGroupComponents),
+      'Test Group 2',
     );
 
-    // Verify all other components have the same border color
-    for (let i = 1; i < groupedComponents.length; i++) {
-      const currentBorderColor = await groupedComponents[i].evaluate((el) => {
-        const style = window.getComputedStyle(el);
-        return style.borderColor;
-      });
-      expect(currentBorderColor).toBe(firstComponentBorderColor);
-    }
+    // Get border color of second group
+    const secondGroupBorderColor = await Object.values(
+      secondGroupComponents,
+    )[0].evaluate((el) => {
+      const style = window.getComputedStyle(el);
+      return style.borderColor;
+    });
+
+    // Verify that the border colors are different
+    expect(firstGroupBorderColor).not.toBe(secondGroupBorderColor);
   });
 });

@@ -7,11 +7,26 @@ export async function dragAndVerifyComponent(
   previewArea,
   componentName,
 ) {
-  await component.dragTo(previewArea);
-  await expect(
-    previewArea.getByTestId(`sortable-component-${componentName}`),
-  ).toBeVisible();
-  return previewArea.getByTestId(`sortable-component-${componentName}`);
+  // Count existing components before drag
+  const existingComponents = await previewArea
+    .getByTestId(`sortable-component-${componentName}`)
+    .count();
+
+  // Get the preview area's bounding box to calculate bottom position
+  const previewBox = await previewArea.boundingBox();
+
+  // Drag to the bottom of the preview area
+  await component.dragTo(previewArea, {
+    targetPosition: { x: previewBox.width / 2, y: previewBox.height - 10 },
+  });
+
+  // Wait for the new component (the last one in the list)
+  const sortableComponent = previewArea
+    .getByTestId(`sortable-component-${componentName}`)
+    .nth(existingComponents);
+  await expect(sortableComponent).toBeVisible();
+
+  return sortableComponent;
 }
 
 // Helper function to edit text component
@@ -69,4 +84,55 @@ export async function setupDynamicDataEditing(
   await setupFlowConnection(frameLocator, true);
 
   return { frameLocator, sortableComponent };
+}
+
+// Helper function to create and verify a group of components
+export async function createAndVerifyGroup(page, components, groupName) {
+  await page.getByTestId('create-edit-group-button').click();
+  await page.getByTestId('create-new-group-button').click();
+
+  // Wait for group creation dialog to be ready
+  await page.getByTestId('group-name-input').waitFor({ state: 'visible' });
+
+  // Click all components using force: true to bypass the enabled check
+  for (const component of components) {
+    await component.click({ force: true });
+  }
+
+  const groupNameInput = page.getByTestId('group-name-input').locator('input');
+  await groupNameInput.fill(groupName);
+  await page.getByTestId('save-new-group-button').click();
+
+  // Verify all components have the same border color
+  const firstComponentBorderColor = await components[0].evaluate((el) => {
+    const style = window.getComputedStyle(el);
+    return style.borderColor;
+  });
+
+  // Verify all other components have the same border color
+  for (let i = 1; i < components.length; i++) {
+    const currentBorderColor = await components[i].evaluate((el) => {
+      const style = window.getComputedStyle(el);
+      return style.borderColor;
+    });
+    expect(currentBorderColor).toBe(firstComponentBorderColor);
+  }
+}
+
+// Helper function to setup multiple components in preview area
+export async function setupComponentsInPreview(
+  page,
+  previewArea,
+  componentTypes,
+) {
+  const components = {};
+  for (const type of componentTypes) {
+    const component = page.getByTestId(`draggable-component-${type}`);
+    components[type] = await dragAndVerifyComponent(
+      component,
+      previewArea,
+      type,
+    );
+  }
+  return components;
 }
