@@ -322,6 +322,7 @@ const ColumnFormFields = forwardRef(
                 }
                 placeholder='Select or define a relationship'
                 sx={{ flex: 1 }}
+                data-testid='relationship-select'
               />
               <Button
                 variant='plain'

@@ -1,39 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { editCell, setupTable, verifyTableData } from '../helpers/tableHelpers';
-import { selectFromAutocomplete } from '../../../helpers/autocompleteHelper';
-import { setupFlowConnection } from '../../datapicker/helpers/flowSetup';
-
-// Common expected values for table data
-const expectedTableValues = [
-  '6c701150-dff5-4762-bc7f-8c8e78ab729f',
-  'John Smith',
-  'M',
-  'USA',
-  '162',
-  'Sarah Johnson',
-  'F',
-  'Canada',
-  'kkkkCHE',
-  '',
-  '',
-  '',
-  'llllCHE',
-  '',
-  '',
-  '',
-  '10033376',
-  '',
-  '',
-  '',
-  'ttttqui',
-  '',
-  '',
-  '',
-  'ttttrec1',
-  '',
-  '',
-  '',
-];
+import {
+  editCell,
+  setupTable,
+  verifyTableData,
+  configureTableColumn,
+} from '../helpers/tableHelpers';
 
 test.describe('Table Tests', () => {
   let previewArea;
@@ -64,32 +35,42 @@ test.describe('Table Tests', () => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     const { table } = await setupTable(page, previewArea);
 
-    // Configure column
-    const firstColumnHeader = table
-      .locator('.MuiDataGrid-columnHeader')
-      .first();
-    await firstColumnHeader.hover();
-    const menuButton = firstColumnHeader.locator('.MuiDataGrid-menuIconButton');
-    await menuButton.click();
-    const editColumnMenuItem = page
-      .locator('li[role="menuitem"]')
-      .filter({ hasText: 'Edit Column' });
-    await editColumnMenuItem.click();
-
-    page
-      .getByTestId('column-label-input')
-      .locator('input')
-      .fill('User - UserId');
-    await selectFromAutocomplete(page, 'entity-select', 'User', 0, {
-      useSection: false,
+    await configureTableColumn(page, table, 0, {
+      label: 'User - UserId',
+      entity: 'User',
+      property: 'userId',
     });
-    await selectFromAutocomplete(page, 'property-select', 'userId', 0, {
-      useSection: false,
-    });
-    await page.getByTestId('save-button').click();
 
-    await expect(table.locator('.MuiDataGrid-overlay')).not.toBeVisible();
-    await verifyTableData(table, expectedTableValues);
+    await verifyTableData(table, [
+      '6c701150-dff5-4762-bc7f-8c8e78ab729f',
+      'John Smith',
+      'M',
+      'USA',
+      '162',
+      'Sarah Johnson',
+      'F',
+      'Canada',
+      'kkkkCHE',
+      '',
+      '',
+      '',
+      'llllCHE',
+      '',
+      '',
+      '',
+      '10033376',
+      '',
+      '',
+      '',
+      'ttttqui',
+      '',
+      '',
+      '',
+      'ttttrec1',
+      '',
+      '',
+      '',
+    ]);
   });
 
   test('fill table with fetched data with dataPicker', async ({ page }) => {
@@ -97,39 +78,103 @@ test.describe('Table Tests', () => {
     test.setTimeout(60000);
     const { table } = await setupTable(page, previewArea);
 
-    // Configure column with dataPicker
-    const firstColumnHeader = table
-      .locator('.MuiDataGrid-columnHeader')
-      .first();
-    await firstColumnHeader.hover();
-    const menuButton = firstColumnHeader.locator('.MuiDataGrid-menuIconButton');
+    await configureTableColumn(page, table, 0, {
+      label: 'User - UserId',
+      entity: 'User',
+      property: 'userId',
+      useDataPicker: true,
+    });
+
+    await verifyTableData(table, [
+      '6c701150-dff5-4762-bc7f-8c8e78ab729f',
+      'John Smith',
+      'M',
+      'USA',
+      '162',
+      'Sarah Johnson',
+      'F',
+      'Canada',
+      'kkkkCHE',
+      '',
+      '',
+      '',
+      'llllCHE',
+      '',
+      '',
+      '',
+      '10033376',
+      '',
+      '',
+      '',
+      'ttttqui',
+      '',
+      '',
+      '',
+      'ttttrec1',
+      '',
+      '',
+      '',
+    ]);
+  });
+
+  test('fill table with fetched data from different entities and connect via relation and delete column', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    test.setTimeout(60000);
+    const { table } = await setupTable(page, previewArea);
+
+    await configureTableColumn(page, table, 0, {
+      label: 'User - userId',
+      entity: 'User',
+      property: 'userId',
+      mainEntity: true,
+    });
+
+    await configureTableColumn(page, table, 1, {
+      label: 'User - addressLine1',
+      entity: 'User',
+      property: 'addressLine1',
+    });
+
+    await configureTableColumn(page, table, 2, {
+      label: 'EmpEmployment - employmentId',
+      entity: 'EmpEmployment',
+      property: 'employmentId',
+      relationship: 'EmpEmployment -> userId -> User',
+    });
+
+    const columnHeader = table.locator('.MuiDataGrid-columnHeader').nth(3);
+    await columnHeader.hover();
+    const menuButton = columnHeader.locator('.MuiDataGrid-menuIconButton');
     await menuButton.click();
     const editColumnMenuItem = page
       .locator('li[role="menuitem"]')
-      .filter({ hasText: 'Edit Column' });
+      .filter({ hasText: 'Delete Column' });
     await editColumnMenuItem.click();
 
-    await page.getByTestId('data-picker-switch').click();
-    const iFrame = page.getByTestId('data-picker-iframe');
-    await expect(iFrame).toBeVisible();
-
-    const frameLocator = page.frameLocator(
-      '[data-testid="data-picker-iframe"]',
-    );
-    await setupFlowConnection(frameLocator, true);
-    await selectFromAutocomplete(frameLocator, 'entity-autocomplete', 'User');
-    await selectFromAutocomplete(frameLocator, 'property-selector', 'userId');
-
-    page
-      .getByTestId('column-label-input')
-      .locator('input')
-      .fill('User - UserId');
-    await page.getByTestId('save-button').click();
-
-    await expect(page.getByTestId('edit-modal')).not.toBeVisible({
-      timeout: 20000,
-    });
-    await expect(table.locator('.MuiDataGrid-overlay')).not.toBeVisible();
-    await verifyTableData(table, expectedTableValues);
+    await verifyTableData(table, [
+      '6c701150-dff5-4762-bc7f-8c8e78ab729f',
+      '',
+      '',
+      '162',
+      '',
+      '2641',
+      'kkkkCHE',
+      'Zürichbergstr. 7',
+      '1478',
+      'llllCHE',
+      'Zürichbergstr. 7',
+      '1479',
+      '10033376',
+      'Landsberger Str. 110',
+      '5660',
+      'ttttqui',
+      'Landsberger Str. 110',
+      '4959',
+      'ttttrec1',
+      'Landsberger Str. 110',
+      '4295',
+    ]);
   });
 });
