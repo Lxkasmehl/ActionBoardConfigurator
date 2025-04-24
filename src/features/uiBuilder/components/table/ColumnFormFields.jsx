@@ -271,6 +271,7 @@ const ColumnFormFields = forwardRef(
               sx={{
                 '--Switch-gap': '20px',
               }}
+              data-testid='data-picker-switch'
             />
             <Typography
               sx={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}

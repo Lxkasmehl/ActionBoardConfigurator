@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import {
   dragAndVerifyComponent,
   editTextComponent,
-} from '../../../helpers/uiBuilderSetup';
+} from '../helpers/componentHelpers';
 
 test.describe('Basic Component Tests', () => {
   let components;
