@@ -59,6 +59,7 @@ export default function EntityPropertyFields({
           loading={loading}
           isOptionEqualToValue={(option, value) => option?.name === value?.name}
           placeholder='Select Entity'
+          data-testid='entity-select'
         />
       </FormControl>
       <FormControl sx={{ maxWidth: '500px', width: '100%', marginTop: 1 }}>
@@ -81,6 +82,7 @@ export default function EntityPropertyFields({
             return option.name === value.name;
           }}
           placeholder='Select Property'
+          data-testid='property-select'
         />
       </FormControl>
     </>

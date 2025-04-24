@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { setupFlowConnection } from './flowSetup';
-import { selectFromAutocomplete } from './filterSetup';
+import { selectFromAutocomplete } from './sharedHelper';
 
 // Helper function to drag and verify a component
 export async function dragAndVerifyComponent(

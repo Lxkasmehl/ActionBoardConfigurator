@@ -3,10 +3,8 @@ import {
   dragAndVerifyComponent,
   setupDynamicDataEditing,
 } from '../../../helpers/uiBuilderSetup';
-import {
-  selectFromAutocomplete,
-  setupFilterCondition,
-} from '../../../helpers/filterSetup';
+import { setupFilterCondition } from '../../../helpers/filterSetup';
+import { selectFromAutocomplete } from '../../../helpers/sharedHelper';
 
 test.describe('Dynamic Data Tests', () => {
   let components;

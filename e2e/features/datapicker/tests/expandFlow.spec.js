@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { setupFlowConnection } from '../../../helpers/flowSetup';
 import {
-  selectFromAutocomplete,
   setupFilterCondition,
   setupExpand,
   setupNestedFilterCondition,
 } from '../../../helpers/filterSetup';
+import { selectFromAutocomplete } from '../../../helpers/sharedHelper';
 
 test('use expand with selected property with simple flow and simple filter', async ({
   page,

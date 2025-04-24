@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { setupFlowConnection } from '../../../helpers/flowSetup';
 import {
-  selectFromAutocomplete,
   setupFilterCondition,
   setupComplexFilter,
 } from '../../../helpers/filterSetup';
+import { selectFromAutocomplete } from '../../../helpers/sharedHelper';
 
 test('create simple flow with one entity section, a simple filter and one selected entity', async ({
   page,
