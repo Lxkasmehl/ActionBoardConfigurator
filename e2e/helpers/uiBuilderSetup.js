@@ -201,9 +201,7 @@ export async function setupAndCreateGroup(
 }
 
 // Helper function to verify border colors are different
-export async function verifyBorderColorsDifferent(
-  page,
-) {
+export async function verifyBorderColorsDifferent(page) {
   const firstButtonBarColor = await getBorderColor(
     page.getByTestId('sortable-component-buttonBar').first(),
   );
@@ -221,4 +219,24 @@ export async function verifyBorderColorsDifferent(
   expect(firstTableColor).not.toBe(secondTableColor);
   expect(firstButtonBarColor).toBe(secondTableColor);
   expect(secondButtonBarColor).toBe(firstTableColor);
+}
+
+// Helper function to edit a cell
+export async function editCell(table, rowIndex, columnIndex, value) {
+  // Get all cells in the specified row
+  const rowCells = table.locator(
+    `.MuiDataGrid-row:nth-child(${rowIndex + 1}) .MuiDataGrid-cell`,
+  );
+  // Get the specific cell in the column
+  const cell = rowCells.nth(columnIndex);
+  await cell.dblclick();
+
+  // Wait for the edit input to appear and fill it with test data
+  const editInput = table.locator('input[type="text"]');
+  await editInput.waitFor({ state: 'visible' });
+  await editInput.fill(value);
+  await editInput.press('Enter');
+
+  // Verify the cell contains the entered data
+  await expect(cell).toContainText(value);
 }
