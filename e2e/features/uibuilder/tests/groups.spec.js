@@ -1,11 +1,8 @@
 import { test, expect } from '@playwright/test';
-import {
-  setupComponentsInPreview,
-  createAndVerifyGroup,
-  setupAndCreateGroup,
-  editGroup,
-  verifyBorderColorsDifferent,
-} from '../../../helpers/uiBuilderSetup';
+import { setupComponentsInPreview } from '../helpers/setupHelpers';
+import { createAndVerifyGroup, editGroup } from '../helpers/groupHelpers';
+import { setupAndCreateGroup } from '../helpers/setupHelpers';
+import { verifyBorderColorsDifferent } from '../helpers/uiHelpers';
 
 test.describe('Group Tests', () => {
   let previewArea;

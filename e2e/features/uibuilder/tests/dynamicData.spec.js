@@ -1,10 +1,8 @@
 import { test, expect } from '@playwright/test';
-import {
-  dragAndVerifyComponent,
-  setupDynamicDataEditing,
-} from '../../../helpers/uiBuilderSetup';
-import { setupFilterCondition } from '../../../helpers/filterSetup';
-import { selectFromAutocomplete } from '../../../helpers/sharedHelper';
+import { dragAndVerifyComponent } from '../helpers/componentHelpers';
+import { setupDynamicDataEditing } from '../helpers/uiHelpers';
+import { setupFilterCondition } from '../../datapicker/helpers/filterSetup';
+import { selectFromAutocomplete } from '../../../helpers/autocompleteHelper';
 
 test.describe('Dynamic Data Tests', () => {
   let components;
