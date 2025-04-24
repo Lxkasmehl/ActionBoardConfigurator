@@ -244,6 +244,7 @@ const ColumnFormFields = forwardRef(
               setEditedItem({ ...editedItem, label: e.target.value })
             }
             placeholder='Enter column label'
+            data-testid='column-label-input'
           />
         </FormControl>
         <div className='my-3'>
@@ -359,6 +360,7 @@ const ColumnFormFields = forwardRef(
           }}
           disabled={!isIFrame && !editedItem.entity}
           sx={{ marginTop: 2, alignSelf: 'center' }}
+          data-testid='main-entity-checkbox'
         />
 
         {isInvalid && (

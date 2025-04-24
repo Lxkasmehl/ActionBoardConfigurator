@@ -227,6 +227,7 @@ export default function EditModal({
                 onClick={handleSave}
                 loading={isWaitingForIframeData}
                 disabled={!!validationError && !isIframeValidationError}
+                data-testid='save-button'
               >
                 Save
               </Button>
