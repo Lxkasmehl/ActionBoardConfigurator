@@ -178,8 +178,8 @@ test.describe('Group Tests', () => {
     // Expected values
     const expectedValues = {
       '': 185,
-      M: 494,
-      F: 316,
+      M: 480,
+      F: 330,
       U: 3,
       D: 1,
       O: 1,

@@ -19,6 +19,9 @@ export async function dragAndVerifyComponent(
     targetPosition: { x: previewBox.width / 2, y: previewBox.height - 10 },
   });
 
+  // Wait for the new component to be fully rendered
+  await previewArea.waitFor({ state: 'stable' });
+
   // Wait for the new component (the last one in the list)
   const sortableComponent = previewArea
     .getByTestId(`sortable-component-${componentName}`)
