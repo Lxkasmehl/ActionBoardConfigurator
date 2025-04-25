@@ -39,9 +39,23 @@ export async function setupTable(page, previewArea) {
 
 // Helper function to verify table data
 export async function verifyTableData(table, expectedValues) {
+  // Wait for at least one cell to be visible
+  await table
+    .locator('.MuiDataGrid-cell')
+    .first()
+    .waitFor({ state: 'visible' });
+
+  // Get all non-empty cells
   const cells = await table
     .locator('.MuiDataGrid-cell:not(.MuiDataGrid-cellEmpty)')
     .all();
+
+  // Verify we have enough cells
+  if (cells.length < expectedValues.length) {
+    throw new Error(
+      `Expected ${expectedValues.length} cells but found ${cells.length} cells`,
+    );
+  }
 
   for (let i = 0; i < expectedValues.length; i++) {
     const cellText = await cells[i].textContent();
