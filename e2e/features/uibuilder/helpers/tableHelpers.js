@@ -83,6 +83,8 @@ export async function configureTableColumn(
     .filter({ hasText: 'Edit Column' });
   await editColumnMenuItem.click();
 
+  await expect(page.locator('.MuiModalDialog-root')).toBeVisible();
+
   if (useDataPicker) {
     await page.getByTestId('data-picker-switch').click();
     const iFrame = page.getByTestId('data-picker-iframe');
