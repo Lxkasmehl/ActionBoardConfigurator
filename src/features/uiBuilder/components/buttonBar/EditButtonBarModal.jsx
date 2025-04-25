@@ -171,7 +171,9 @@ export default function EditButtonBarModal({
             <Button variant='plain' color='neutral' onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave} data-testid='button-bar-save-button'>
+              Save
+            </Button>
           </Stack>
         </Stack>
       </ModalDialog>

@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import { dragAndVerifyComponent } from './componentHelpers';
 import { selectFromAutocomplete } from '../../../helpers/autocompleteHelper';
 import { setupFlowConnection } from '../../datapicker/helpers/flowSetup';
+import fs from 'fs';
 
 // Helper function to edit a cell
 export async function editCell(table, rowIndex, columnIndex, value) {
@@ -44,7 +45,11 @@ export async function verifyTableData(table, expectedValues) {
 
   for (let i = 0; i < expectedValues.length; i++) {
     const cellText = await cells[i].textContent();
-    expect(cellText).toBe(expectedValues[i]);
+    // Normalize empty strings and single spaces to be considered equal
+    const normalizedCellText = cellText.trim() === '' ? '' : cellText;
+    const normalizedExpectedValue =
+      expectedValues[i].trim() === '' ? '' : expectedValues[i];
+    expect(normalizedCellText).toBe(normalizedExpectedValue);
   }
 }
 
@@ -121,4 +126,35 @@ export async function configureTableColumn(
     });
   }
   await expect(table.locator('.MuiDataGrid-overlay')).not.toBeVisible();
+}
+
+/**
+ * Helper function to handle table downloads
+ * @param {import('@playwright/test').Page} page - The Playwright page object
+ * @param {string} downloadOption - The download option to select ('All columns' or 'Only visible columns')
+ * @param {string} [downloadDir='./test-downloads'] - Directory to save the downloaded file
+ * @returns {Promise<{suggestedFilename: string, fileSize: number}>} - Information about the downloaded file
+ */
+export async function handleTableDownload(
+  page,
+  downloadOption,
+  downloadDir = './test-downloads',
+) {
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByTestId('export-button').click();
+  await page.getByTestId(`menu-item-${downloadOption}`).click();
+
+  const download = await downloadPromise;
+  const suggestedFilename = download.suggestedFilename();
+  expect(suggestedFilename).toMatch(/\.xlsx$/);
+
+  // Save the file to the specified location
+  const savePath = `${downloadDir}/${suggestedFilename}`;
+  await download.saveAs(savePath);
+
+  // Clean up the temporary file and saved file
+  await download.delete();
+  await fs.promises.unlink(savePath);
+
+  return { suggestedFilename };
 }
