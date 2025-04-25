@@ -27,27 +27,40 @@ const exportToExcel = (tableData, visibleColumns, tableColumns, fileName) => {
       visibleColumns.forEach((columnId) => {
         const columnLabel = columnMap[columnId];
         if (columnLabel && row[columnLabel] !== undefined) {
-          filteredRow[columnLabel] = row[columnLabel];
+          // Ensure the value is a string to prevent encoding issues
+          filteredRow[columnLabel] = String(row[columnLabel] || '');
         }
       });
     } else {
       // If no visible columns specified, export all columns
       Object.entries(row).forEach(([key, value]) => {
-        filteredRow[key] = value;
+        // Ensure the value is a string to prevent encoding issues
+        filteredRow[key] = String(value || '');
       });
     }
     return filteredRow;
   });
 
+  // Create a new workbook
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.json_to_sheet(filteredData);
+
+  // Convert the data to a worksheet
+  const ws = XLSX.utils.json_to_sheet(filteredData, {
+    header: Object.keys(filteredData[0] || {}),
+    skipHeader: false,
+  });
+
+  // Add the worksheet to the workbook
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
 
+  // Write the workbook to a buffer
   const excelBuffer = XLSX.write(wb, {
     bookType: 'xlsx',
     type: 'array',
+    bookSST: true, // Enable shared strings to reduce file size
   });
 
+  // Create and trigger the download
   const blob = new Blob([excelBuffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
@@ -68,6 +81,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Apply Filter',
     description: 'Applies the current filter settings',
     variant: 'solid',
+    dataTestId: 'apply-filter-button',
     onClick: (dispatch, groupName) => {
       dispatch(setGroupFiltersEnabled({ groupName, enabled: true }));
     },
@@ -78,6 +92,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Clear Filters',
     description: 'Clears all applied filters',
     variant: 'solid',
+    dataTestId: 'clear-filter-button',
     onClick: (dispatch, groupName) => {
       dispatch(setGroupFiltersEnabled({ groupName, enabled: false }));
     },
@@ -133,6 +148,7 @@ export const PREDEFINED_BUTTONS = [
     description: 'Export the current table data',
     variant: 'plain',
     color: 'primary',
+    dataTestId: 'export-button',
     menuItems: [
       {
         label: 'All columns',
@@ -174,6 +190,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Sort',
     description: 'Sort the current table data',
     variant: 'plain',
+    dataTestId: 'sort-button',
     onClick: (dispatch, groupName, tableData, componentId) => {
       dispatch(setSortModalOpen({ isOpen: true, componentId }));
     },
@@ -184,6 +201,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Column Selector',
     description: 'Select columns to display',
     variant: 'plain',
+    dataTestId: 'column-selector-button',
     onClick: (dispatch, groupName, tableData, componentId) => {
       dispatch(setColumnSelectorModalOpen({ isOpen: true, componentId }));
     },

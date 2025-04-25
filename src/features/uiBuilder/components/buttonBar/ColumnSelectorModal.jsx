@@ -77,6 +77,7 @@ export default function ColumnSelectorModal({ open, onClose, componentId }) {
               <ListItem key={column.value}>
                 <ListItemButton
                   onClick={() => handleToggleColumn(column.value)}
+                  data-testid={`column-selector-checkbox-${column.label}`}
                 >
                   <ListItemDecorator>
                     <Checkbox
@@ -93,7 +94,12 @@ export default function ColumnSelectorModal({ open, onClose, componentId }) {
             <Button variant='plain' onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleApply}>Apply</Button>
+            <Button
+              onClick={handleApply}
+              data-testid='column-selector-apply-button'
+            >
+              Apply
+            </Button>
           </Stack>
         </Stack>
       </ModalDialog>

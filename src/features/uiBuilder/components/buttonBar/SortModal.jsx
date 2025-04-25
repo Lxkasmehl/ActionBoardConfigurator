@@ -42,6 +42,7 @@ export default function SortModal({ open, onClose, onApplySort, componentId }) {
               onChange={(_, value) => setSelectedColumn(value || '')}
               options={getColumnOptions()}
               getOptionLabel={(option) => option?.label || ''}
+              data-testid='sort-column-select'
             />
           </FormControl>
           <FormControl>
@@ -50,15 +51,25 @@ export default function SortModal({ open, onClose, onApplySort, componentId }) {
               value={sortDirection}
               onChange={(e) => setSortDirection(e.target.value)}
             >
-              <Radio value='asc' label='Ascending' />
-              <Radio value='desc' label='Descending' />
+              <Radio
+                value='asc'
+                label='Ascending'
+                data-testid='sort-asc-radio'
+              />
+              <Radio
+                value='desc'
+                label='Descending'
+                data-testid='sort-desc-radio'
+              />
             </RadioGroup>
           </FormControl>
           <Stack direction='row' spacing={1} justifyContent='flex-end'>
             <Button variant='plain' onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleApply}>Apply</Button>
+            <Button onClick={handleApply} data-testid='sort-apply-button'>
+              Apply
+            </Button>
           </Stack>
         </Stack>
       </ModalDialog>
