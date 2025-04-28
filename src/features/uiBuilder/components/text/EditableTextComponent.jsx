@@ -1,9 +1,11 @@
-import { Typography, IconButton } from '@mui/joy';
+import { Typography, IconButton, Box } from '@mui/joy';
 import { Edit, Check, Close } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import { useState, useRef } from 'react';
 import DataSelectionModal from './DataSelectionModal';
 import PropertySelectionModal from './PropertySelectionModal';
+import { useDispatch } from 'react-redux';
+import { updateComponentProps } from '@/redux/uiBuilderSlice';
 
 export default function EditableTextComponent({
   component,
@@ -12,6 +14,7 @@ export default function EditableTextComponent({
   typographyProps = {},
   disabled = false,
 }) {
+  const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(component.props.text);
   const [previousText, setPreviousText] = useState(component.props.text);
@@ -32,6 +35,12 @@ export default function EditableTextComponent({
     if (disabled) return;
     setPreviousText(editedText);
     setIsEditing(false);
+    dispatch(
+      updateComponentProps({
+        componentId: component.id,
+        props: { text: editedText },
+      }),
+    );
   };
 
   const handleCancel = () => {
@@ -68,11 +77,13 @@ export default function EditableTextComponent({
   };
 
   const handleInputChange = (e) => {
+    if (disabled) return;
     setEditedText(e.target.value);
     setCursorPosition(e.target.selectionStart);
   };
 
   const handleDataSelected = (data) => {
+    if (disabled) return;
     setSelectedData(data);
     setIsDataSelectionOpen(false);
     setIsPropertySelectionOpen(true);
@@ -94,7 +105,7 @@ export default function EditableTextComponent({
   return (
     <>
       {isEditing ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <InputComponent
             value={editedText}
             onChange={handleInputChange}
@@ -105,24 +116,24 @@ export default function EditableTextComponent({
             {...inputProps}
           />
           <IconButton
+            size='sm'
             variant='solid'
             color='success'
             onClick={handleSave}
-            sx={{ borderRadius: '50%' }}
             disabled={disabled}
           >
             <Check />
           </IconButton>
           <IconButton
+            size='sm'
             variant='solid'
             color='danger'
             onClick={handleCancel}
-            sx={{ borderRadius: '50%' }}
             disabled={disabled}
           >
             <Close />
           </IconButton>
-        </div>
+        </Box>
       ) : (
         <>
           <Typography {...typographyProps}>{editedText}</Typography>
@@ -161,6 +172,7 @@ export default function EditableTextComponent({
 
 EditableTextComponent.propTypes = {
   component: PropTypes.shape({
+    id: PropTypes.string.isRequired,
     props: PropTypes.shape({
       text: PropTypes.string.isRequired,
     }).isRequired,

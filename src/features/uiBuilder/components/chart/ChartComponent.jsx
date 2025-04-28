@@ -4,6 +4,8 @@ import { LineChart, BarChart, PieChart, ScatterChart } from '@mui/x-charts';
 import { IconButton } from '@mui/joy';
 import Edit from '@mui/icons-material/Edit';
 import ChartEditModal from './ChartEditModal';
+import { useDispatch } from 'react-redux';
+import { updateComponentProps } from '../../../../redux/uiBuilderSlice';
 
 const sampleData = {
   lines: {
@@ -49,6 +51,7 @@ export default function ChartComponent({ component, disabled = false }) {
       sampleData.lines,
   );
   const [chartType, setChartType] = useState(component.props.type);
+  const dispatch = useDispatch();
 
   const handleEditClick = () => {
     if (disabled) return;
@@ -57,12 +60,24 @@ export default function ChartComponent({ component, disabled = false }) {
 
   const handleSave = (updatedComponent) => {
     if (disabled) return;
-    setChartData(
+    const newData =
       updatedComponent.props.data ||
-        sampleData[updatedComponent.props.type] ||
-        sampleData.lines,
-    );
+      sampleData[updatedComponent.props.type] ||
+      sampleData.lines;
+
+    setChartData(newData);
     setChartType(updatedComponent.props.type);
+
+    dispatch(
+      updateComponentProps({
+        componentId: component.id,
+        props: {
+          data: newData,
+          type: updatedComponent.props.type,
+        },
+      }),
+    );
+
     setIsEditModalOpen(false);
   };
 
