@@ -1,10 +1,11 @@
-import { Box, Card, Typography } from '@mui/joy';
+import { Box, Card, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { useDroppable } from '@dnd-kit/core';
 import SortableComponent from '../dragAndDrop/SortableComponent';
 import EmptyState from '../layout/EmptyState';
 import TrashBin from './TrashBin';
 import { useSelector } from 'react-redux';
+import { exportWebsite } from '../../utils/exportUtils';
 
 export default function PreviewArea({
   components,
@@ -18,7 +19,7 @@ export default function PreviewArea({
   const { setNodeRef, isOver } = useDroppable({
     id: 'preview-area',
     data: { type: 'preview-area' },
-    disabled: (isInCreateGroupMode || groupToEdit !== null),
+    disabled: isInCreateGroupMode || groupToEdit !== null,
   });
 
   const { setNodeRef: setInitialGapRef, isOver: isInitialGapOver } =
@@ -28,10 +29,14 @@ export default function PreviewArea({
         type: 'gap',
         componentId: components[0]?.id,
       },
-      disabled: (isInCreateGroupMode || groupToEdit !== null),
+      disabled: isInCreateGroupMode || groupToEdit !== null,
     });
 
   const isDraggingExistingComponent = activeDragData?.type === 'preview';
+
+  const handleExport = () => {
+    exportWebsite(components);
+  };
 
   return (
     <Card
@@ -43,9 +48,24 @@ export default function PreviewArea({
         position: 'relative',
       }}
     >
-      <Typography level='h4' mb={2}>
-        Preview
-      </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Typography level='h4'>Preview</Typography>
+        <Button
+          variant='solid'
+          color='primary'
+          onClick={handleExport}
+          disabled={components.length === 0}
+        >
+          Export Website
+        </Button>
+      </Box>
 
       <Box
         id='preview-area'
