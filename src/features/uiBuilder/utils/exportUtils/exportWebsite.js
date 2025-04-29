@@ -47,7 +47,7 @@ export default function FilterArea({ componentId, fields, columnData, tableColum
             } */
 
   return (
-    <div style={{ position: 'relative', marginBottom: '1rem' }}>
+    <div style={{ position: 'relative', marginBottom: '2rem' }}>
       <div
         style={{
           display: 'grid',
@@ -105,25 +105,109 @@ export default function FilterArea({ componentId, fields, columnData, tableColum
   componentsDir.file(
     'ButtonBar.jsx',
     `import React from 'react';
-import { Button, Stack } from '@mui/joy';
+import {
+  Button,
+  IconButton,
+  Autocomplete,
+  Menu,
+  MenuItem,
+  Dropdown,
+  MenuButton,
+} from '@mui/joy';
+import * as Icons from '@mui/icons-material';
 
 export default function ButtonBar({ fields }) {
+  let IconComponent;
+
   return (
-    <Stack 
-      direction="row" 
-      spacing={2}
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '0.5rem'
-      }}
-    >
-      {fields.map((field, index) => (
-        <Button key={index} variant="outlined" color="neutral">
-          {field.label}
-        </Button>
-      ))}
-    </Stack>
+    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+      {fields.map((field, index) => {
+        const commonProps = {
+          size: 'sm',
+          // ...(field.onClick && {
+          //   onClick: () => {
+          //     if (!tableData) {
+          //       setIsNoTableDataModalOpen(true);
+          //       return;
+          //     }
+          //     field.onClick(
+          //       dispatch,
+          //       groupName,
+          //       tableData,
+          //       componentId,
+          //       visibleColumns,
+          //       tableColumns,
+          //     );
+          //   },
+          // }),
+          variant: field.variant || 'solid',
+          color: field.color || 'primary',
+        };
+
+        const renderField = () => {
+          switch (field.type) {
+            case 'iconButton':
+              IconComponent = Icons[field['text/icon']];
+              return (
+                <div>
+                  <IconButton {...commonProps} color='primary'>
+                    <IconComponent />
+                  </IconButton>
+                </div>
+              );
+            case 'autocomplete':
+              return (
+                <div>
+                  <Autocomplete
+                    {...commonProps}
+                    placeholder={field['text/icon']}
+                    options={[]}
+                    sx={{
+                      width: '170px',
+                    }}
+                    onChange={() => {
+                      if (!tableData) {
+                        setIsNoTableDataModalOpen(true);
+                        return;
+                      }
+                      field.onClick(dispatch, groupName);
+                    }}
+                  />
+                </div>
+              );
+            case 'menu':
+              return (
+                <div>
+                  <Dropdown>
+                    <MenuButton {...commonProps}>{field['text/icon']}</MenuButton>
+                    <Menu>
+                      {field.menuItems?.map((item, index) => (
+                        <MenuItem
+                          {...commonProps}
+                          color='neutral'
+                          key={index}
+                          onClick={() => handleMenuItemClick(item)}
+                        >
+                          {item.label}
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </Dropdown>
+                </div>
+              );
+            case 'button':
+            default:
+              return (
+                <div>
+                  <Button {...commonProps}>{field['text/icon']}</Button>
+                </div>
+              );
+          }
+        };
+
+        return renderField();
+      })}
+    </div>
   );
 }`,
   );

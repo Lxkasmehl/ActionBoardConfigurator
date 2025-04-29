@@ -8,9 +8,9 @@ export const generateComponentCode = (
 
   switch (type) {
     case 'heading':
-      return `<Typography level="${props.level || 'h2'}" sx={{ mb: 2}}>${props.text}</Typography>`;
+      return `<Typography level="${props.level || 'h2'}" sx={{ marginBottom: '2rem' }}>${props.text}</Typography>`;
     case 'paragraph':
-      return `<Typography sx={{ mb: 2 }}>${props.text}</Typography>`;
+      return `<Typography sx={{ marginBottom: '2rem' }}>${props.text}</Typography>`;
     case 'button':
       return `<Button variant="${props.variant}" color="${props.color}">${props.text}</Button>`;
     case 'image':
