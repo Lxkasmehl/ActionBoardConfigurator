@@ -1,7 +1,10 @@
-export const generateComponentCode = (component, columnData) => {
+export const generateComponentCode = (
+  component,
+  columnData,
+  tableColumns,
+  componentGroups,
+) => {
   const { type, props } = component;
-
-  console.log('columnData', columnData);
 
   switch (type) {
     case 'heading':
@@ -13,7 +16,7 @@ export const generateComponentCode = (component, columnData) => {
     case 'image':
       return `<img src="${props.src}" alt="${props.alt}" style={{ maxWidth: '100%', height: 'auto' }} />`;
     case 'filterArea':
-      return `<FilterArea fields={${JSON.stringify(props.fields)}} columnData={${JSON.stringify(columnData)}} />`;
+      return `<FilterArea componentId="${component.id}" fields={${JSON.stringify(props.fields)}} columnData={${JSON.stringify(columnData)}} tableColumns={${JSON.stringify(tableColumns)}} componentGroups={${JSON.stringify(componentGroups)}} />`;
     case 'buttonBar':
       return `<ButtonBar fields={${JSON.stringify(props.fields)}} />`;
     case 'table':

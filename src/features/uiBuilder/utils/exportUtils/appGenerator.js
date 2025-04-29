@@ -1,6 +1,11 @@
 import { generateComponentCode } from './componentGenerator';
 
-export const generateAppJsx = (components, columnData) => {
+export const generateAppJsx = (
+  components,
+  columnData,
+  tableColumns,
+  componentGroups,
+) => {
   const componentImports = new Set();
   const customComponentImports = new Set();
 
@@ -37,7 +42,10 @@ export const generateAppJsx = (components, columnData) => {
     .join('\n');
 
   const componentCode = components
-    .map((component) => `      ${generateComponentCode(component, columnData)}`)
+    .map(
+      (component) =>
+        `${generateComponentCode(component, columnData, tableColumns, componentGroups)}`,
+    )
     .join('\n');
 
   return `import React from 'react';
