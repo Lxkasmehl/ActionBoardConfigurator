@@ -47,11 +47,11 @@ export default function FilterArea({ componentId, fields, columnData, tableColum
             } */
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', marginBottom: '1rem' }}>
       <div
         style={{
           display: 'grid',
-          gap: '0.5rem',
+          gap: '1rem',
           marginBottom: '0.5rem',
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))'
         }}
@@ -131,50 +131,87 @@ export default function ButtonBar({ fields }) {
   componentsDir.file(
     'TableComponent.jsx',
     `import React from 'react';
-import { Table, Sheet } from '@mui/joy';
+import { DataGridPro } from '@mui/x-data-grid-pro';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
-export default function TableComponent({ data }) {
-  return (
-    <Sheet 
-      variant="outlined" 
-      sx={{ 
-        borderRadius: 'sm',
-        width: '100%',
-        overflow: 'auto'
-      }}
-    >
-      <Table
-        sx={{
-          '& th, & td': {
-            padding: '0.75rem',
-            textAlign: 'left',
-            borderBottom: '1px solid',
-            borderColor: 'divider'
+const theme = createTheme({
+  components: {
+    MuiDataGrid: {
+      styleOverrides: {
+        root: {
+          border: '1px solid rgba(224, 224, 224, 1)',
+        },
+        cell: {
+          borderRight: '1px solid rgba(224, 224, 224, 1)',
+          '&:last-child': {
+            borderRight: 'none',
           },
-          '& th': {
-            fontWeight: 'bold',
-            backgroundColor: 'background.level1'
-          }
-        }}
-      >
-        <thead>
-          <tr>
-            {data.headers?.map((header, index) => (
-              <th key={index}>{header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.rows?.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {row.map((cell, cellIndex) => (
-                <td key={cellIndex}>{cell}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </Sheet>
+        },
+        columnHeaders: {
+          borderBottom: '1px solid rgba(224, 224, 224, 1)',
+          borderTop: '1px solid rgba(224, 224, 224, 1)',
+        },
+        columnHeader: {
+          borderRight: '1px solid rgba(224, 224, 224, 1)',
+          '&:last-child': {
+            borderRight: 'none',
+          },
+        },
+        row: {
+          '&:last-child .MuiDataGrid-cell': {
+            borderBottom: 'none',
+          },
+        },
+      },
+    },
+  },
+});
+
+export default function TableComponent({ componentId, columnData, tableColumns }) {
+  const columns = tableColumns[componentId];
+  const data = columnData[componentId];
+
+  // Transform the data into rows for DataGrid
+  const rows = [];
+  if (data && Object.keys(data).length > 0) {
+    const rowCount = data[columns[0].label].length;
+    for (let i = 0; i < rowCount; i++) {
+      const row = {
+        id: i,
+        ...columns.reduce((acc, column) => {
+          acc[column.label] = data[column.label][i];
+          return acc;
+        }, {})
+      };
+      rows.push(row);
+    }
+  }
+
+  // Transform columns for DataGrid
+  const gridColumns = columns.map(column => ({
+    field: column.label,
+    headerName: column.label,
+    editable: false,
+    flex: 1,
+    minWidth: 100,
+    resizable: true,
+    sortable: true,
+    filterable: true,
+  }));
+  
+  return (
+    <ThemeProvider theme={theme}>
+      <div style={{ height: 500, width: '100%', overflow: 'auto' }}>
+        <DataGridPro
+          rows={rows}
+          columns={gridColumns}
+          disableRowSelectionOnClick
+          columnReordering={false}
+          experimentalFeatures={{ newEditingApi: true }}
+          hideFooter
+        />
+      </div>
+    </ThemeProvider>
   );
 }`,
   );
