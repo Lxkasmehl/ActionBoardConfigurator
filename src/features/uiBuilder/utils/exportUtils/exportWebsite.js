@@ -4,7 +4,12 @@ import { generateAppJsx } from './appGenerator';
 import { generatePackageJson, generateViteConfig } from './configGenerator';
 import { generateReadme } from './readmeGenerator';
 
-export const exportWebsite = async (components, columnData) => {
+export const exportWebsite = async (
+  components,
+  columnData,
+  tableColumns,
+  componentGroups,
+) => {
   const zip = new JSZip();
 
   // Create src directory
@@ -19,9 +24,15 @@ export const exportWebsite = async (components, columnData) => {
     `import React from 'react';
 import { FormLabel, Autocomplete } from '@mui/joy';
 
-export default function FilterArea({ fields, columnData }) {
+export default function FilterArea({ componentId, fields, columnData, tableColumns, componentGroups }) {
 
-    console.log('columnData', columnData);
+    const componentGroup = Object.values(componentGroups).find((group) =>
+      group.components.includes(componentId),
+    );
+
+    const tableComponentId = componentGroup?.components?.find(
+      (id) => tableColumns[id],
+    );
 
   /* (event, newValue) => {
               dispatch(
@@ -75,10 +86,9 @@ export default function FilterArea({ fields, columnData }) {
             <Autocomplete
               size='sm'
               placeholder='Select an option'
-              // options={(
-              //   columnData[tableComponentId]?.[filter.label] || []
-              // ).filter((option) => option !== undefined)}
-              options={[]}
+              options={(
+                columnData[tableComponentId]?.[filter.label] || []
+              ).filter((option) => option !== undefined)}
               getOptionLabel={(option) => option.toString() || ''}
               multiple
               value={[]}
@@ -204,7 +214,10 @@ export default function ChartComponent({ data }) {
   );
 
   // Add App.jsx
-  src.file('App.jsx', generateAppJsx(components, columnData));
+  src.file(
+    'App.jsx',
+    generateAppJsx(components, columnData, tableColumns, componentGroups),
+  );
 
   // Add main.jsx
   src.file(
