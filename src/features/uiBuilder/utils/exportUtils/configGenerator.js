@@ -12,6 +12,7 @@ export const generatePackageJson = () => {
   "dependencies": {
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^6.4.8",
     "@mui/joy": "^5.0.0-beta.51",
     "@mui/x-data-grid-pro": "^7.28.3",
     "react": "^18.2.0",
