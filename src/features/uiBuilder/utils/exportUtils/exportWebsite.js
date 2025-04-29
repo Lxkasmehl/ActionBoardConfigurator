@@ -4,7 +4,7 @@ import { generateAppJsx } from './appGenerator';
 import { generatePackageJson, generateViteConfig } from './configGenerator';
 import { generateReadme } from './readmeGenerator';
 
-export const exportWebsite = async (components) => {
+export const exportWebsite = async (components, columnData) => {
   const zip = new JSZip();
 
   // Create src directory
@@ -17,19 +17,77 @@ export const exportWebsite = async (components) => {
   componentsDir.file(
     'FilterArea.jsx',
     `import React from 'react';
-import { Box, Typography } from '@mui/joy';
+import { FormLabel, Autocomplete } from '@mui/joy';
 
-export default function FilterArea({ fields }) {
+export default function FilterArea({ fields, columnData }) {
+
+    console.log('columnData', columnData);
+
+  /* (event, newValue) => {
+              dispatch(
+                setSelectedFilterOptions({
+                  groupName,
+                  options: {
+                    ...currentSelectedOptions,
+                    [filter.id]: newValue,
+                  },
+                }),
+              );
+            } */
+
   return (
-    <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 'sm' }}>
-      <Typography level="h4" mb={2}>Filter Area</Typography>
-      {fields.map((field, index) => (
-        <Box key={index} mb={2}>
-          <Typography level="body-sm" mb={1}>{field.label}</Typography>
-          {/* Add your filter field implementation here */}
-        </Box>
-      ))}
-    </Box>
+    <div style={{ position: 'relative' }}>
+      <div
+        style={{
+          display: 'grid',
+          gap: '0.5rem',
+          marginBottom: '0.5rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))'
+        }}
+      >
+        {fields.map((filter, index) => (
+          <div
+            key={index}
+            style={{
+              display: 'grid',
+              gap: '0.25rem',
+              position: 'relative',
+              maxWidth: '300px'
+            }}
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', alignItems: 'center', gap: '0.5rem' }}>
+              <FormLabel
+                size='sm'
+                sx={{
+                  maxWidth: '140px',
+                  wordWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'block',
+                  lineHeight: '1.2',
+                  cursor: 'default'
+                }}
+              >
+                {filter.label}
+              </FormLabel>
+            </div>
+            <Autocomplete
+              size='sm'
+              placeholder='Select an option'
+              // options={(
+              //   columnData[tableComponentId]?.[filter.label] || []
+              // ).filter((option) => option !== undefined)}
+              options={[]}
+              getOptionLabel={(option) => option.toString() || ''}
+              multiple
+              value={[]}
+              onChange={() => {}}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }`,
   );
@@ -41,7 +99,15 @@ import { Button, Stack } from '@mui/joy';
 
 export default function ButtonBar({ fields }) {
   return (
-    <Stack direction="row" spacing={2}>
+    <Stack 
+      direction="row" 
+      spacing={2}
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '0.5rem'
+      }}
+    >
       {fields.map((field, index) => (
         <Button key={index} variant="outlined" color="neutral">
           {field.label}
@@ -59,8 +125,28 @@ import { Table, Sheet } from '@mui/joy';
 
 export default function TableComponent({ data }) {
   return (
-    <Sheet variant="outlined" sx={{ borderRadius: 'sm' }}>
-      <Table>
+    <Sheet 
+      variant="outlined" 
+      sx={{ 
+        borderRadius: 'sm',
+        width: '100%',
+        overflow: 'auto'
+      }}
+    >
+      <Table
+        sx={{
+          '& th, & td': {
+            padding: '0.75rem',
+            textAlign: 'left',
+            borderBottom: '1px solid',
+            borderColor: 'divider'
+          },
+          '& th': {
+            fontWeight: 'bold',
+            backgroundColor: 'background.level1'
+          }
+        }}
+      >
         <thead>
           <tr>
             {data.headers?.map((header, index) => (
@@ -90,10 +176,26 @@ import { Box, Typography } from '@mui/joy';
 
 export default function ChartComponent({ data }) {
   return (
-    <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 'sm' }}>
-      <Typography level="h4" mb={2}>Chart</Typography>
-      {/* Add your chart implementation here */}
-      <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <Box 
+      sx={{ 
+        padding: 2, 
+        border: '1px solid', 
+        borderColor: 'divider', 
+        borderRadius: 'sm',
+        width: '100%'
+      }}
+    >
+      <Typography level="h4" sx={{ marginBottom: 2 }}>Chart</Typography>
+      <Box 
+        sx={{ 
+          height: 300, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          backgroundColor: 'background.level1',
+          borderRadius: 'sm'
+        }}
+      >
         <Typography>Chart visualization would go here</Typography>
       </Box>
     </Box>
@@ -102,7 +204,7 @@ export default function ChartComponent({ data }) {
   );
 
   // Add App.jsx
-  src.file('App.jsx', generateAppJsx(components));
+  src.file('App.jsx', generateAppJsx(components, columnData));
 
   // Add main.jsx
   src.file(
