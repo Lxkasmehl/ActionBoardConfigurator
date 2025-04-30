@@ -22,7 +22,10 @@ export const generateComponentCode = (
       tableColumns={${JSON.stringify(tableColumns)}} 
       componentGroups={${JSON.stringify(componentGroups)}} />`;
     case 'buttonBar':
-      return `<ButtonBar fields={${JSON.stringify(props.fields)}} />`;
+      return `<ButtonBar fields={${JSON.stringify(props.fields)}} 
+      componentId="${component.id}" 
+      componentGroups={${JSON.stringify(componentGroups)}} 
+      tableColumns={${JSON.stringify(tableColumns)}} />`;
     case 'table':
       return `<TableComponent componentId="${component.id}" 
       columnData={${JSON.stringify(columnData)}} 

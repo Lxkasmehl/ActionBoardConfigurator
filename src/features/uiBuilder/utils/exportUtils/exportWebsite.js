@@ -3,6 +3,7 @@ import { saveAs } from 'file-saver';
 import { generateAppJsx } from './appGenerator';
 import { generatePackageJson, generateViteConfig } from './configGenerator';
 import { generateReadme } from './readmeGenerator';
+import { generateStoreJs, generateUiStateSlice } from './storeGenerator';
 
 export const exportWebsite = async (
   components,
@@ -15,6 +16,11 @@ export const exportWebsite = async (
   // Create src directory
   const src = zip.folder('src');
 
+  // Create redux directory
+  const redux = src.folder('redux');
+  redux.file('store.js', generateStoreJs());
+  redux.file('uiStateSlice.js', generateUiStateSlice());
+
   // Create components directory
   const componentsDir = src.folder('components');
 
@@ -23,28 +29,32 @@ export const exportWebsite = async (
     'FilterArea.jsx',
     `import React from 'react';
 import { FormLabel, Autocomplete } from '@mui/joy';
+import { useDispatch, useSelector } from 'react-redux';
+import { setSelectedFilterOptions } from '../redux/uiStateSlice';
 
 export default function FilterArea({ componentId, fields, columnData, tableColumns, componentGroups }) {
+  const dispatch = useDispatch();
+  const selectedFilters = useSelector((state) => state.uiState.selectedFilters);
 
-    const componentGroup = Object.values(componentGroups).find((group) =>
-      group.components.includes(componentId),
+  const componentGroup = Object.values(componentGroups).find((group) =>
+    group.components.includes(componentId),
+  );
+
+  const tableComponentId = componentGroup?.components?.find(
+    (id) => tableColumns[id],
+  );
+
+  const handleFilterChange = (filter, newValue) => {
+    dispatch(
+      setSelectedFilterOptions({
+        tableComponentId,
+        options: {
+          ...selectedFilters[componentId],
+          [filter.label]: newValue,
+        },
+      }),
     );
-
-    const tableComponentId = componentGroup?.components?.find(
-      (id) => tableColumns[id],
-    );
-
-  /* (event, newValue) => {
-              dispatch(
-                setSelectedFilterOptions({
-                  groupName,
-                  options: {
-                    ...currentSelectedOptions,
-                    [filter.id]: newValue,
-                  },
-                }),
-              );
-            } */
+  };
 
   return (
     <div style={{ position: 'relative', marginBottom: '2rem' }}>
@@ -91,8 +101,8 @@ export default function FilterArea({ componentId, fields, columnData, tableColum
               ).filter((option) => option !== undefined)}
               getOptionLabel={(option) => option.toString() || ''}
               multiple
-              value={[]}
-              onChange={() => {}}
+              value={selectedFilters[tableComponentId]?.[filter.label] || []}
+              onChange={(event, newValue) => handleFilterChange(filter, newValue)}
             />
           </div>
         ))}
@@ -115,31 +125,54 @@ import {
   MenuButton,
 } from '@mui/joy';
 import * as Icons from '@mui/icons-material';
+import { useDispatch } from 'react-redux';
+import { applyFilters, clearFilters } from '../redux/uiStateSlice';
 
-export default function ButtonBar({ fields }) {
+export default function ButtonBar({ fields, componentId, componentGroups, tableColumns }) {
+  const dispatch = useDispatch();
   let IconComponent;
+
+  const componentGroup = Object.values(componentGroups).find((group) =>
+    group.components.includes(componentId),
+  );
+
+  const tableComponentId = componentGroup?.components?.find(
+    (id) => tableColumns[id],
+  );
+
+  const handleButtonClick = (field) => {
+    switch (field['text/icon']) {
+      case 'Apply filter':
+        dispatch(applyFilters({ tableComponentId }));
+        break;
+      case 'Clear all filter':
+        dispatch(clearFilters({ tableComponentId }));
+        break;
+      case 'Sort':
+        dispatch(setSortModalOpen({ isOpen: true, componentId }));
+        break;
+      case 'Column Selector':
+        dispatch(setColumnSelectorModalOpen({ isOpen: true, componentId }));
+        break;
+      case 'Export':
+        if (field.menuItem?.label === 'All columns') {
+          exportToExcel(tableData, null, null, 'table_export.xlsx');
+        } else if (field.menuItem?.label === 'Only visible columns') {
+          exportToExcel(tableData, visibleColumns, tableColumns, 'table_export_visible_columns.xlsx');
+        }
+        break;
+      default:
+        if (field.onClick) {
+          field.onClick();
+        }
+    }
+  };
 
   return (
     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
       {fields.map((field, index) => {
         const commonProps = {
           size: 'sm',
-          // ...(field.onClick && {
-          //   onClick: () => {
-          //     if (!tableData) {
-          //       setIsNoTableDataModalOpen(true);
-          //       return;
-          //     }
-          //     field.onClick(
-          //       dispatch,
-          //       groupName,
-          //       tableData,
-          //       componentId,
-          //       visibleColumns,
-          //       tableColumns,
-          //     );
-          //   },
-          // }),
           variant: field.variant || 'solid',
           color: field.color || 'primary',
         };
@@ -150,7 +183,8 @@ export default function ButtonBar({ fields }) {
               IconComponent = Icons[field['text/icon']];
               return (
                 <div>
-                  <IconButton {...commonProps} color='primary'>
+                  <IconButton {...commonProps} color='primary' 
+                  onClick={() => handleButtonClick(field)}>
                     <IconComponent />
                   </IconButton>
                 </div>
@@ -164,13 +198,6 @@ export default function ButtonBar({ fields }) {
                     options={[]}
                     sx={{
                       width: '170px',
-                    }}
-                    onChange={() => {
-                      if (!tableData) {
-                        setIsNoTableDataModalOpen(true);
-                        return;
-                      }
-                      field.onClick(dispatch, groupName);
                     }}
                   />
                 </div>
@@ -186,7 +213,7 @@ export default function ButtonBar({ fields }) {
                           {...commonProps}
                           color='neutral'
                           key={index}
-                          onClick={() => handleMenuItemClick(item)}
+                          onClick={() => handleButtonClick(field, item)}
                         >
                           {item.label}
                         </MenuItem>
@@ -199,7 +226,10 @@ export default function ButtonBar({ fields }) {
             default:
               return (
                 <div>
-                  <Button {...commonProps}>{field['text/icon']}</Button>
+                  <Button {...commonProps} 
+                  onClick={() => handleButtonClick(field)}>
+                    {field['text/icon']}
+                  </Button>
                 </div>
               );
           }
@@ -217,6 +247,7 @@ export default function ButtonBar({ fields }) {
     `import React from 'react';
 import { DataGridPro } from '@mui/x-data-grid-pro';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { useSelector } from 'react-redux';
 
 const theme = createTheme({
   components: {
@@ -252,6 +283,7 @@ const theme = createTheme({
 });
 
 export default function TableComponent({ componentId, columnData, tableColumns }) {
+  const appliedFilters = useSelector((state) => state.uiState.appliedFilters[componentId] || {});
   const columns = tableColumns[componentId];
   const data = columnData[componentId];
 
@@ -267,7 +299,17 @@ export default function TableComponent({ componentId, columnData, tableColumns }
           return acc;
         }, {})
       };
-      rows.push(row);
+      
+      // Apply filters - now properly handles multiple filters
+      const shouldIncludeRow = Object.entries(appliedFilters).every(([columnName, filterValues]) => {
+        if (!filterValues || filterValues.length === 0) return true;
+        const rowValue = row[columnName];
+        return filterValues.some(value => value === rowValue);
+      });
+
+      if (shouldIncludeRow) {
+        rows.push(row);
+      }
     }
   }
 
