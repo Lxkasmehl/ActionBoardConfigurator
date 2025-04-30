@@ -1,0 +1,128 @@
+export const generateButtonBar = () => {
+  return `import React from 'react';
+import {
+  Button,
+  IconButton,
+  Autocomplete,
+  Menu,
+  MenuItem,
+  Dropdown,
+  MenuButton,
+} from '@mui/joy';
+import * as Icons from '@mui/icons-material';
+import { useDispatch } from 'react-redux';
+import { applyFilters, clearFilters } from '../redux/uiStateSlice';
+
+export default function ButtonBar({ fields, componentId, componentGroups, tableColumns }) {
+  const dispatch = useDispatch();
+  let IconComponent;
+
+  const componentGroup = Object.values(componentGroups).find((group) =>
+    group.components.includes(componentId),
+  );
+
+  const tableComponentId = componentGroup?.components?.find(
+    (id) => tableColumns[id],
+  );
+
+  const handleButtonClick = (field) => {
+    switch (field['text/icon']) {
+      case 'Apply filter':
+        dispatch(applyFilters({ tableComponentId }));
+        break;
+      case 'Clear all filter':
+        dispatch(clearFilters({ tableComponentId }));
+        break;
+      case 'Sort':
+        dispatch(setSortModalOpen({ isOpen: true, componentId }));
+        break;
+      case 'Column Selector':
+        dispatch(setColumnSelectorModalOpen({ isOpen: true, componentId }));
+        break;
+      case 'Export':
+        if (field.menuItem?.label === 'All columns') {
+          exportToExcel(tableData, null, null, 'table_export.xlsx');
+        } else if (field.menuItem?.label === 'Only visible columns') {
+          exportToExcel(tableData, visibleColumns, tableColumns, 'table_export_visible_columns.xlsx');
+        }
+        break;
+      default:
+        if (field.onClick) {
+          field.onClick();
+        }
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+      {fields.map((field, index) => {
+        const commonProps = {
+          size: 'sm',
+          variant: field.variant || 'solid',
+          color: field.color || 'primary',
+        };
+
+        const renderField = () => {
+          switch (field.type) {
+            case 'iconButton':
+              IconComponent = Icons[field['text/icon']];
+              return (
+                <div>
+                  <IconButton {...commonProps} color='primary' 
+                  onClick={() => handleButtonClick(field)}>
+                    <IconComponent />
+                  </IconButton>
+                </div>
+              );
+            case 'autocomplete':
+              return (
+                <div>
+                  <Autocomplete
+                    {...commonProps}
+                    placeholder={field['text/icon']}
+                    options={[]}
+                    sx={{
+                      width: '170px',
+                    }}
+                  />
+                </div>
+              );
+            case 'menu':
+              return (
+                <div>
+                  <Dropdown>
+                    <MenuButton {...commonProps}>{field['text/icon']}</MenuButton>
+                    <Menu>
+                      {field.menuItems?.map((item, index) => (
+                        <MenuItem
+                          {...commonProps}
+                          color='neutral'
+                          key={index}
+                          onClick={() => handleButtonClick(field, item)}
+                        >
+                          {item.label}
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </Dropdown>
+                </div>
+              );
+            case 'button':
+            default:
+              return (
+                <div>
+                  <Button {...commonProps} 
+                  onClick={() => handleButtonClick(field)}>
+                    {field['text/icon']}
+                  </Button>
+                </div>
+              );
+          }
+        };
+
+        return renderField();
+      })}
+    </div>
+  );
+}`;
+};
