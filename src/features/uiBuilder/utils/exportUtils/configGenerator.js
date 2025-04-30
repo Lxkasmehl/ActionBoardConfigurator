@@ -16,6 +16,9 @@ export const generatePackageJson = () => {
     "@mui/joy": "^5.0.0-beta.51",
     "@mui/x-data-grid-pro": "^7.28.3",
     "react": "^18.2.0",
+    "@reduxjs/toolkit": "^2.5.1",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {

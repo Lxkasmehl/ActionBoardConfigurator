@@ -50,14 +50,18 @@ export const generateAppJsx = (
 
   return `import React from 'react';
 import { Box } from '@mui/joy';
+import { Provider } from 'react-redux';
+import store from './redux/store';
 ${muiImports}
 ${customImports}
 
 function App() {
   return (
-    <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: 2 }}>
+    <Provider store={store}>
+      <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: 2 }}>
 ${componentCode}
-    </Box>
+      </Box>
+    </Provider>
   );
 }
 
