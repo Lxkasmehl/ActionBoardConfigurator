@@ -16,9 +16,11 @@ import { applyFilters, clearFilters } from '../redux/uiStateSlice';
 import { exportToExcel } from '../utils/exportToExcelUtils';
 import { useSelector } from 'react-redux';
 import ColumnSelectorModal from './ColumnSelectorModal';
+import SortModal from './SortModal';
 
 export default function ButtonBar({ fields, componentId, componentGroups, tableColumns, tableData }) {
   const [isColumnSelectorModalOpen, setIsColumnSelectorModalOpen] = useState(false);
+  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
 const dispatch = useDispatch();
   let IconComponent;
 
@@ -38,15 +40,15 @@ const dispatch = useDispatch();
   const visibleColumns = useSelector((state) => state.uiState.visibleColumns[tableComponentId] || []);
 
   const handleButtonClick = (field, item) => {
-    switch (field['text/icon']) {
-      case 'Apply filter':
+    switch (field.label) {
+      case 'Apply Filter':
         dispatch(applyFilters({ tableComponentId }));
         break;
-      case 'Clear all filter':
+      case 'Clear Filters':
         dispatch(clearFilters({ tableComponentId }));
         break;
       case 'Sort':
-        dispatch(setSortModalOpen({ isOpen: true, componentId }));
+        setIsSortModalOpen(true);
         break;
       case 'Column Selector':
         setIsColumnSelectorModalOpen(true);
@@ -140,6 +142,12 @@ const dispatch = useDispatch();
         open={isColumnSelectorModalOpen} 
         onClose={() => setIsColumnSelectorModalOpen(false)} 
         componentId={componentId} 
+        columnOptions={columnOptions}
+        tableComponentId={tableComponentId}
+      />
+      <SortModal
+        open={isSortModalOpen}
+        onClose={() => setIsSortModalOpen(false)}
         columnOptions={columnOptions}
         tableComponentId={tableComponentId}
       />
