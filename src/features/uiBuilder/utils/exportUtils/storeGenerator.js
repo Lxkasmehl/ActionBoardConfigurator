@@ -18,6 +18,7 @@ const initialState = {
   selectedFilters: {},
   appliedFilters: {},
   visibleColumns: {},
+  sortConfigs: {},
 };
 
 export const uiStateSlice = createSlice({
@@ -47,9 +48,24 @@ export const uiStateSlice = createSlice({
       const { tableComponentId, columns } = action.payload;
       state.visibleColumns[tableComponentId] = columns;
     },
+    setSortConfig: (state, action) => {
+      const { groupName, config } = action.payload;
+      state.sortConfigs[groupName] = config;
+    },
+    clearSortConfig: (state, action) => {
+      const { groupName } = action.payload;
+      delete state.sortConfigs[groupName];
+    },
   },
 });
 
-export const { setSelectedFilterOptions, applyFilters, clearFilters, setVisibleColumns } = uiStateSlice.actions;
+export const { 
+  setSelectedFilterOptions, 
+  applyFilters, 
+  clearFilters, 
+  setVisibleColumns,
+  setSortConfig,
+  clearSortConfig
+} = uiStateSlice.actions;
 export default uiStateSlice.reducer;`;
 };

@@ -10,6 +10,7 @@ import { generateTableComponent } from './tableComponentGenerator';
 import { generateChartComponent } from './chartComponentGenerator';
 import { exportToExcel } from '../exportToExcelUtils';
 import { generateColumnSelectorModal } from './columnSelectorModalGenerator';
+import { generateSortModal } from './sortModalGenerator';
 
 export const exportWebsite = async (
   components,
@@ -46,6 +47,8 @@ export const exportToExcel = ${exportToExcel.toString()}`,
   componentsDir.file('ButtonBar.jsx', generateButtonBar());
 
   componentsDir.file('ColumnSelectorModal.jsx', generateColumnSelectorModal());
+
+  componentsDir.file('SortModal.jsx', generateSortModal());
 
   componentsDir.file('TableComponent.jsx', generateTableComponent());
 

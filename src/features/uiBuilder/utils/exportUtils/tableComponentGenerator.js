@@ -1,5 +1,5 @@
 export const generateTableComponent = () => {
-  return `import React from 'react';
+  return `import React, { useMemo } from 'react';
 import { DataGridPro } from '@mui/x-data-grid-pro';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useSelector } from 'react-redux';
@@ -39,36 +39,40 @@ const theme = createTheme({
 
 export default function TableComponent({ componentId, columnData, tableColumns }) {
   const appliedFilters = useSelector((state) => state.uiState.appliedFilters[componentId] || {});
+  const sortConfig = useSelector((state) => state.uiState.sortConfigs[componentId]);
   const columns = tableColumns[componentId];
   const data = columnData[componentId];
 
   const visibleColumns = useSelector((state) => state.uiState.visibleColumns[componentId] || []);
 
   // Transform the data into rows for DataGrid
-  const rows = [];
-  if (data && Object.keys(data).length > 0) {
-    const rowCount = data[columns[0].label].length;
-    for (let i = 0; i < rowCount; i++) {
-      const row = {
-        id: i,
-        ...columns.reduce((acc, column) => {
-          acc[column.label] = data[column.label][i];
-          return acc;
-        }, {})
-      };
-      
-      // Apply filters - now properly handles multiple filters
-      const shouldIncludeRow = Object.entries(appliedFilters).every(([columnName, filterValues]) => {
-        if (!filterValues || filterValues.length === 0) return true;
-        const rowValue = row[columnName];
-        return filterValues.some(value => value === rowValue);
-      });
+  const rows = useMemo(() => {
+    const result = [];
+    if (data && Object.keys(data).length > 0) {
+      const rowCount = data[columns[0].label].length;
+      for (let i = 0; i < rowCount; i++) {
+        const row = {
+          id: i,
+          ...columns.reduce((acc, column) => {
+            acc[column.label] = data[column.label][i];
+            return acc;
+          }, {})
+        };
+        
+        // Apply filters - now properly handles multiple filters
+        const shouldIncludeRow = Object.entries(appliedFilters).every(([columnName, filterValues]) => {
+          if (!filterValues || filterValues.length === 0) return true;
+          const rowValue = row[columnName];
+          return filterValues.some(value => value === rowValue);
+        });
 
-      if (shouldIncludeRow) {
-        rows.push(row);
+        if (shouldIncludeRow) {
+          result.push(row);
+        }
       }
     }
-  }
+    return result;
+  }, [data, columns, appliedFilters]);
 
   // Filter columns based on visibleColumns
   const visibleColumnIds = new Set(visibleColumns);
@@ -88,17 +92,35 @@ export default function TableComponent({ componentId, columnData, tableColumns }
     sortable: true,
     filterable: true,
   }));
+
+  // Apply sorting if sortConfig exists
+  const sortedRows = useMemo(() => {
+    if (!sortConfig) return rows;
+    
+    return [...rows].sort((a, b) => {
+      const aValue = a[sortConfig.column];
+      const bValue = b[sortConfig.column];
+      
+      if (sortConfig.direction === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  }, [rows, sortConfig]);
   
   return (
     <ThemeProvider theme={theme}>
       <div style={{ height: 500, width: '100%', overflow: 'auto' }}>
         <DataGridPro
-          rows={rows}
+          rows={sortedRows}
           columns={gridColumns}
           disableRowSelectionOnClick
           columnReordering={false}
           experimentalFeatures={{ newEditingApi: true }}
           hideFooter
+          disableColumnSorting
+          disableColumnMenu 
         />
       </div>
     </ThemeProvider>
