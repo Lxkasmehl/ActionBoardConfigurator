@@ -46,7 +46,7 @@ export const generateAppJsx = (
   const componentCode = components
     .map(
       (component) =>
-        `${generateComponentCode(component, columnData, tableColumns, componentGroups, tableData, visibleColumns)}`,
+        `${generateComponentCode(component, columnData, tableColumns, componentGroups, tableData)}`,
     )
     .join('\n');
 
