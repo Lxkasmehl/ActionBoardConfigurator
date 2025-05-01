@@ -42,6 +42,8 @@ export default function TableComponent({ componentId, columnData, tableColumns }
   const columns = tableColumns[componentId];
   const data = columnData[componentId];
 
+  const visibleColumns = useSelector((state) => state.uiState.visibleColumns[componentId] || []);
+
   // Transform the data into rows for DataGrid
   const rows = [];
   if (data && Object.keys(data).length > 0) {
@@ -68,8 +70,15 @@ export default function TableComponent({ componentId, columnData, tableColumns }
     }
   }
 
+  // Filter columns based on visibleColumns
+  const visibleColumnIds = new Set(visibleColumns);
+  const filteredColumns = columns.filter(column => visibleColumnIds.has(column.id));
+
+  // If no visible columns are selected, show all columns
+  const columnsToUse = filteredColumns.length > 0 ? filteredColumns : columns;
+
   // Transform columns for DataGrid
-  const gridColumns = columns.map(column => ({
+  const gridColumns = columnsToUse.map(column => ({
     field: column.label,
     headerName: column.label,
     editable: false,

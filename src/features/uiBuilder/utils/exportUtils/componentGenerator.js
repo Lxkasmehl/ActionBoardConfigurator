@@ -33,7 +33,7 @@ export const generateComponentCode = (
     case 'table':
       return `<TableComponent componentId="${component.id}" 
       columnData={${JSON.stringify(columnData)}} 
-      tableColumns={${JSON.stringify(tableColumns)}}  />`;
+      tableColumns={${JSON.stringify(tableColumns)}} />`;
     case 'chart':
       return `<ChartComponent data={${JSON.stringify(props.data)}} />`;
     default:

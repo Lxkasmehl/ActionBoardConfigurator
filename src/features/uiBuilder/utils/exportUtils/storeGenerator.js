@@ -17,6 +17,7 @@ export const generateUiStateSlice = () => {
 const initialState = {
   selectedFilters: {},
   appliedFilters: {},
+  visibleColumns: {},
 };
 
 export const uiStateSlice = createSlice({
@@ -42,9 +43,13 @@ export const uiStateSlice = createSlice({
       state.appliedFilters[tableComponentId] = {};
       state.selectedFilters[tableComponentId] = {};
     },
+    setVisibleColumns: (state, action) => {
+      const { tableComponentId, columns } = action.payload;
+      state.visibleColumns[tableComponentId] = columns;
+    },
   },
 });
 
-export const { setSelectedFilterOptions, applyFilters, clearFilters } = uiStateSlice.actions;
+export const { setSelectedFilterOptions, applyFilters, clearFilters, setVisibleColumns } = uiStateSlice.actions;
 export default uiStateSlice.reducer;`;
 };
