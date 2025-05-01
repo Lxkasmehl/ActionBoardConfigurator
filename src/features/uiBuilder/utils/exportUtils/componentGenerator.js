@@ -4,7 +4,6 @@ export const generateComponentCode = (
   tableColumns,
   componentGroups,
   tableData,
-  visibleColumns,
 ) => {
   const { type, props } = component;
 
@@ -28,8 +27,7 @@ export const generateComponentCode = (
       componentId="${component.id}" 
       componentGroups={${JSON.stringify(componentGroups)}} 
       tableColumns={${JSON.stringify(tableColumns)}}
-      tableData={${JSON.stringify(tableData)}}
-      visibleColumns={${JSON.stringify(visibleColumns)}} />`;
+      tableData={${JSON.stringify(tableData)}} />`;
     case 'table':
       return `<TableComponent componentId="${component.id}" 
       columnData={${JSON.stringify(columnData)}} 
