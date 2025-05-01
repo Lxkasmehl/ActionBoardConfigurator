@@ -19,7 +19,8 @@ export const generatePackageJson = () => {
     "@reduxjs/toolkit": "^2.5.1",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

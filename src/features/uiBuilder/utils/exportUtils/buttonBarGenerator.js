@@ -12,8 +12,9 @@ import {
 import * as Icons from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { applyFilters, clearFilters } from '../redux/uiStateSlice';
+import { exportToExcel } from '../utils/exportToExcelUtils';
 
-export default function ButtonBar({ fields, componentId, componentGroups, tableColumns }) {
+export default function ButtonBar({ fields, componentId, componentGroups, tableColumns, tableData, visibleColumns }) {
   const dispatch = useDispatch();
   let IconComponent;
 
@@ -25,7 +26,7 @@ export default function ButtonBar({ fields, componentId, componentGroups, tableC
     (id) => tableColumns[id],
   );
 
-  const handleButtonClick = (field) => {
+  const handleButtonClick = (field, item) => {
     switch (field['text/icon']) {
       case 'Apply filter':
         dispatch(applyFilters({ tableComponentId }));
@@ -40,10 +41,10 @@ export default function ButtonBar({ fields, componentId, componentGroups, tableC
         dispatch(setColumnSelectorModalOpen({ isOpen: true, componentId }));
         break;
       case 'Export':
-        if (field.menuItem?.label === 'All columns') {
-          exportToExcel(tableData, null, null, 'table_export.xlsx');
-        } else if (field.menuItem?.label === 'Only visible columns') {
-          exportToExcel(tableData, visibleColumns, tableColumns, 'table_export_visible_columns.xlsx');
+        if (item?.label === 'All columns') {
+          exportToExcel(tableData[tableComponentId], null, null, 'table_export.xlsx');
+        } else if (item?.label === 'Only visible columns') {
+          exportToExcel(tableData[tableComponentId], visibleColumns[tableComponentId], tableColumns[tableComponentId], 'table_export_visible_columns.xlsx');
         }
         break;
       default:
