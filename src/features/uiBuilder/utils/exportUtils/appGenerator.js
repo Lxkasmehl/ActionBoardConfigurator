@@ -50,14 +50,28 @@ export const generateAppJsx = (
     )
     .join('\n');
 
-  return `import React from 'react';
+  // Generate initialization code for visibleColumns
+  const visibleColumnsInitialization = Object.entries(visibleColumns)
+    .map(
+      ([componentId, columns]) =>
+        `store.dispatch(setVisibleColumns({ tableComponentId: '${componentId}', columns: ${JSON.stringify(columns)} }));`,
+    )
+    .join('\n');
+
+  return `import React, { useEffect } from 'react';
 import { Box } from '@mui/joy';
 import { Provider } from 'react-redux';
 import store from './redux/store';
+import { setVisibleColumns } from './redux/uiStateSlice';
 ${muiImports}
 ${customImports}
 
 function App() {
+  useEffect(() => {
+    // Initialize visibleColumns in Redux store
+${visibleColumnsInitialization}
+  }, []);
+
   return (
     <Provider store={store}>
       <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: 2 }}>
