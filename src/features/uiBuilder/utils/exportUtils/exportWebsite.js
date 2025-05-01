@@ -8,12 +8,15 @@ import { generateFilterArea } from './filterAreaGenerator';
 import { generateButtonBar } from './buttonBarGenerator';
 import { generateTableComponent } from './tableComponentGenerator';
 import { generateChartComponent } from './chartComponentGenerator';
+import { exportToExcel } from '../exportToExcelUtils';
 
 export const exportWebsite = async (
   components,
   columnData,
   tableColumns,
   componentGroups,
+  tableData,
+  visibleColumns,
 ) => {
   const zip = new JSZip();
 
@@ -24,6 +27,14 @@ export const exportWebsite = async (
   const redux = src.folder('redux');
   redux.file('store.js', generateStoreJs());
   redux.file('uiStateSlice.js', generateUiStateSlice());
+
+  const utilsDir = src.folder('utils');
+  utilsDir.file(
+    'exportToExcelUtils.js',
+    `import * as XLSX from 'xlsx';
+
+export const exportToExcel = ${exportToExcel.toString()}`,
+  );
 
   // Create components directory
   const componentsDir = src.folder('components');
@@ -40,7 +51,14 @@ export const exportWebsite = async (
   // Add App.jsx
   src.file(
     'App.jsx',
-    generateAppJsx(components, columnData, tableColumns, componentGroups),
+    generateAppJsx(
+      components,
+      columnData,
+      tableColumns,
+      componentGroups,
+      tableData,
+      visibleColumns,
+    ),
   );
 
   // Add main.jsx

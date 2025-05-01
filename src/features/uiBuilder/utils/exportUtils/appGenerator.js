@@ -5,6 +5,8 @@ export const generateAppJsx = (
   columnData,
   tableColumns,
   componentGroups,
+  tableData,
+  visibleColumns,
 ) => {
   const componentImports = new Set();
   const customComponentImports = new Set();
@@ -44,7 +46,7 @@ export const generateAppJsx = (
   const componentCode = components
     .map(
       (component) =>
-        `${generateComponentCode(component, columnData, tableColumns, componentGroups)}`,
+        `${generateComponentCode(component, columnData, tableColumns, componentGroups, tableData, visibleColumns)}`,
     )
     .join('\n');
 
