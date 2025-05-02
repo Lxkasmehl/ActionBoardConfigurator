@@ -1,10 +1,11 @@
-import { Box, Card, Typography } from '@mui/joy';
+import { Box, Card, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { useDroppable } from '@dnd-kit/core';
 import SortableComponent from '../dragAndDrop/SortableComponent';
 import EmptyState from '../layout/EmptyState';
 import TrashBin from './TrashBin';
 import { useSelector } from 'react-redux';
+import { exportWebsite } from '../../utils/exportUtils';
 
 export default function PreviewArea({
   components,
@@ -15,6 +16,13 @@ export default function PreviewArea({
     (state) => state.uiBuilder.isInCreateGroupMode,
   );
   const groupToEdit = useSelector((state) => state.uiBuilder.groupToEdit);
+  const columnData = useSelector((state) => state.uiBuilder.columnData);
+  const tableColumns = useSelector((state) => state.uiBuilder.tableColumns);
+  const componentGroups = useSelector(
+    (state) => state.uiBuilder.componentGroups,
+  );
+  const tableData = useSelector((state) => state.uiBuilder.tableData);
+  const visibleColumns = useSelector((state) => state.uiBuilder.visibleColumns);
   const { setNodeRef, isOver } = useDroppable({
     id: 'preview-area',
     data: { type: 'preview-area' },
@@ -33,6 +41,17 @@ export default function PreviewArea({
 
   const isDraggingExistingComponent = activeDragData?.type === 'preview';
 
+  const handleExport = () => {
+    exportWebsite(
+      components,
+      columnData,
+      tableColumns,
+      componentGroups,
+      tableData,
+      visibleColumns,
+    );
+  };
+
   return (
     <Card
       sx={{
@@ -43,9 +62,24 @@ export default function PreviewArea({
         position: 'relative',
       }}
     >
-      <Typography level='h4' mb={2}>
-        Preview
-      </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Typography level='h4'>Preview</Typography>
+        <Button
+          variant='solid'
+          color='primary'
+          onClick={handleExport}
+          disabled={components.length === 0}
+        >
+          Export Website
+        </Button>
+      </Box>
 
       <Box
         id='preview-area'

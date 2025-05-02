@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
+  components: [],
   isInCreateGroupMode: false,
   workingSelectedComponents: [],
   tableColumns: {},
@@ -22,6 +23,9 @@ const uiBuilderSlice = createSlice({
   name: 'uiBuilder',
   initialState,
   reducers: {
+    setComponents: (state, action) => {
+      state.components = action.payload;
+    },
     setIsInCreateGroupMode: (state, action) => {
       state.isInCreateGroupMode = action.payload;
     },
@@ -111,10 +115,26 @@ const uiBuilderSlice = createSlice({
       const { componentId, columnOrder } = action.payload;
       state.columnOrder[componentId] = columnOrder;
     },
+    updateComponentProps: (state, action) => {
+      const { componentId, props } = action.payload;
+      const componentIndex = state.components.findIndex(
+        (c) => c.id === componentId,
+      );
+      if (componentIndex !== -1) {
+        state.components[componentIndex] = {
+          ...state.components[componentIndex],
+          props: {
+            ...state.components[componentIndex].props,
+            ...props,
+          },
+        };
+      }
+    },
   },
 });
 
 export const {
+  setComponents,
   setIsInCreateGroupMode,
   setWorkingSelectedComponents,
   saveSelectedComponents,
@@ -130,9 +150,10 @@ export const {
   reloadTableData,
   setSortModalOpen,
   setSortConfig,
-  setVisibleColumns,
   setColumnSelectorModalOpen,
+  setVisibleColumns,
   setColumnOrder,
+  updateComponentProps,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;
