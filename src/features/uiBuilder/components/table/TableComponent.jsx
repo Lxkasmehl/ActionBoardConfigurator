@@ -17,6 +17,7 @@ import {
   setTableData as setTableDataRedux,
   setVisibleColumns,
   setColumnOrder,
+  updateComponentProps,
 } from '../../../../redux/uiBuilderSlice';
 
 export default function TableComponent({ component, disabled = false }) {
@@ -166,6 +167,12 @@ export default function TableComponent({ component, disabled = false }) {
 
     const updatedColumns = [...columns, newColumn];
     setColumns(updatedColumns);
+    dispatch(
+      updateComponentProps({
+        componentId: component.id,
+        props: { columns: updatedColumns },
+      }),
+    );
 
     // Update Redux store
     dispatch(
@@ -204,6 +211,12 @@ export default function TableComponent({ component, disabled = false }) {
         isMainEntity: col.id === editedColumn.id,
       }));
       setColumns(updatedColumns);
+      dispatch(
+        updateComponentProps({
+          componentId: component.id,
+          props: { columns: updatedColumns },
+        }),
+      );
     }
 
     if (editedColumn.data) {
@@ -222,6 +235,12 @@ export default function TableComponent({ component, disabled = false }) {
       });
 
       setColumns(updatedColumns);
+      dispatch(
+        updateComponentProps({
+          componentId: component.id,
+          props: { columns: updatedColumns },
+        }),
+      );
 
       // Add new column to visible columns
       if (editedColumn.isNewColumn) {
@@ -238,6 +257,12 @@ export default function TableComponent({ component, disabled = false }) {
         col.id === editingColumn.id ? editedColumn : col,
       );
       setColumns(updatedColumns);
+      dispatch(
+        updateComponentProps({
+          componentId: component.id,
+          props: { columns: updatedColumns },
+        }),
+      );
     }
   };
 
@@ -250,6 +275,12 @@ export default function TableComponent({ component, disabled = false }) {
       }
       const updatedColumns = columns.filter((col) => col.id !== columnId);
       setColumns(updatedColumns);
+      dispatch(
+        updateComponentProps({
+          componentId: component.id,
+          props: { columns: updatedColumns },
+        }),
+      );
       setTableData(
         tableData.map((row) => {
           const newRow = { ...row };

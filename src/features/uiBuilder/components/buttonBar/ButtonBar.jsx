@@ -11,6 +11,7 @@ import {
   setSortModalOpen,
   setSortConfig,
   setColumnSelectorModalOpen,
+  updateComponentProps,
 } from '../../../../redux/uiBuilderSlice';
 
 export default function ButtonBar({ component, disabled = false }) {
@@ -37,7 +38,12 @@ export default function ButtonBar({ component, disabled = false }) {
   };
 
   const handleSave = (updatedComponent) => {
-    component.props.fields = updatedComponent.props.fields;
+    dispatch(
+      updateComponentProps({
+        componentId: component.id,
+        props: { fields: updatedComponent.props.fields },
+      }),
+    );
   };
 
   const handleApplySort = (field, direction) => {

@@ -18,18 +18,20 @@ import { collisionDetectionStrategy } from '../utils/collisionDetection';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { myPointerSensor } from '../utils/myPointerSensor';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { setComponents } from '@/redux/uiBuilderSlice';
 
 export default function UiBuilder() {
-  const [components, setComponents] = useState([]);
   const [isOverTrash, setIsOverTrash] = useState(false);
+  const dispatch = useDispatch();
+  const components = useSelector((state) => state.uiBuilder.components);
   const isInCreateGroupMode = useSelector(
     (state) => state.uiBuilder.isInCreateGroupMode,
   );
   const groupToEdit = useSelector((state) => state.uiBuilder.groupToEdit);
   const { activeDragData, handleDragStart, handleDragEnd } = useDragAndDrop(
     components,
-    setComponents,
+    (newComponents) => dispatch(setComponents(newComponents)),
   );
 
   const sensors = useSensors(
@@ -53,7 +55,7 @@ export default function UiBuilder() {
         >
           <ComponentLibrary />
           <SortableContext
-            items={components.map((c) => c.id)}
+            items={Array.isArray(components) ? components.map((c) => c.id) : []}
             strategy={verticalListSortingStrategy}
             data={{
               isDragging: !!activeDragData,

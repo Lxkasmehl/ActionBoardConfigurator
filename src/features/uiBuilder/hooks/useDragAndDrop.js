@@ -30,11 +30,9 @@ export const useDragAndDrop = (components, setComponents) => {
 
   const insertNewComponent = (targetIndex, componentType) => {
     const newComponent = createNewComponent(componentType);
-    setComponents((items) => {
-      const newItems = [...items];
-      newItems.splice(targetIndex, 0, newComponent);
-      return newItems;
-    });
+    const newItems = [...components];
+    newItems.splice(targetIndex, 0, newComponent);
+    setComponents(newItems);
   };
 
   const handleDragEnd = (event) => {
@@ -61,7 +59,7 @@ export const useDragAndDrop = (components, setComponents) => {
       dispatch(updateComponentGroups(updatedGroups));
 
       // Remove the component from the components list
-      setComponents((items) => items.filter((item) => item.id !== active.id));
+      setComponents(components.filter((item) => item.id !== active.id));
 
       // Check and delete any empty groups
       dispatch(checkAndDeleteEmptyGroups());
@@ -73,7 +71,7 @@ export const useDragAndDrop = (components, setComponents) => {
       const componentType = active.data.current.type;
 
       if (over.id === 'preview-area') {
-        setComponents((prev) => [...prev, createNewComponent(componentType)]);
+        setComponents([...components, createNewComponent(componentType)]);
         return;
       }
 
@@ -91,38 +89,34 @@ export const useDragAndDrop = (components, setComponents) => {
     // Handle existing component reordering
     if (active.id.startsWith('component-')) {
       if (over.id === 'preview-area') {
-        setComponents((items) => {
-          const oldIndex = items.findIndex((item) => item.id === active.id);
-          return arrayMove(items, oldIndex, items.length);
-        });
+        const oldIndex = components.findIndex((item) => item.id === active.id);
+        setComponents(arrayMove(components, oldIndex, components.length));
         return;
       }
 
       if (over.id.startsWith('component-')) {
-        setComponents((items) => {
-          const oldIndex = items.findIndex((item) => item.id === active.id);
-          const newIndex = items.findIndex((item) => item.id === over.id);
-          return arrayMove(items, oldIndex, newIndex);
-        });
+        const oldIndex = components.findIndex((item) => item.id === active.id);
+        const newIndex = components.findIndex((item) => item.id === over.id);
+        setComponents(arrayMove(components, oldIndex, newIndex));
         return;
       }
 
       if (over.id.includes('gap')) {
-        setComponents((items) => {
-          const oldIndex = items.findIndex((item) => item.id === active.id);
-          const targetIndex = items.findIndex(
-            (item) => item.id === over.data.current.componentId,
-          );
-          return arrayMove(
-            items,
+        const oldIndex = components.findIndex((item) => item.id === active.id);
+        const targetIndex = components.findIndex(
+          (item) => item.id === over.data.current.componentId,
+        );
+        setComponents(
+          arrayMove(
+            components,
             oldIndex,
             over.id === 'initial-gap'
               ? targetIndex
               : oldIndex > targetIndex
                 ? targetIndex + 1
                 : targetIndex,
-          );
-        });
+          ),
+        );
       }
     }
   };
