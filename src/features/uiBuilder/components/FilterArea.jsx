@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   setGroupFilters,
   setSelectedFilterOptions,
+  updateComponentProps,
 } from '../../../redux/uiBuilderSlice';
 import { useTableColumns } from '../hooks/useTableColumns';
 
@@ -44,20 +45,38 @@ export default function FilterArea({ component, disabled = false }) {
 
   const handleAddFilter = () => {
     if (disabled) return;
-    setFilters([
+    const newFilters = [
       ...filters,
       {
         id: Date.now(),
         label: `Filter ${filters.length + 1}`,
         options: [],
       },
-    ]);
+    ];
+    setFilters(newFilters);
+
+    // Update the component props in Redux
+    dispatch(
+      updateComponentProps({
+        componentId: component.id,
+        props: { fields: newFilters.map(({ label }) => ({ label })) },
+      }),
+    );
   };
 
   const handleRemoveFilter = (id) => {
     if (disabled) return;
     if (filters.length > 1) {
-      setFilters(filters.filter((filter) => filter.id !== id));
+      const newFilters = filters.filter((filter) => filter.id !== id);
+      setFilters(newFilters);
+
+      // Update the component props in Redux
+      dispatch(
+        updateComponentProps({
+          componentId: component.id,
+          props: { fields: newFilters.map(({ label }) => ({ label })) },
+        }),
+      );
     }
   };
 
@@ -70,12 +89,19 @@ export default function FilterArea({ component, disabled = false }) {
   const handleEditComplete = () => {
     if (disabled) return;
     if (editingId) {
-      setFilters(
-        filters.map((filter) =>
-          filter.id === editingId ? { ...filter, label: editingValue } : filter,
-        ),
+      const updatedFilters = filters.map((filter) =>
+        filter.id === editingId ? { ...filter, label: editingValue } : filter,
       );
+      setFilters(updatedFilters);
       setEditingId(null);
+
+      // Update the component props in Redux
+      dispatch(
+        updateComponentProps({
+          componentId: component.id,
+          props: { fields: updatedFilters.map(({ label }) => ({ label })) },
+        }),
+      );
     }
   };
 
