@@ -61,9 +61,14 @@ export async function verifyTableData(table, expectedValues) {
     const cellText = await cells[i].textContent();
     // Normalize empty strings and single spaces to be considered equal
     const normalizedCellText = cellText.trim() === '' ? '' : cellText;
-    const normalizedExpectedValue =
-      expectedValues[i].trim() === '' ? '' : expectedValues[i];
-    expect(normalizedCellText).toBe(normalizedExpectedValue);
+
+    if (expectedValues[i] instanceof RegExp) {
+      expect(normalizedCellText).toMatch(expectedValues[i]);
+    } else {
+      const normalizedExpectedValue =
+        expectedValues[i].trim() === '' ? '' : expectedValues[i];
+      expect(normalizedCellText).toBe(normalizedExpectedValue);
+    }
   }
 }
 

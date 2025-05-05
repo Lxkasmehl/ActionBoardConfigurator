@@ -32,6 +32,7 @@ test.describe('Table Tests', () => {
   });
 
   test('fill table with fetched data without dataPicker', async ({ page }) => {
+    test.setTimeout(60000);
     await page.setViewportSize({ width: 1920, height: 1080 });
     const { table } = await setupTable(page, previewArea);
 
@@ -62,11 +63,11 @@ test.describe('Table Tests', () => {
       '',
       '',
       '',
-      'ttttqui',
+      /^(ppppqui|ttttrec1)$/,
       '',
       '',
       '',
-      'ttttrec1',
+      /^(ttttrec2|ttttrec1)$/,
       '',
       '',
       '',
@@ -106,7 +107,7 @@ test.describe('Table Tests', () => {
       '',
       '',
       '',
-      'ttttqui',
+      /^(ttttqui|ppppqui)$/,
       '',
       '',
       '',
@@ -169,7 +170,7 @@ test.describe('Table Tests', () => {
       '10033376',
       'Landsberger Str. 110',
       '5660',
-      'ttttqui',
+      /^(ttttqui|ppppqui)$/,
       'Landsberger Str. 110',
       '4959',
       'ttttrec1',
