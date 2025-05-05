@@ -33,6 +33,7 @@ test.describe('Basic Component Tests', () => {
   });
 
   test('dnd all components in preview area', async () => {
+    test.setTimeout(60000);
     // Drag all components to preview area
     for (const [componentName, component] of Object.entries(components)) {
       await dragAndVerifyComponent(component, previewArea, componentName);

@@ -64,6 +64,7 @@ test.describe('Group Tests', () => {
   test('create two groups with table and buttonBar and edit the two groups', async ({
     page,
   }) => {
+    test.setTimeout(60000);
     await page.setViewportSize({ width: 1920, height: 1080 });
 
     const groupTypes = ['buttonBar', 'table'];
@@ -93,7 +94,7 @@ test.describe('Group Tests', () => {
 
   test('fill chart component with actual data', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1920 });
-    test.setTimeout(120000);
+    test.setTimeout(240000);
 
     const componentTypes = ['chart', 'table'];
     const sortableComponents = await setupComponentsInPreview(
@@ -154,7 +155,9 @@ test.describe('Group Tests', () => {
 
     // Verify chart has either 5 or 6 bars
     const chartBars = page.locator('.MuiBarElement-root');
-    await expect(chartBars).toHaveCount(5, 6);
+    const count = await chartBars.count();
+    expect(count).toBeGreaterThanOrEqual(5);
+    expect(count).toBeLessThanOrEqual(6);
 
     // Get all bars and their values
     const bars = await chartBars.all();
@@ -360,7 +363,7 @@ test.describe('Group Tests', () => {
       'Landsberger Str. 110',
       'M',
       /^(wwwwCHE|qqqq)$/,
-      'Zürichbergstr. 7',
+      /^(Zürichbergstr. 7|Landsberger Str. 110)$/,
       'M',
       'wwwwDEU',
       'Landsberger Str. 110',

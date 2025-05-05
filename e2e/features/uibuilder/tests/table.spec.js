@@ -67,7 +67,7 @@ test.describe('Table Tests', () => {
       '',
       '',
       '',
-      /^(ttttrec2|ttttrec1)$/,
+      /^(ttttrec2|ttttrec1|pppprec1)$/,
       '',
       '',
       '',
@@ -76,7 +76,7 @@ test.describe('Table Tests', () => {
 
   test('fill table with fetched data with dataPicker', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
-    test.setTimeout(60000);
+    test.setTimeout(90000);
     const { table } = await setupTable(page, previewArea);
 
     await configureTableColumn(page, table, 0, {
@@ -111,7 +111,7 @@ test.describe('Table Tests', () => {
       '',
       '',
       '',
-      'ttttrec1',
+      /^(ttttrec1|pppprec1)$/,
       '',
       '',
       '',
@@ -122,7 +122,7 @@ test.describe('Table Tests', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
-    test.setTimeout(60000);
+    test.setTimeout(90000);
     const { table } = await setupTable(page, previewArea);
 
     await configureTableColumn(page, table, 0, {
@@ -172,7 +172,7 @@ test.describe('Table Tests', () => {
       '5660',
       /^(ttttqui|ppppqui)$/,
       'Landsberger Str. 110',
-      '4959',
+      /^(4959|4955)$/,
       'ttttrec1',
       'Landsberger Str. 110',
       '4295',

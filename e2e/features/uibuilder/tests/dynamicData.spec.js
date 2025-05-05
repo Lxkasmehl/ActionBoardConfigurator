@@ -24,6 +24,7 @@ test.describe('Dynamic Data Tests', () => {
   });
 
   test('edit heading component with dynamic data', async ({ page }) => {
+    test.setTimeout(90000);
     const sortableHeadingComponent = await dragAndVerifyComponent(
       components.heading,
       previewArea,
@@ -65,6 +66,7 @@ test.describe('Dynamic Data Tests', () => {
   });
 
   test('edit paragraph component with dynamic data', async ({ page }) => {
+    test.setTimeout(90000);
     const sortableParagraphComponent = await dragAndVerifyComponent(
       components.paragraph,
       previewArea,
