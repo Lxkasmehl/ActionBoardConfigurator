@@ -12,7 +12,7 @@ import ChartComponent from '../chart/ChartComponent';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setWorkingSelectedComponents } from '@/redux/uiBuilderSlice';
-
+import ImageComponent from '../ImageComponent';
 export default function SortableComponent({ component, isOver, isLast }) {
   const [isNearEdge, setIsNearEdge] = useState(false);
   const dispatch = useDispatch();
@@ -132,20 +132,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
           </Button>
         );
       case 'image':
-        return (
-          <Box
-            component='img'
-            src={component.props.src}
-            alt={component.props.alt}
-            sx={{
-              maxWidth: '100%',
-              height: 'auto',
-              ...(isInCreateGroupMode || groupToEdit !== null
-                ? { opacity: 0.7 }
-                : {}),
-            }}
-          />
-        );
+        return <ImageComponent component={component} {...commonProps} />;
       case 'filterArea':
         return <FilterArea component={component} {...commonProps} />;
       case 'buttonBar':
