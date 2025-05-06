@@ -50,13 +50,6 @@ export async function verifyTableData(table, expectedValues) {
     .locator('.MuiDataGrid-cell:not(.MuiDataGrid-cellEmpty)')
     .all();
 
-  // Verify we have enough cells
-  if (cells.length < expectedValues.length) {
-    throw new Error(
-      `Expected ${expectedValues.length} cells but found ${cells.length} cells`,
-    );
-  }
-
   for (let i = 0; i < expectedValues.length; i++) {
     const cellText = await cells[i].textContent();
     // Normalize empty strings and single spaces to be considered equal

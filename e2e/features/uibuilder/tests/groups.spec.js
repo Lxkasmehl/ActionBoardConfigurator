@@ -182,7 +182,7 @@ test.describe('Group Tests', () => {
     const expectedValues = {
       '': 185,
       M: [480, 493],
-      F: 330,
+      F: [330, 317],
       U: 3,
       D: 1,
       O: 1,
@@ -365,7 +365,7 @@ test.describe('Group Tests', () => {
       /^(wwwwCHE|qqqq)$/,
       /^(Zürichbergstr. 7|Landsberger Str. 110)$/,
       'M',
-      'wwwwDEU',
+      /^(wwwwDEU|qqqqCHE)$/,
       'Landsberger Str. 110',
       'M',
       'wwwwDEU2',

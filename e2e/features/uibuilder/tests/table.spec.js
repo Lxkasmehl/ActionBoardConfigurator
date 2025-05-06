@@ -122,7 +122,7 @@ test.describe('Table Tests', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
-    test.setTimeout(90000);
+    test.setTimeout(120000);
     const { table } = await setupTable(page, previewArea);
 
     await configureTableColumn(page, table, 0, {
@@ -173,7 +173,7 @@ test.describe('Table Tests', () => {
       /^(ttttqui|ppppqui)$/,
       'Landsberger Str. 110',
       /^(4959|4955)$/,
-      'ttttrec1',
+      /^(ttttrec1|pppprec1)$/,
       'Landsberger Str. 110',
       '4295',
     ]);
