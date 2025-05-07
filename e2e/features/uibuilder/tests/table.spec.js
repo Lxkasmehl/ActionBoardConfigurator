@@ -42,7 +42,7 @@ test.describe('Table Tests', () => {
       property: 'userId',
     });
 
-    await verifyTableData(table, [
+    await verifyTableData(page, table, [
       '6c701150-dff5-4762-bc7f-8c8e78ab729f',
       'John Smith',
       'M',
@@ -74,7 +74,9 @@ test.describe('Table Tests', () => {
     ]);
   });
 
-  test('fill table with fetched data with dataPicker', async ({ page }) => {
+  test('fill table with fetched data with dataPicker', async ({
+    page,
+  }, testInfo) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     test.setTimeout(90000);
     const { table } = await setupTable(page, previewArea);
@@ -86,36 +88,41 @@ test.describe('Table Tests', () => {
       useDataPicker: true,
     });
 
-    await verifyTableData(table, [
-      '6c701150-dff5-4762-bc7f-8c8e78ab729f',
-      'John Smith',
-      'M',
-      'USA',
-      '162',
-      'Sarah Johnson',
-      'F',
-      'Canada',
-      'kkkkCHE',
-      '',
-      '',
-      '',
-      'llllCHE',
-      '',
-      '',
-      '',
-      '10033376',
-      '',
-      '',
-      '',
-      /^(ttttqui|ppppqui)$/,
-      '',
-      '',
-      '',
-      /^(ttttrec1|pppprec1)$/,
-      '',
-      '',
-      '',
-    ]);
+    await verifyTableData(
+      page,
+      table,
+      [
+        '6c701150-dff5-4762-bc7f-8c8e78ab729f',
+        'John Smith',
+        'M',
+        'USA',
+        '162',
+        'Sarah Johnson',
+        'F',
+        'Canada',
+        'kkkkCHE',
+        '',
+        '',
+        '',
+        'llllCHE',
+        '',
+        '',
+        '',
+        '10033376',
+        '',
+        '',
+        '',
+        /^(ttttqui|ppppqui|ttttrec1)$/,
+        '',
+        '',
+        '',
+        /^(ttttrec1|pppprec1|ttttrec2)$/,
+        '',
+        '',
+        '',
+      ],
+      testInfo,
+    );
   });
 
   test('fill table with fetched data from different entities and connect via relation and delete column', async ({
@@ -154,7 +161,7 @@ test.describe('Table Tests', () => {
       .filter({ hasText: 'Delete Column' });
     await editColumnMenuItem.click();
 
-    await verifyTableData(table, [
+    await verifyTableData(page, table, [
       '6c701150-dff5-4762-bc7f-8c8e78ab729f',
       '',
       '',
