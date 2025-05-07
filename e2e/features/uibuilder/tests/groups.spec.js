@@ -215,7 +215,7 @@ test.describe('Group Tests', () => {
 
   test('create group with filterArea, buttonBar, table and fill everything with proper data and functionality', async ({
     page,
-  }) => {
+  }, testInfo) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     test.setTimeout(120000);
 
@@ -352,55 +352,65 @@ test.describe('Group Tests', () => {
 
     await page.getByTestId('apply-filter-button').click();
 
-    await verifyTableData(sortableComponents.table, [
-      '162',
-      '',
-      'M',
-      'kkkkCHE',
-      'Zürichbergstr. 7',
-      'M',
-      '10033376',
-      'Landsberger Str. 110',
-      'M',
-      /^(wwwwCHE|qqqq)$/,
-      /^(Zürichbergstr. 7|Landsberger Str. 110)$/,
-      'M',
-      /^(wwwwDEU|qqqqCHE)$/,
-      /^(Zürichbergstr. 7|Landsberger Str. 110)$/,
-      'M',
-      'wwwwDEU2',
-      'Landsberger Str. 110',
-      'M',
-      'wwwwLMS',
-      'Landsberger Str. 110',
-      'M',
-    ]);
+    await verifyTableData(
+      page,
+      sortableComponents.table,
+      [
+        '162',
+        '',
+        'M',
+        'kkkkCHE',
+        'Zürichbergstr. 7',
+        'M',
+        '10033376',
+        'Landsberger Str. 110',
+        'M',
+        /^(wwwwCHE|qqqq)$/,
+        /^(Zürichbergstr. 7|Landsberger Str. 110)$/,
+        'M',
+        /^(wwwwDEU|qqqqCHE)$/,
+        /^(Zürichbergstr. 7|Landsberger Str. 110)$/,
+        'M',
+        /^(wwwwDEU2|qqqqDEU)$/,
+        'Landsberger Str. 110',
+        'M',
+        'wwwwLMS',
+        'Landsberger Str. 110',
+        'M',
+      ],
+      testInfo,
+    );
 
     await page.getByTestId('clear-filter-button').click();
 
-    await verifyTableData(sortableComponents.table, [
-      '6c701150-dff5-4762-bc7f-8c8e78ab729f',
-      '',
-      '',
-      '162',
-      '',
-      'M',
-      'kkkkCHE',
-      'Zürichbergstr. 7',
-      'M',
-      'llllCHE',
-      'Zürichbergstr. 7',
-      'F',
-      '10033376',
-      'Landsberger Str. 110',
-      'M',
-      'ttttqui',
-      'Landsberger Str. 110',
-      'F',
-      'ttttrec1',
-      'Landsberger Str. 110',
-      'F',
-    ]);
+    await verifyTableData(
+      page,
+      sortableComponents.table,
+      [
+        '6c701150-dff5-4762-bc7f-8c8e78ab729f',
+        '',
+        '',
+        '162',
+        '',
+        'M',
+        'kkkkCHE',
+        'Zürichbergstr. 7',
+        'M',
+        'llllCHE',
+        'Zürichbergstr. 7',
+        'F',
+        '10033376',
+        'Landsberger Str. 110',
+        'M',
+        'ttttqui',
+        'Landsberger Str. 110',
+        'F',
+        'ttttrec1',
+        'Landsberger Str. 110',
+        'F',
+      ],
+      testInfo,
+    );
 
     await page.getByTestId('column-selector-button').click();
     await page
@@ -408,7 +418,7 @@ test.describe('Group Tests', () => {
       .click({ force: true });
     await page.getByTestId('column-selector-apply-button').click();
 
-    await verifyTableData(sortableComponents.table, [
+    await verifyTableData(page, sortableComponents.table, [
       '6c701150-dff5-4762-bc7f-8c8e78ab729f',
       '',
       '162',
@@ -446,7 +456,7 @@ test.describe('Group Tests', () => {
     await page.getByTestId('sort-desc-radio').click();
     await page.getByTestId('sort-apply-button').click();
 
-    await verifyTableData(sortableComponents.table, [
+    await verifyTableData(page, sortableComponents.table, [
       'zzzztal2',
       'M',
       'zzzztal1',

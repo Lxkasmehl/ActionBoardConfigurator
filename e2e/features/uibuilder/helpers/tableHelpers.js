@@ -38,7 +38,16 @@ export async function setupTable(page, previewArea) {
 }
 
 // Helper function to verify table data
-export async function verifyTableData(table, expectedValues) {
+export async function verifyTableData(page, table, expectedValues, testInfo) {
+  // Take a screenshot before verification only if testInfo is provided
+  if (testInfo) {
+    const screenshot = await page.screenshot({ fullPage: true });
+    await testInfo.attach('screenshot', {
+      body: screenshot,
+      contentType: 'image/png',
+    });
+  }
+
   // Wait for at least one cell to be visible
   await table
     .locator('.MuiDataGrid-cell')
