@@ -40,20 +40,45 @@ export const useTableData = (columns, initialDummyData) => {
       setIsLoading(true);
       try {
         const results = await Promise.all(
-          entityColumns.map((col) =>
-            handleSendRequest({
+          entityColumns.map((col) => {
+            // If we have a nested property, we need to include both the navigation property and the nested property
+            if (col.nestedProperty) {
+              // Ensure we're not duplicating the navigation path
+              const navigationPath = col.nestedNavigationPath || [];
+              return handleSendRequest({
+                entity: col.entity.name,
+                property: col.nestedProperty,
+                nestedNavigationPath: navigationPath,
+              });
+            }
+            return handleSendRequest({
               entity: col.entity.name,
-              property: col.property.name,
-            }),
-          ),
+              property: col.property,
+            });
+          }),
         );
 
         const newEntityData = {};
         results.forEach((result, index) => {
           const column = entityColumns[index];
-          newEntityData[column.label] = result.d.results.map(
-            (item) => item[column.property.name],
-          );
+          if (column.nestedProperty) {
+            // For nested properties, we need to extract the nested property value from the navigation property object
+            newEntityData[column.label] = result.d.results.map((item) => {
+              let currentValue = item;
+              // Navigate through the nested path
+              for (const navProp of column.nestedNavigationPath || []) {
+                currentValue = currentValue?.[navProp.name];
+                if (!currentValue) return null;
+              }
+              // Get the final property value
+              return currentValue?.[column.nestedProperty.name] || null;
+            });
+          } else {
+            // For regular properties, just get the property value directly
+            newEntityData[column.label] = result.d.results.map(
+              (item) => item[column.property.name],
+            );
+          }
         });
 
         setTableData((prevData) => {

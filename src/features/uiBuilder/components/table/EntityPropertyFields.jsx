@@ -1,6 +1,154 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
-import { FormControl, FormLabel, Autocomplete } from '@mui/joy';
+import { useSelector } from 'react-redux';
+import {
+  FormControl,
+  FormLabel,
+  Autocomplete,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Typography,
+} from '@mui/joy';
+import {
+  getNavigationProperties,
+  findMatchingEntity,
+} from '../../../dataPicker/utils/entity/entityNavigation';
+
+const NavigationPropertyAccordion = ({
+  entity,
+  property,
+  onPropertyChange,
+  associationSets,
+  allEntities,
+  navigationPath = [],
+  onPathChange,
+}) => {
+  const [matchingEntity, setMatchingEntity] = useState(null);
+  const [propertyOptions, setPropertyOptions] = useState([]);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+
+  useEffect(() => {
+    if (property?.isNavigation && associationSets && allEntities) {
+      const { matchingEntity: matchedEntity } =
+        findMatchingEntity({
+          propertyName: property.name,
+          navigationProperties: getNavigationProperties(entity),
+          associationSets,
+          allEntities,
+        }) || {};
+
+      if (matchedEntity) {
+        setMatchingEntity(matchedEntity);
+        const props = [];
+
+        // Add regular properties
+        if (Array.isArray(matchedEntity.properties.properties)) {
+          // eslint-disable-next-line react/prop-types
+          props.push(
+            ...matchedEntity.properties.properties.map((p) => ({
+              name: p.Name || p.name,
+              type: p.Type || p.type,
+              isNavigation: false,
+            })),
+          );
+        }
+
+        // Add navigation properties
+        if (Array.isArray(matchedEntity.properties.navigationProperties)) {
+          // eslint-disable-next-line react/prop-types
+          props.push(
+            ...matchedEntity.properties.navigationProperties.map((p) => ({
+              name: p.Name || p.name,
+              type: p.Type || p.type,
+              isNavigation: true,
+              ...p,
+            })),
+          );
+        }
+
+        setPropertyOptions(props);
+      }
+    } else {
+      setMatchingEntity(null);
+      setPropertyOptions([]);
+      setSelectedProperty(null);
+    }
+  }, [property, entity, associationSets, allEntities]);
+
+  const handlePropertyChange = (_, value) => {
+    setSelectedProperty(value);
+    if (value?.isNavigation) {
+      // Add the newly selected property to the path
+      const newPath = [...navigationPath, value];
+      onPathChange(newPath);
+    } else {
+      onPropertyChange(value, navigationPath);
+    }
+  };
+
+  if (!matchingEntity) return null;
+
+  return (
+    <Accordion sx={{ maxWidth: '500px', width: '100%', marginTop: 1 }}>
+      <AccordionSummary>
+        <Typography>
+          Select {matchingEntity.name} Property
+          {navigationPath.length > 0 && (
+            <span style={{ marginLeft: '8px', color: '#666' }}>
+              ({navigationPath.map((p) => p.name).join(' → ')})
+            </span>
+          )}
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <FormControl sx={{ width: '100%' }}>
+          <FormLabel>
+            {navigationPath.length > 0
+              ? `${navigationPath[navigationPath.length - 1].name} Property`
+              : `${matchingEntity.name} Property`}
+          </FormLabel>
+          <Autocomplete
+            value={selectedProperty}
+            onChange={handlePropertyChange}
+            options={propertyOptions}
+            getOptionLabel={(option) => option?.name || ''}
+            isOptionEqualToValue={(option, value) => {
+              if (!option || !value) return false;
+              return option.name === value.name;
+            }}
+            placeholder={`Select ${
+              navigationPath.length > 0
+                ? navigationPath[navigationPath.length - 1].name
+                : matchingEntity.name
+            } Property`}
+          />
+        </FormControl>
+        {selectedProperty?.isNavigation && (
+          <NavigationPropertyAccordion
+            entity={matchingEntity}
+            property={selectedProperty}
+            onPropertyChange={onPropertyChange}
+            associationSets={associationSets}
+            allEntities={allEntities}
+            navigationPath={navigationPath}
+            onPathChange={onPathChange}
+          />
+        )}
+      </AccordionDetails>
+    </Accordion>
+  );
+};
+
+NavigationPropertyAccordion.propTypes = {
+  entity: PropTypes.object.isRequired,
+  property: PropTypes.object.isRequired,
+  onPropertyChange: PropTypes.func.isRequired,
+  associationSets: PropTypes.array.isRequired,
+  allEntities: PropTypes.array.isRequired,
+  navigationPath: PropTypes.array,
+  onPathChange: PropTypes.func.isRequired,
+};
 
 export default function EntityPropertyFields({
   editedItem,
@@ -8,6 +156,11 @@ export default function EntityPropertyFields({
   sortedEntities,
   loading,
 }) {
+  const allEntities = useSelector((state) => state.fetchedData.allEntities);
+  const associationSets = useSelector(
+    (state) => state.fetchedData.associationSets,
+  );
+
   const [selectedEntity, setSelectedEntity] = useState(
     editedItem.entity || null,
   );
@@ -15,6 +168,9 @@ export default function EntityPropertyFields({
     editedItem.property || null,
   );
   const [propertyOptions, setPropertyOptions] = useState([]);
+  const [nestedNavigationPath, setNestedNavigationPath] = useState(
+    editedItem.nestedNavigationPath || [],
+  );
 
   useEffect(() => {
     if (selectedEntity?.properties) {
@@ -24,6 +180,7 @@ export default function EntityPropertyFields({
           ...selectedEntity.properties.properties.map((p) => ({
             name: p.Name || p.name,
             type: p.Type || p.type,
+            isNavigation: false,
           })),
         );
       }
@@ -32,6 +189,8 @@ export default function EntityPropertyFields({
           ...selectedEntity.properties.navigationProperties.map((p) => ({
             name: p.Name || p.name,
             type: p.Type || p.type,
+            isNavigation: true,
+            ...p,
           })),
         );
       }
@@ -40,6 +199,35 @@ export default function EntityPropertyFields({
       setPropertyOptions([]);
     }
   }, [selectedEntity?.properties]);
+
+  const handlePropertyChange = (_, value) => {
+    setSelectedProperty(value);
+    if (value?.isNavigation) {
+      setNestedNavigationPath([value]);
+      setEditedItem({
+        ...editedItem,
+        property: value,
+        nestedProperty: null,
+        nestedNavigationPath: [value],
+      });
+    } else {
+      setNestedNavigationPath([]);
+      setEditedItem({
+        ...editedItem,
+        property: value,
+        nestedProperty: null,
+        nestedNavigationPath: [],
+      });
+    }
+  };
+
+  const handleNestedPropertyChange = (property, path) => {
+    setEditedItem({
+      ...editedItem,
+      nestedProperty: property,
+      nestedNavigationPath: path,
+    });
+  };
 
   return (
     <>
@@ -65,13 +253,7 @@ export default function EntityPropertyFields({
         <FormLabel>Property</FormLabel>
         <Autocomplete
           value={selectedProperty}
-          onChange={(_, value) => {
-            setSelectedProperty(value);
-            setEditedItem({
-              ...editedItem,
-              property: value,
-            });
-          }}
+          onChange={handlePropertyChange}
           options={propertyOptions}
           getOptionLabel={(option) => option?.name || ''}
           loading={loading}
@@ -83,6 +265,17 @@ export default function EntityPropertyFields({
           placeholder='Select Property'
         />
       </FormControl>
+      {selectedProperty?.isNavigation && (
+        <NavigationPropertyAccordion
+          entity={selectedEntity}
+          property={selectedProperty}
+          onPropertyChange={handleNestedPropertyChange}
+          associationSets={associationSets}
+          allEntities={allEntities}
+          navigationPath={nestedNavigationPath}
+          onPathChange={setNestedNavigationPath}
+        />
+      )}
     </>
   );
 }
@@ -91,6 +284,8 @@ EntityPropertyFields.propTypes = {
   editedItem: PropTypes.shape({
     entity: PropTypes.object,
     property: PropTypes.object,
+    nestedProperty: PropTypes.object,
+    nestedNavigationPath: PropTypes.array,
     label: PropTypes.string,
   }).isRequired,
   setEditedItem: PropTypes.func.isRequired,
