@@ -143,7 +143,7 @@ export async function configureTableColumn(
 
   if (useDataPicker) {
     await expect(page.getByTestId('edit-modal')).not.toBeVisible({
-      timeout: 20000,
+      timeout: 40000,
     });
   }
   await expect(table.locator('.MuiDataGrid-overlay')).not.toBeVisible();

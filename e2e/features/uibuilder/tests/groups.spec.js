@@ -92,7 +92,7 @@ test.describe('Group Tests', () => {
     await verifyBorderColorsDifferent(page, firstGroup, secondGroup);
   });
 
-  test('fill chart component with actual data', async ({ page }) => {
+  test('fill chart component with actual data', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1920, height: 1920 });
     test.setTimeout(240000);
 
@@ -156,6 +156,13 @@ test.describe('Group Tests', () => {
     // Verify chart has either 5 or 6 bars
     const chartBars = page.locator('.MuiBarElement-root');
     const count = await chartBars.count();
+
+    const screenshot = await page.screenshot({ fullPage: true });
+    await testInfo.attach('screenshot', {
+      body: screenshot,
+      contentType: 'image/png',
+    });
+
     expect(count).toBeGreaterThanOrEqual(5);
     expect(count).toBeLessThanOrEqual(6);
 
