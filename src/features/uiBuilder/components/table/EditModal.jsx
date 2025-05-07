@@ -209,6 +209,7 @@ export default function EditModal({
             isIframeValidationError={isIframeValidationError}
             columnData={columnData}
             setColumnData={setColumnData}
+            onSave={handleSave}
           />
           <div className='flex flex-col gap-4 mt-3 max-w-[500px] w-[100%]'>
             <Button
