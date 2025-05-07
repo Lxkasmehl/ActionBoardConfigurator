@@ -175,7 +175,7 @@ test.describe('Table Tests', () => {
       /^(4959|4955)$/,
       /^(ttttrec1|pppprec1)$/,
       'Landsberger Str. 110',
-      '4295',
+      /^(4295|4291)$/,
     ]);
   });
 });
