@@ -1,21 +1,13 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  FormControl,
-  FormLabel,
-  Autocomplete,
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Typography,
-} from '@mui/joy';
+import { FormControl, FormLabel, Autocomplete } from '@mui/joy';
 import {
   getNavigationProperties,
   findMatchingEntity,
 } from '../../../dataPicker/utils/entity/entityNavigation';
 
-const NavigationPropertyAccordion = ({
+const NavigationPropertySelector = ({
   entity,
   property,
   onPropertyChange,
@@ -90,57 +82,45 @@ const NavigationPropertyAccordion = ({
   if (!matchingEntity) return null;
 
   return (
-    <Accordion sx={{ maxWidth: '500px', width: '100%', marginTop: 1 }}>
-      <AccordionSummary>
-        <Typography>
-          Select {matchingEntity.name} Property
-          {navigationPath.length > 0 && (
-            <span style={{ marginLeft: '8px', color: '#666' }}>
-              ({navigationPath.map((p) => p.name).join(' → ')})
-            </span>
-          )}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <FormControl sx={{ width: '100%' }}>
-          <FormLabel>
-            {navigationPath.length > 0
-              ? `${navigationPath[navigationPath.length - 1].name} Property`
-              : `${matchingEntity.name} Property`}
-          </FormLabel>
-          <Autocomplete
-            value={selectedProperty}
-            onChange={handlePropertyChange}
-            options={propertyOptions}
-            getOptionLabel={(option) => option?.name || ''}
-            isOptionEqualToValue={(option, value) => {
-              if (!option || !value) return false;
-              return option.name === value.name;
-            }}
-            placeholder={`Select ${
-              navigationPath.length > 0
-                ? navigationPath[navigationPath.length - 1].name
-                : matchingEntity.name
-            } Property`}
-          />
-        </FormControl>
-        {selectedProperty?.isNavigation && (
-          <NavigationPropertyAccordion
-            entity={matchingEntity}
-            property={selectedProperty}
-            onPropertyChange={onPropertyChange}
-            associationSets={associationSets}
-            allEntities={allEntities}
-            navigationPath={navigationPath}
-            onPathChange={onPathChange}
-          />
-        )}
-      </AccordionDetails>
-    </Accordion>
+    <>
+      <FormControl sx={{ maxWidth: '500px', width: '100%', marginTop: 1 }}>
+        <FormLabel>
+          {navigationPath.length > 0
+            ? `${navigationPath[navigationPath.length - 1].name} Property`
+            : `${matchingEntity.name} Property`}
+        </FormLabel>
+        <Autocomplete
+          value={selectedProperty}
+          onChange={handlePropertyChange}
+          options={propertyOptions}
+          getOptionLabel={(option) => option?.name || ''}
+          isOptionEqualToValue={(option, value) => {
+            if (!option || !value) return false;
+            return option.name === value.name;
+          }}
+          placeholder={`Select ${
+            navigationPath.length > 0
+              ? navigationPath[navigationPath.length - 1].name
+              : matchingEntity.name
+          } Property`}
+        />
+      </FormControl>
+      {selectedProperty?.isNavigation && (
+        <NavigationPropertySelector
+          entity={matchingEntity}
+          property={selectedProperty}
+          onPropertyChange={onPropertyChange}
+          associationSets={associationSets}
+          allEntities={allEntities}
+          navigationPath={navigationPath}
+          onPathChange={onPathChange}
+        />
+      )}
+    </>
   );
 };
 
-NavigationPropertyAccordion.propTypes = {
+NavigationPropertySelector.propTypes = {
   entity: PropTypes.object.isRequired,
   property: PropTypes.object.isRequired,
   onPropertyChange: PropTypes.func.isRequired,
@@ -266,7 +246,7 @@ export default function EntityPropertyFields({
         />
       </FormControl>
       {selectedProperty?.isNavigation && (
-        <NavigationPropertyAccordion
+        <NavigationPropertySelector
           entity={selectedEntity}
           property={selectedProperty}
           onPropertyChange={handleNestedPropertyChange}
