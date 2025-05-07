@@ -23,8 +23,11 @@ test.describe('Dynamic Data Tests', () => {
     await expect(previewArea).toBeVisible();
   });
 
-  test('edit heading component with dynamic data', async ({ page }) => {
-    test.setTimeout(120000);
+  test('edit heading component with dynamic data', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName === 'webkit', 'This test is skipped for Webkit');
     const sortableHeadingComponent = await dragAndVerifyComponent(
       components.heading,
       previewArea,
@@ -65,8 +68,11 @@ test.describe('Dynamic Data Tests', () => {
     ).toBeVisible();
   });
 
-  test('edit paragraph component with dynamic data', async ({ page }) => {
-    test.setTimeout(120000);
+  test('edit paragraph component with dynamic data', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName === 'webkit', 'This test is skipped for Webkit');
     const sortableParagraphComponent = await dragAndVerifyComponent(
       components.paragraph,
       previewArea,

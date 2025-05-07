@@ -32,8 +32,9 @@ test.describe('Basic Component Tests', () => {
     }
   });
 
-  test('dnd all components in preview area', async () => {
-    test.setTimeout(120000);
+  test('dnd all components in preview area', async ({ page }) => {
+    test.setTimeout(60000);
+    await page.setViewportSize({ width: 1920, height: 1080 });
     // Drag all components to preview area
     for (const [componentName, component] of Object.entries(components)) {
       await dragAndVerifyComponent(component, previewArea, componentName);
