@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getNavigationProperties } from '../utils/entity/entityNavigation';
+import {
+  getNavigationProperties,
+  findMatchingEntity,
+} from '../../../shared/utils/entityNavigation';
 import { setMatchingEntityObjects } from '../../../redux/dataPickerSlice';
-import { findMatchingEntity } from '../utils/entity/entityNavigation';
 
 export default function useDropdownsAndInputState(
   propertyOptionsId,
