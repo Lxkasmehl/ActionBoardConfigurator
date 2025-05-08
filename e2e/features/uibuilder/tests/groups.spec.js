@@ -153,6 +153,10 @@ test.describe('Group Tests', () => {
 
     await page.getByTestId('chart-save-button').click();
 
+    await expect(
+      sortableComponents.table.locator('.MuiDataGrid-overlay'),
+    ).not.toBeVisible();
+
     // Verify chart has either 5 or 6 bars
     const chartBars = page.locator('.MuiBarElement-root');
     const count = await chartBars.count();
@@ -346,6 +350,12 @@ test.describe('Group Tests', () => {
       .click({ force: true });
 
     await page.getByTestId('button-bar-save-button').click();
+
+    const screenshot = await page.screenshot({ fullPage: true });
+    await testInfo.attach('screenshot', {
+      body: screenshot,
+      contentType: 'image/png',
+    });
 
     await selectFromAutocomplete(
       page,
