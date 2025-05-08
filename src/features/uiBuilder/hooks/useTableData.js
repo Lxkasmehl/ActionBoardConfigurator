@@ -1,6 +1,37 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSendRequest } from './useSendRequest';
 
+// Helper function to extract values from nested OData responses
+export const extractNestedValue = (obj, propertyPath) => {
+  if (!obj) return null;
+
+  // If the property path is a string, split it by dots
+  const path =
+    typeof propertyPath === 'string' ? propertyPath.split('.') : propertyPath;
+
+  // Get the current property name
+  const currentProp = path[0];
+
+  // If we've reached the end of the path, return the value
+  if (path.length === 1) {
+    // Handle results array if present
+    if (obj[currentProp]?.results) {
+      return obj[currentProp].results;
+    }
+    return obj[currentProp];
+  }
+
+  // If the current property has a results array, process each item
+  if (obj[currentProp]?.results) {
+    return obj[currentProp].results.map((item) =>
+      extractNestedValue(item, path.slice(1)),
+    );
+  }
+
+  // Otherwise, continue traversing
+  return extractNestedValue(obj[currentProp], path.slice(1));
+};
+
 export const useTableData = (columns, initialDummyData) => {
   const [tableData, setTableData] = useState(initialDummyData);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,17 +93,21 @@ export const useTableData = (columns, initialDummyData) => {
         results.forEach((result, index) => {
           const column = entityColumns[index];
           if (column.nestedProperty) {
-            // For nested properties, we need to extract the nested property value from the navigation property object
-            newEntityData[column.label] = result.d.results.map((item) => {
-              let currentValue = item;
-              // Navigate through the nested path
-              for (const navProp of column.nestedNavigationPath || []) {
-                currentValue = currentValue?.[navProp.name];
-                if (!currentValue) return null;
-              }
-              // Get the final property value
-              return currentValue?.[column.nestedProperty.name] || null;
+            // For nested properties, build the complete path to the value
+            const navigationPath = column.nestedNavigationPath || [];
+            const pathParts = ['d'];
+
+            // Add navigation path parts
+            navigationPath.forEach((navProp) => {
+              pathParts.push(navProp.name);
             });
+
+            // Add the final property name
+            pathParts.push(column.nestedProperty.name);
+
+            // Extract the value using the complete path
+            const results = extractNestedValue(result, pathParts);
+            newEntityData[column.label] = results;
           } else {
             // For regular properties, just get the property value directly
             newEntityData[column.label] = result.d.results.map(

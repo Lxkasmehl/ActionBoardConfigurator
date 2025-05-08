@@ -41,7 +41,10 @@ export const useSendRequest = () => {
       } else {
         // For regular properties, just use select
         const selectedProperties = properties || [property];
-        queryParams.set('$select', selectedProperties.join(','));
+        queryParams.set(
+          '$select',
+          selectedProperties.map((prop) => prop.name).join(','),
+        );
       }
 
       const response = await fetch(`${baseUrl}?${queryParams.toString()}`, {
