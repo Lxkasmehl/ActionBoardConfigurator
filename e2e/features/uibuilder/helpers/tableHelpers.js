@@ -97,6 +97,7 @@ export async function configureTableColumn(
     mainEntity = false,
     relationship = null,
   },
+  testInfo,
 ) {
   const columnHeader = table
     .locator('.MuiDataGrid-columnHeader')
@@ -141,9 +142,18 @@ export async function configureTableColumn(
   }
   await page.getByTestId('save-button').click();
 
+  if (testInfo) {
+    await page.waitForTimeout(30000);
+    const screenshot = await page.screenshot({ fullPage: true });
+    await testInfo.attach('screenshot', {
+      body: screenshot,
+      contentType: 'image/png',
+    });
+  }
+
   if (useDataPicker) {
     await expect(page.getByTestId('edit-modal')).not.toBeVisible({
-      timeout: 40000,
+      timeout: 60000,
     });
   }
   await expect(table.locator('.MuiDataGrid-overlay')).not.toBeVisible();

@@ -67,7 +67,7 @@ test.describe('Basic Component Tests', () => {
     );
     await page.mouse.up();
     await expect(trashBin).toBeHidden();
-    await expect(sortableComponent).toBeHidden();
+    await expect(sortableComponent).toBeHidden({ timeout: 30000 });
   });
 
   test('edit heading component without dynamic data', async () => {

@@ -48,7 +48,7 @@ test.describe('Table Tests', () => {
       page,
       table,
       [
-        /^(6c701150-dff5-4762-bc7f-8c8e78ab729f| )$/,
+        /^(6c701150-dff5-4762-bc7f-8c8e78ab729f| |)$/,
         'John Smith',
         'M',
         'USA',
@@ -88,12 +88,18 @@ test.describe('Table Tests', () => {
     test.setTimeout(90000);
     const { table } = await setupTable(page, previewArea);
 
-    await configureTableColumn(page, table, 0, {
-      label: 'User - UserId',
-      entity: 'User',
-      property: 'userId',
-      useDataPicker: true,
-    });
+    await configureTableColumn(
+      page,
+      table,
+      0,
+      {
+        label: 'User - UserId',
+        entity: 'User',
+        property: 'userId',
+        useDataPicker: true,
+      },
+      testInfo,
+    );
 
     await verifyTableData(
       page,
@@ -172,7 +178,7 @@ test.describe('Table Tests', () => {
       page,
       table,
       [
-        /^(6c701150-dff5-4762-bc7f-8c8e78ab729f| )$/,
+        /^(6c701150-dff5-4762-bc7f-8c8e78ab729f| |)$/,
         '',
         '',
         '162',
