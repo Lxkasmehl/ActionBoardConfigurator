@@ -48,7 +48,11 @@ export default function EntityPropertyFields({
           })),
         );
       }
-      setPropertyOptions(properties);
+      // Sort properties alphabetically by name
+      const sortedProperties = properties.sort((a, b) =>
+        a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }),
+      );
+      setPropertyOptions(sortedProperties);
     } else {
       setPropertyOptions([]);
     }
@@ -101,6 +105,7 @@ export default function EntityPropertyFields({
           loading={loading}
           isOptionEqualToValue={(option, value) => option?.name === value?.name}
           placeholder='Select Entity'
+          groupBy={(option) => option.name.charAt(0).toUpperCase()}
         />
       </FormControl>
       <FormControl sx={{ maxWidth: '500px', width: '100%', marginTop: 1 }}>
@@ -117,6 +122,7 @@ export default function EntityPropertyFields({
             return option.name === value.name;
           }}
           placeholder='Select Property'
+          groupBy={(option) => option.name.charAt(0).toUpperCase()}
         />
       </FormControl>
       {selectedProperty?.isNavigation && (
