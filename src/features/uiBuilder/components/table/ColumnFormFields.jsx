@@ -37,6 +37,7 @@ const ColumnFormFields = forwardRef(
       isIframeValidationError,
       columnData,
       setColumnData,
+      onSave,
     },
     ref,
   ) => {
@@ -243,6 +244,14 @@ const ColumnFormFields = forwardRef(
             onChange={(e) =>
               setEditedItem({ ...editedItem, label: e.target.value })
             }
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onSave();
+              } else if (e.key === ' ') {
+                e.stopPropagation();
+              }
+            }}
             placeholder='Enter column label'
             data-testid='column-label-input'
           />
@@ -448,6 +457,7 @@ ColumnFormFields.propTypes = {
     relation: PropTypes.object,
   }),
   setColumnData: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
 };
 
 export default ColumnFormFields;

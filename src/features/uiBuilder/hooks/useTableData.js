@@ -1,6 +1,37 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSendRequest } from './useSendRequest';
 
+// Helper function to extract values from nested OData responses
+export const extractNestedValue = (obj, propertyPath) => {
+  if (!obj) return null;
+
+  // If the property path is a string, split it by dots
+  const path =
+    typeof propertyPath === 'string' ? propertyPath.split('.') : propertyPath;
+
+  // Get the current property name
+  const currentProp = path[0];
+
+  // If we've reached the end of the path, return the value
+  if (path.length === 1) {
+    // Handle results array if present
+    if (obj[currentProp]?.results) {
+      return obj[currentProp].results;
+    }
+    return obj[currentProp];
+  }
+
+  // If the current property has a results array, process each item
+  if (obj[currentProp]?.results) {
+    return obj[currentProp].results.map((item) =>
+      extractNestedValue(item, path.slice(1)),
+    );
+  }
+
+  // Otherwise, continue traversing
+  return extractNestedValue(obj[currentProp], path.slice(1));
+};
+
 export const useTableData = (columns, initialDummyData) => {
   const [tableData, setTableData] = useState(initialDummyData);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,20 +71,49 @@ export const useTableData = (columns, initialDummyData) => {
       setIsLoading(true);
       try {
         const results = await Promise.all(
-          entityColumns.map((col) =>
-            handleSendRequest({
+          entityColumns.map((col) => {
+            // If we have a nested property, we need to include both the navigation property and the nested property
+            if (col.nestedProperty) {
+              // Ensure we're not duplicating the navigation path
+              const navigationPath = col.nestedNavigationPath || [];
+              return handleSendRequest({
+                entity: col.entity.name,
+                property: col.nestedProperty,
+                nestedNavigationPath: navigationPath,
+              });
+            }
+            return handleSendRequest({
               entity: col.entity.name,
-              property: col.property.name,
-            }),
-          ),
+              property: col.property,
+            });
+          }),
         );
 
         const newEntityData = {};
         results.forEach((result, index) => {
           const column = entityColumns[index];
-          newEntityData[column.label] = result.d.results.map(
-            (item) => item[column.property.name],
-          );
+          if (column.nestedProperty) {
+            // For nested properties, build the complete path to the value
+            const navigationPath = column.nestedNavigationPath || [];
+            const pathParts = ['d'];
+
+            // Add navigation path parts
+            navigationPath.forEach((navProp) => {
+              pathParts.push(navProp.name);
+            });
+
+            // Add the final property name
+            pathParts.push(column.nestedProperty.name);
+
+            // Extract the value using the complete path
+            const results = extractNestedValue(result, pathParts);
+            newEntityData[column.label] = results;
+          } else {
+            // For regular properties, just get the property value directly
+            newEntityData[column.label] = result.d.results.map(
+              (item) => item[column.property.name],
+            );
+          }
         });
 
         setTableData((prevData) => {

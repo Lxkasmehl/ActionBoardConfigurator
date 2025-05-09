@@ -15,7 +15,9 @@ export const generateComponentCode = (
     case 'button':
       return `<Button variant="${props.variant}" color="${props.color}">${props.text}</Button>`;
     case 'image':
-      return `<img src="${props.src}" alt="${props.alt}" style={{ maxWidth: '100%', height: 'auto' }} />`;
+      return `<div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
+        <img src="${props.src}" style={{ maxHeight: '500px', width: 'auto', maxWidth: '100%' }} />
+      </div>`;
     case 'filterArea':
       return `<FilterArea componentId="${component.id}" 
       fields={${JSON.stringify(props.fields)}} 

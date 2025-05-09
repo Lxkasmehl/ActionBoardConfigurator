@@ -219,20 +219,32 @@ export default function TableComponent({ component, disabled = false }) {
       );
     }
 
-    if (editedColumn.data) {
+    // Check if we have new data or entity configuration
+    if (editedColumn.data || editedColumn.entity) {
       const updatedColumns = editedColumn.isNewColumn
         ? [...columns, { ...editedColumn, id: crypto.randomUUID() }]
         : columns.map((col) =>
             col.id === editingColumn.id ? editedColumn : col,
           );
 
-      setTableData((prevData) => {
-        const maxRows = Math.max(prevData.length, editedColumn.data.length);
-        return Array.from({ length: maxRows }, (_, index) => ({
-          ...(prevData[index] || {}),
-          [editedColumn.label]: editedColumn.data[index] || '',
-        }));
-      });
+      // Always update table data when we have new data or entity changes
+      if (editedColumn.data) {
+        setTableData((prevData) => {
+          const maxRows = Math.max(prevData.length, editedColumn.data.length);
+          return Array.from({ length: maxRows }, (_, index) => ({
+            ...(prevData[index] || {}),
+            [editedColumn.label]: editedColumn.data[index] || '',
+          }));
+        });
+      } else if (editedColumn.entity) {
+        // If we have entity changes but no data yet, clear the column data
+        setTableData((prevData) => {
+          return prevData.map((row) => ({
+            ...row,
+            [editedColumn.label]: '',
+          }));
+        });
+      }
 
       setColumns(updatedColumns);
       dispatch(

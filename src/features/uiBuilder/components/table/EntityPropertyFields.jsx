@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { FormControl, FormLabel, Autocomplete } from '@mui/joy';
+import NavigationPropertySelector from './NavigationPropertySelector';
 
 export default function EntityPropertyFields({
   editedItem,
@@ -8,6 +10,11 @@ export default function EntityPropertyFields({
   sortedEntities,
   loading,
 }) {
+  const allEntities = useSelector((state) => state.fetchedData.allEntities);
+  const associationSets = useSelector(
+    (state) => state.fetchedData.associationSets,
+  );
+
   const [selectedEntity, setSelectedEntity] = useState(
     editedItem.entity || null,
   );
@@ -15,6 +22,9 @@ export default function EntityPropertyFields({
     editedItem.property || null,
   );
   const [propertyOptions, setPropertyOptions] = useState([]);
+  const [nestedNavigationPath, setNestedNavigationPath] = useState(
+    editedItem.nestedNavigationPath || [],
+  );
 
   useEffect(() => {
     if (selectedEntity?.properties) {
@@ -24,6 +34,7 @@ export default function EntityPropertyFields({
           ...selectedEntity.properties.properties.map((p) => ({
             name: p.Name || p.name,
             type: p.Type || p.type,
+            isNavigation: false,
           })),
         );
       }
@@ -32,14 +43,49 @@ export default function EntityPropertyFields({
           ...selectedEntity.properties.navigationProperties.map((p) => ({
             name: p.Name || p.name,
             type: p.Type || p.type,
+            isNavigation: true,
+            ...p,
           })),
         );
       }
-      setPropertyOptions(properties);
+      // Sort properties alphabetically by name
+      const sortedProperties = properties.sort((a, b) =>
+        a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }),
+      );
+      setPropertyOptions(sortedProperties);
     } else {
       setPropertyOptions([]);
     }
   }, [selectedEntity?.properties]);
+
+  const handlePropertyChange = (_, value) => {
+    setSelectedProperty(value);
+    if (value?.isNavigation) {
+      setNestedNavigationPath([value]);
+      setEditedItem({
+        ...editedItem,
+        property: value,
+        nestedProperty: null,
+        nestedNavigationPath: [value],
+      });
+    } else {
+      setNestedNavigationPath([]);
+      setEditedItem({
+        ...editedItem,
+        property: value,
+        nestedProperty: null,
+        nestedNavigationPath: [],
+      });
+    }
+  };
+
+  const handleNestedPropertyChange = (property, path) => {
+    setEditedItem({
+      ...editedItem,
+      nestedProperty: property,
+      nestedNavigationPath: path,
+    });
+  };
 
   return (
     <>
@@ -59,6 +105,7 @@ export default function EntityPropertyFields({
           loading={loading}
           isOptionEqualToValue={(option, value) => option?.name === value?.name}
           placeholder='Select Entity'
+          groupBy={(option) => option.name.charAt(0).toUpperCase()}
           data-testid='entity-select'
         />
       </FormControl>
@@ -66,13 +113,7 @@ export default function EntityPropertyFields({
         <FormLabel>Property</FormLabel>
         <Autocomplete
           value={selectedProperty}
-          onChange={(_, value) => {
-            setSelectedProperty(value);
-            setEditedItem({
-              ...editedItem,
-              property: value,
-            });
-          }}
+          onChange={handlePropertyChange}
           options={propertyOptions}
           getOptionLabel={(option) => option?.name || ''}
           loading={loading}
@@ -82,9 +123,21 @@ export default function EntityPropertyFields({
             return option.name === value.name;
           }}
           placeholder='Select Property'
+          groupBy={(option) => option.name.charAt(0).toUpperCase()}
           data-testid='property-select'
         />
       </FormControl>
+      {selectedProperty?.isNavigation && (
+        <NavigationPropertySelector
+          entity={selectedEntity}
+          property={selectedProperty}
+          onPropertyChange={handleNestedPropertyChange}
+          associationSets={associationSets}
+          allEntities={allEntities}
+          navigationPath={nestedNavigationPath}
+          onPathChange={setNestedNavigationPath}
+        />
+      )}
     </>
   );
 }
@@ -93,6 +146,8 @@ EntityPropertyFields.propTypes = {
   editedItem: PropTypes.shape({
     entity: PropTypes.object,
     property: PropTypes.object,
+    nestedProperty: PropTypes.object,
+    nestedNavigationPath: PropTypes.array,
     label: PropTypes.string,
   }).isRequired,
   setEditedItem: PropTypes.func.isRequired,

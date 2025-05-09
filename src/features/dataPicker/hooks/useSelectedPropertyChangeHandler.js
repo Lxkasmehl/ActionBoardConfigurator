@@ -9,7 +9,7 @@ import {
 import {
   findMatchingEntity,
   getNavigationProperties,
-} from '../utils/entity/entityNavigation';
+} from '../../../shared/utils/entityNavigation';
 
 export function useSelectedPropertyChangeHandler(
   isTargetOfEdge,
