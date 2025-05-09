@@ -176,6 +176,24 @@ export default function EditModal({
       setIsIframeValidationError(false);
       return;
     }
+
+    // Check if property is selected when entity is selected
+    if (editedItem.entity && !editedItem.property) {
+      setValidationError('Please select a property for the selected entity.');
+      setIsIframeValidationError(false);
+      return;
+    }
+
+    // Check if any navigation property is empty in the path
+    if (
+      editedItem.nestedNavigationPath?.length > 0 &&
+      !editedItem.nestedProperty
+    ) {
+      setValidationError('Please select a property for all navigation paths.');
+      setIsIframeValidationError(false);
+      return;
+    }
+
     setValidationError('');
 
     if (columnFormRef.current && isIFrame) {
@@ -209,6 +227,7 @@ export default function EditModal({
             isIframeValidationError={isIframeValidationError}
             columnData={columnData}
             setColumnData={setColumnData}
+            onSave={handleSave}
           />
           <div className='flex flex-col gap-4 mt-3 max-w-[500px] w-[100%]'>
             <Button

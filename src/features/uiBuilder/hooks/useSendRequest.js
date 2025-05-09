@@ -15,12 +15,39 @@ export const useSendRequest = () => {
       headers.set('successfactors-sourcetype', 'Application');
       headers.set('Accept', 'application/json');
 
-      const { entity, property, properties } = config;
+      const { entity, property, properties, nestedNavigationPath } = config;
       const baseUrl = `/api/odata/v2/${entity}`;
-      const selectedProperties = properties || [property];
-      const queryString = `$format=json&$select=${encodeURIComponent(selectedProperties.join(','))}`;
 
-      const response = await fetch(`${baseUrl}?${queryString}`, {
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+      queryParams.set('$format', 'json');
+
+      // Handle navigation properties
+      if (nestedNavigationPath && nestedNavigationPath.length > 0) {
+        // Build the expand path for nested navigation properties
+        const expandPath = nestedNavigationPath.map((p) => p.name).join('/');
+        queryParams.set('$expand', expandPath);
+
+        // If we have a final property selected, add it to the select
+        if (property) {
+          // Only add the property name to the select path, not the full navigation path again
+          queryParams.set('$select', `${expandPath}/${property.name}`);
+        }
+      } else if (properties && properties.length > 1) {
+        // Handle simple navigation property case
+        const [navProperty, nestedProperty] = properties;
+        queryParams.set('$expand', navProperty);
+        queryParams.set('$select', `${navProperty}/${nestedProperty}`);
+      } else {
+        // For regular properties, just use select
+        const selectedProperties = properties || [property];
+        queryParams.set(
+          '$select',
+          selectedProperties.map((prop) => prop.name).join(','),
+        );
+      }
+
+      const response = await fetch(`${baseUrl}?${queryParams.toString()}`, {
         method: 'GET',
         mode: 'cors',
         headers,

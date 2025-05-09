@@ -24,7 +24,6 @@ import {
 import { useState } from 'react';
 
 export default function ComponentLibrary() {
-  const disabledComponents = ['Image', 'Button'];
   const dispatch = useDispatch();
   const isInCreateGroupMode = useSelector(
     (state) => state.uiBuilder.isInCreateGroupMode,
@@ -97,7 +96,6 @@ export default function ComponentLibrary() {
             type={type}
             config={config}
             index={index}
-            disabled={disabledComponents.includes(config.label)}
           />
         ))}
       </Stack>
