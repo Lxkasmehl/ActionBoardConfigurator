@@ -143,7 +143,7 @@ export async function configureTableColumn(
   await page.getByTestId('save-button').click();
 
   if (testInfo) {
-    await page.waitForTimeout(30000);
+    await page.waitForTimeout(10000);
     const screenshot = await page.screenshot({ fullPage: true });
     await testInfo.attach('screenshot', {
       body: screenshot,
@@ -153,7 +153,7 @@ export async function configureTableColumn(
 
   if (useDataPicker) {
     await expect(page.getByTestId('edit-modal')).not.toBeVisible({
-      timeout: 60000,
+      timeout: 30000,
     });
   }
   await expect(table.locator('.MuiDataGrid-overlay')).not.toBeVisible();

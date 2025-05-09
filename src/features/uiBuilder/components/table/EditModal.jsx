@@ -178,7 +178,7 @@ export default function EditModal({
     }
 
     // Check if property is selected when entity is selected
-    if (editedItem.entity && !editedItem.property) {
+    if (editedItem.entity && !editedItem.property && !isIFrame) {
       setValidationError('Please select a property for the selected entity.');
       setIsIframeValidationError(false);
       return;
