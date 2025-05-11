@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSendRequest } from './useSendRequest';
+import { useSelector } from 'react-redux';
 
 // Helper function to extract values from nested OData responses
 export const extractNestedValue = (obj, propertyPath) => {
@@ -32,10 +33,13 @@ export const extractNestedValue = (obj, propertyPath) => {
   return extractNestedValue(obj[currentProp], path.slice(1));
 };
 
-export const useTableData = (columns, initialDummyData) => {
+export const useTableData = (columns, initialDummyData, componentId) => {
   const [tableData, setTableData] = useState(initialDummyData);
   const [isLoading, setIsLoading] = useState(false);
   const handleSendRequest = useSendRequest();
+  const columnSeparators = useSelector(
+    (state) => state.uiBuilder.columnSeparators[componentId] || {},
+  );
 
   const updateTableData = useCallback((newData) => {
     setTableData(newData);
@@ -71,28 +75,68 @@ export const useTableData = (columns, initialDummyData) => {
       setIsLoading(true);
       try {
         const results = await Promise.all(
-          entityColumns.map((col) => {
+          entityColumns.flatMap((col) => {
+            // Handle combined properties case
+            if (col.combinedProperties) {
+              return col.combinedProperties.map((property) =>
+                handleSendRequest({
+                  entity: col.entity.name,
+                  property: property,
+                }),
+              );
+            }
             // If we have a nested property, we need to include both the navigation property and the nested property
             if (col.nestedProperty) {
               // Ensure we're not duplicating the navigation path
               const navigationPath = col.nestedNavigationPath || [];
-              return handleSendRequest({
-                entity: col.entity.name,
-                property: col.nestedProperty,
-                nestedNavigationPath: navigationPath,
-              });
+              return [
+                handleSendRequest({
+                  entity: col.entity.name,
+                  property: col.nestedProperty,
+                  nestedNavigationPath: navigationPath,
+                }),
+              ];
             }
-            return handleSendRequest({
-              entity: col.entity.name,
-              property: col.property,
-            });
+            return [
+              handleSendRequest({
+                entity: col.entity.name,
+                property: col.property,
+              }),
+            ];
           }),
         );
 
         const newEntityData = {};
-        results.forEach((result, index) => {
-          const column = entityColumns[index];
-          if (column.nestedProperty) {
+        let resultIndex = 0;
+        entityColumns.forEach((column) => {
+          if (column.combinedProperties) {
+            // For combined properties, we need to merge the results
+            const combinedResults = column.combinedProperties.map(
+              (combinedProperty) => {
+                const result = results[resultIndex++];
+                return result.d.results.map(
+                  (item) => item[combinedProperty.name],
+                );
+              },
+            );
+
+            // Get the separator for this column
+            const separator = columnSeparators[column.id] || '';
+
+            // Combine the results by merging the arrays
+            newEntityData[column.label] = combinedResults.reduce(
+              (acc, curr) => {
+                return acc.map((item, index) => {
+                  if (curr[index] !== undefined) {
+                    return item
+                      ? `${item}${separator}${curr[index]}`
+                      : curr[index];
+                  }
+                  return item;
+                });
+              },
+            );
+          } else if (column.nestedProperty) {
             // For nested properties, build the complete path to the value
             const navigationPath = column.nestedNavigationPath || [];
             const pathParts = ['d'];
@@ -106,10 +150,12 @@ export const useTableData = (columns, initialDummyData) => {
             pathParts.push(column.nestedProperty.name);
 
             // Extract the value using the complete path
+            const result = results[resultIndex++];
             const results = extractNestedValue(result, pathParts);
             newEntityData[column.label] = results;
           } else {
             // For regular properties, just get the property value directly
+            const result = results[resultIndex++];
             newEntityData[column.label] = result.d.results.map(
               (item) => item[column.property.name],
             );
@@ -146,7 +192,7 @@ export const useTableData = (columns, initialDummyData) => {
     };
 
     fetchEntityData();
-  }, [columns, handleSendRequest]);
+  }, [columns, handleSendRequest, columnSeparators]);
 
   return [tableData, updateTableData, isLoading];
 };
