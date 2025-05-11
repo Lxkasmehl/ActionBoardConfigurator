@@ -1,9 +1,17 @@
 /* eslint-disable react/prop-types */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
+import {
+  Modal,
+  ModalDialog,
+  ModalClose,
+  Typography,
+  Button,
+  Switch,
+} from '@mui/joy';
 import ColumnFormFields from './ColumnFormFields';
 import { useSelector } from 'react-redux';
+import CombinedPropertiesSection from './CombinedPropertiesSection';
 
 export default function EditModal({
   open,
@@ -13,6 +21,7 @@ export default function EditModal({
   onDelete,
   title,
   mainEntity,
+  component,
 }) {
   const [editedItem, setEditedItem] = useState(item);
   const columnFormRef = useRef(null);
@@ -21,9 +30,35 @@ export default function EditModal({
   const [validationError, setValidationError] = useState('');
   const [isIframeValidationError, setIsIframeValidationError] = useState(false);
   const [columnData, setColumnData] = useState(null);
+  const [isCombinedProperties, setIsCombinedProperties] = useState(false);
+  const [combinedProperties, setCombinedProperties] = useState([]);
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
+
+  // Add effect to handle automatic property addition to combined properties
+  useEffect(() => {
+    if (
+      isCombinedProperties &&
+      editedItem.property &&
+      !combinedProperties.some((p) => p.name === editedItem.property.name)
+    ) {
+      setCombinedProperties([...combinedProperties, editedItem.property]);
+    }
+  }, [editedItem.property, isCombinedProperties, combinedProperties]);
+
+  const handleCombinedPropertiesChange = useCallback((checked) => {
+    setIsCombinedProperties(checked);
+    if (!checked) {
+      setCombinedProperties([]);
+    }
+  }, []);
+
+  const handleCombinedPropertiesUpdate = useCallback((newProperties) => {
+    setCombinedProperties(newProperties);
+  }, []);
+
+  console.log('combinedProperties', combinedProperties);
 
   const isEntityMismatch = useCallback(
     (newColumnData) => {
@@ -229,6 +264,36 @@ export default function EditModal({
             setColumnData={setColumnData}
             onSave={handleSave}
           />
+
+          {!isIFrame && editedItem.entity && (
+            <div className='w-full max-w-[500px] mt-4'>
+              <div className='flex items-center justify-between mb-2'>
+                <Typography level='body-md'>
+                  Combine Multiple Properties
+                </Typography>
+                <Switch
+                  checked={isCombinedProperties}
+                  onChange={(e) =>
+                    handleCombinedPropertiesChange(e.target.checked)
+                  }
+                />
+              </div>
+
+              {isCombinedProperties && (
+                <>
+                  <CombinedPropertiesSection
+                    entity={editedItem.entity}
+                    combinedProperties={combinedProperties}
+                    setCombinedProperties={handleCombinedPropertiesUpdate}
+                    componentId={component.id}
+                    columnId={item.id}
+                    setEditedItem={setEditedItem}
+                  />
+                </>
+              )}
+            </div>
+          )}
+
           <div className='flex flex-col gap-4 mt-3 max-w-[500px] w-[100%]'>
             <Button
               variant='outlined'
@@ -298,4 +363,7 @@ EditModal.propTypes = {
       navigationProperties: PropTypes.array,
     }),
   }),
+  component: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+  }).isRequired,
 };

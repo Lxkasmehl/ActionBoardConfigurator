@@ -17,6 +17,7 @@ const initialState = {
   visibleColumns: {},
   columnSelectorModalOpen: { isOpen: false, componentId: null },
   columnOrder: {},
+  columnSeparators: {},
 };
 
 const uiBuilderSlice = createSlice({
@@ -115,6 +116,13 @@ const uiBuilderSlice = createSlice({
       const { componentId, columnOrder } = action.payload;
       state.columnOrder[componentId] = columnOrder;
     },
+    setColumnSeparator: (state, action) => {
+      const { componentId, columnId, separator } = action.payload;
+      if (!state.columnSeparators[componentId]) {
+        state.columnSeparators[componentId] = {};
+      }
+      state.columnSeparators[componentId][columnId] = separator;
+    },
     updateComponentProps: (state, action) => {
       const { componentId, props } = action.payload;
       const componentIndex = state.components.findIndex(
@@ -153,6 +161,7 @@ export const {
   setColumnSelectorModalOpen,
   setVisibleColumns,
   setColumnOrder,
+  setColumnSeparator,
   updateComponentProps,
 } = uiBuilderSlice.actions;
 
