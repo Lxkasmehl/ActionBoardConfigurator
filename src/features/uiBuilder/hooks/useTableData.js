@@ -2,6 +2,20 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSendRequest } from './useSendRequest';
 import { useSelector } from 'react-redux';
 
+// Helper function to format date values
+const formatDateValue = (value) => {
+  if (
+    typeof value === 'string' &&
+    value.startsWith('/Date(') &&
+    value.endsWith(')/')
+  ) {
+    const timestamp = parseInt(value.replace(/[^-\d]/g, ''));
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+  }
+  return value;
+};
+
 // Helper function to extract values from nested OData responses
 export const extractNestedValue = (obj, propertyPath) => {
   if (!obj) return null;
@@ -55,7 +69,7 @@ export const useTableData = (columns, initialDummyData, componentId) => {
         const newRow = { ...row };
         columnsWithData.forEach((column) => {
           if (column.data && column.data[index] !== undefined) {
-            newRow[column.label] = column.data[index];
+            newRow[column.label] = formatDateValue(column.data[index]);
           }
         });
         return newRow;
@@ -114,8 +128,8 @@ export const useTableData = (columns, initialDummyData, componentId) => {
             const combinedResults = column.combinedProperties.map(
               (combinedProperty) => {
                 const result = results[resultIndex++];
-                return result.d.results.map(
-                  (item) => item[combinedProperty.name],
+                return result.d.results.map((item) =>
+                  formatDateValue(item[combinedProperty.name]),
                 );
               },
             );
@@ -152,12 +166,14 @@ export const useTableData = (columns, initialDummyData, componentId) => {
             // Extract the value using the complete path
             const result = results[resultIndex++];
             const results = extractNestedValue(result, pathParts);
-            newEntityData[column.label] = results;
+            newEntityData[column.label] = results.map((value) =>
+              formatDateValue(value),
+            );
           } else {
             // For regular properties, just get the property value directly
             const result = results[resultIndex++];
-            newEntityData[column.label] = result.d.results.map(
-              (item) => item[column.property.name],
+            newEntityData[column.label] = result.d.results.map((item) =>
+              formatDateValue(item[column.property.name]),
             );
           }
         });
