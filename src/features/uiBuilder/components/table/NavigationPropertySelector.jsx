@@ -106,6 +106,7 @@ const NavigationPropertySelector = ({
               ? navigationPath[navigationPath.length - 1].name
               : matchingEntity.name
           } Property`}
+          groupBy={(option) => option.name.charAt(0).toUpperCase()}
         />
       </FormControl>
       {selectedProperty?.isNavigation && (

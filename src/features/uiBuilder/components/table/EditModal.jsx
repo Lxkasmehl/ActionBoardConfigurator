@@ -10,8 +10,9 @@ import {
   Switch,
 } from '@mui/joy';
 import ColumnFormFields from './ColumnFormFields';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import CombinedPropertiesSection from './CombinedPropertiesSection';
+import { setCombinedPropertiesMode } from '../../../../redux/uiBuilderSlice';
 
 export default function EditModal({
   open,
@@ -23,6 +24,7 @@ export default function EditModal({
   mainEntity,
   component,
 }) {
+  const dispatch = useDispatch();
   const [editedItem, setEditedItem] = useState(item);
   const columnFormRef = useRef(null);
   const [isWaitingForIframeData, setIsWaitingForIframeData] = useState(false);
@@ -30,49 +32,59 @@ export default function EditModal({
   const [validationError, setValidationError] = useState('');
   const [isIframeValidationError, setIsIframeValidationError] = useState(false);
   const [columnData, setColumnData] = useState(null);
-  const [isCombinedProperties, setIsCombinedProperties] = useState(false);
   const [combinedProperties, setCombinedProperties] = useState([]);
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
+  const isCombinedProperties = useSelector(
+    (state) =>
+      state.uiBuilder.combinedPropertiesMode[component.id]?.[item.id] || false,
+  );
   const stringifiedPath = JSON.stringify(editedItem.nestedNavigationPath);
-  const combinedPropertiesRef = useRef(combinedProperties);
-  combinedPropertiesRef.current = combinedProperties;
 
   useEffect(() => {
-    if (
-      isCombinedProperties &&
-      editedItem.nestedProperty &&
-      !combinedPropertiesRef.current.some(
-        (p) =>
-          p.nestedProperty?.name === editedItem.nestedProperty.name &&
-          JSON.stringify(p.nestedNavigationPath) === stringifiedPath,
-      )
-    ) {
-      setCombinedProperties((prev) => [
-        ...prev,
-        {
+    // Only proceed if combined properties mode is enabled
+    if (!isCombinedProperties) return;
+
+    // If we already have combined properties, use them
+    if (editedItem.combinedProperties) {
+      setCombinedProperties(editedItem.combinedProperties);
+      return;
+    }
+
+    // Handle new property addition
+    const newProperty = editedItem.nestedProperty
+      ? {
           nestedProperty: editedItem.nestedProperty,
           nestedNavigationPath: editedItem.nestedNavigationPath || [],
-        },
-      ]);
-    } else if (isCombinedProperties && !editedItem.nestedProperty) {
-      setCombinedProperties((prev) => [...prev, editedItem.property]);
-    }
+        }
+      : editedItem.property;
+
+    setCombinedProperties((prev) => [...prev, newProperty]);
   }, [
     isCombinedProperties,
     editedItem.nestedProperty,
     stringifiedPath,
     editedItem.nestedNavigationPath,
     editedItem.property,
+    editedItem.combinedProperties,
   ]);
 
-  const handleCombinedPropertiesChange = useCallback((checked) => {
-    setIsCombinedProperties(checked);
-    if (!checked) {
-      setCombinedProperties([]);
-    }
-  }, []);
+  const handleCombinedPropertiesChange = useCallback(
+    (checked) => {
+      dispatch(
+        setCombinedPropertiesMode({
+          componentId: component.id,
+          columnId: item.id,
+          isEnabled: checked,
+        }),
+      );
+      if (!checked) {
+        setCombinedProperties([]);
+      }
+    },
+    [dispatch, component.id, item.id],
+  );
 
   const handleCombinedPropertiesUpdate = useCallback((newProperties) => {
     setCombinedProperties(newProperties);
