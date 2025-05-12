@@ -35,17 +35,37 @@ export default function EditModal({
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
+  const stringifiedPath = JSON.stringify(editedItem.nestedNavigationPath);
+  const combinedPropertiesRef = useRef(combinedProperties);
+  combinedPropertiesRef.current = combinedProperties;
 
-  // Add effect to handle automatic property addition to combined properties
   useEffect(() => {
     if (
       isCombinedProperties &&
-      editedItem.property &&
-      !combinedProperties.some((p) => p.name === editedItem.property.name)
+      editedItem.nestedProperty &&
+      !combinedPropertiesRef.current.some(
+        (p) =>
+          p.nestedProperty?.name === editedItem.nestedProperty.name &&
+          JSON.stringify(p.nestedNavigationPath) === stringifiedPath,
+      )
     ) {
-      setCombinedProperties([...combinedProperties, editedItem.property]);
+      setCombinedProperties((prev) => [
+        ...prev,
+        {
+          nestedProperty: editedItem.nestedProperty,
+          nestedNavigationPath: editedItem.nestedNavigationPath || [],
+        },
+      ]);
+    } else if (isCombinedProperties && !editedItem.nestedProperty) {
+      setCombinedProperties((prev) => [...prev, editedItem.property]);
     }
-  }, [editedItem.property, isCombinedProperties, combinedProperties]);
+  }, [
+    isCombinedProperties,
+    editedItem.nestedProperty,
+    stringifiedPath,
+    editedItem.nestedNavigationPath,
+    editedItem.property,
+  ]);
 
   const handleCombinedPropertiesChange = useCallback((checked) => {
     setIsCombinedProperties(checked);
@@ -57,8 +77,6 @@ export default function EditModal({
   const handleCombinedPropertiesUpdate = useCallback((newProperties) => {
     setCombinedProperties(newProperties);
   }, []);
-
-  console.log('combinedProperties', combinedProperties);
 
   const isEntityMismatch = useCallback(
     (newColumnData) => {
@@ -161,8 +179,6 @@ export default function EditModal({
                 ...baseColumnData,
               };
 
-              console.log('newColumnData', newColumnData);
-
               setColumnData(newColumnData);
 
               if (validateColumnData(newColumnData)) {
@@ -213,7 +229,7 @@ export default function EditModal({
     }
 
     // Check if property is selected when entity is selected
-    if (editedItem.entity && !editedItem.property) {
+    if (editedItem.entity && !editedItem.property && !isCombinedProperties) {
       setValidationError('Please select a property for the selected entity.');
       setIsIframeValidationError(false);
       return;
@@ -235,10 +251,21 @@ export default function EditModal({
       setIsWaitingForIframeData(true);
       columnFormRef.current.triggerIframeDataFetch();
     } else {
-      onSave(editedItem);
+      const itemToSave = isCombinedProperties
+        ? { ...editedItem, combinedProperties }
+        : editedItem;
+      onSave(itemToSave);
       onClose();
     }
-  }, [editedItem, onSave, onClose, isIFrame, mainEntity]);
+  }, [
+    editedItem,
+    onSave,
+    onClose,
+    isIFrame,
+    mainEntity,
+    isCombinedProperties,
+    combinedProperties,
+  ]);
 
   const handleDelete = useCallback(() => {
     onDelete(item.id);

@@ -5,12 +5,12 @@ import {
   getNavigationProperties,
   findMatchingEntity,
 } from '../../../../shared/utils/entityNavigation';
+import { useSelector } from 'react-redux';
 
 const NavigationPropertySelector = ({
   entity,
   property,
   onPropertyChange,
-  associationSets,
   allEntities,
   navigationPath = [],
   onPathChange,
@@ -18,6 +18,10 @@ const NavigationPropertySelector = ({
   const [matchingEntity, setMatchingEntity] = useState(null);
   const [propertyOptions, setPropertyOptions] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
+
+  const associationSets = useSelector(
+    (state) => state.fetchedData.associationSets,
+  );
 
   useEffect(() => {
     if (property?.isNavigation && associationSets && allEntities) {
@@ -123,7 +127,6 @@ NavigationPropertySelector.propTypes = {
   entity: PropTypes.object.isRequired,
   property: PropTypes.object.isRequired,
   onPropertyChange: PropTypes.func.isRequired,
-  associationSets: PropTypes.array.isRequired,
   allEntities: PropTypes.array.isRequired,
   navigationPath: PropTypes.array,
   onPathChange: PropTypes.func.isRequired,
