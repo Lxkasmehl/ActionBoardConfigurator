@@ -18,6 +18,7 @@ const initialState = {
   columnSelectorModalOpen: { isOpen: false, componentId: null },
   columnOrder: {},
   columnSeparators: {},
+  combinedPropertiesMode: {},
 };
 
 const uiBuilderSlice = createSlice({
@@ -123,6 +124,13 @@ const uiBuilderSlice = createSlice({
       }
       state.columnSeparators[componentId][columnId] = separator;
     },
+    setCombinedPropertiesMode: (state, action) => {
+      const { componentId, columnId, isEnabled } = action.payload;
+      if (!state.combinedPropertiesMode[componentId]) {
+        state.combinedPropertiesMode[componentId] = {};
+      }
+      state.combinedPropertiesMode[componentId][columnId] = isEnabled;
+    },
     updateComponentProps: (state, action) => {
       const { componentId, props } = action.payload;
       const componentIndex = state.components.findIndex(
@@ -162,6 +170,7 @@ export const {
   setVisibleColumns,
   setColumnOrder,
   setColumnSeparator,
+  setCombinedPropertiesMode,
   updateComponentProps,
 } = uiBuilderSlice.actions;
 
