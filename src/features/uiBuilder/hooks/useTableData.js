@@ -82,7 +82,8 @@ export const useTableData = (columns, initialDummyData, componentId) => {
   useEffect(() => {
     const fetchEntityData = async () => {
       const entityColumns = columns.filter(
-        (col) => col.entity && col.property && !col.data,
+        (col) =>
+          col.entity && (col.property || col.combinedProperties) && !col.data,
       );
       if (entityColumns.length === 0) return;
 
@@ -92,12 +93,21 @@ export const useTableData = (columns, initialDummyData, componentId) => {
           entityColumns.flatMap((col) => {
             // Handle combined properties case
             if (col.combinedProperties) {
-              return col.combinedProperties.map((property) =>
-                handleSendRequest({
+              return col.combinedProperties.map((property) => {
+                // Check if the property has nested properties
+                if (property.nestedProperty) {
+                  const navigationPath = property.nestedNavigationPath || [];
+                  return handleSendRequest({
+                    entity: col.entity.name,
+                    property: property.nestedProperty,
+                    nestedNavigationPath: navigationPath,
+                  });
+                }
+                return handleSendRequest({
                   entity: col.entity.name,
                   property: property,
-                }),
-              );
+                });
+              });
             }
             // If we have a nested property, we need to include both the navigation property and the nested property
             if (col.nestedProperty) {
@@ -128,6 +138,24 @@ export const useTableData = (columns, initialDummyData, componentId) => {
             const combinedResults = column.combinedProperties.map(
               (combinedProperty) => {
                 const result = results[resultIndex++];
+                // Check if the property has nested properties
+                if (combinedProperty.nestedProperty) {
+                  const navigationPath =
+                    combinedProperty.nestedNavigationPath || [];
+                  const pathParts = ['d'];
+
+                  // Add navigation path parts
+                  navigationPath.forEach((navProp) => {
+                    pathParts.push(navProp.name);
+                  });
+
+                  // Add the final property name
+                  pathParts.push(combinedProperty.nestedProperty.name);
+
+                  // Extract the value using the complete path
+                  const nestedResults = extractNestedValue(result, pathParts);
+                  return nestedResults.map((value) => formatDateValue(value));
+                }
                 return result.d.results.map((item) =>
                   formatDateValue(item[combinedProperty.name]),
                 );

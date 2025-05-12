@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   FormControl,
@@ -7,10 +7,7 @@ import {
   Input,
   Typography,
   Autocomplete,
-  IconButton,
-  Box,
 } from '@mui/joy';
-import { DragIndicator, Delete } from '@mui/icons-material';
 import {
   DndContext,
   closestCenter,
@@ -23,50 +20,11 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { setColumnSeparator } from '../../../../redux/uiBuilderSlice';
-
-function SortablePropertyItem({ property, index, onRemove }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: property.name });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <Box
-      ref={setNodeRef}
-      style={style}
-      className='flex items-center gap-2 p-2 bg-neutral-100 rounded'
-    >
-      <div {...attributes} {...listeners}>
-        <DragIndicator />
-      </div>
-      <Typography sx={{ flex: 1 }}>{property.name}</Typography>
-      <IconButton
-        size='sm'
-        variant='plain'
-        color='danger'
-        onClick={() => onRemove(index)}
-      >
-        <Delete />
-      </IconButton>
-    </Box>
-  );
-}
-
-SortablePropertyItem.propTypes = {
-  property: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-  }).isRequired,
-  index: PropTypes.number.isRequired,
-  onRemove: PropTypes.func.isRequired,
-};
+import NavigationPropertySelector from './NavigationPropertySelector';
+import SortablePropertyItem from './SortablePropertyItem';
 
 export default function CombinedPropertiesSection({
   entity,
@@ -74,14 +32,14 @@ export default function CombinedPropertiesSection({
   setCombinedProperties,
   componentId,
   columnId,
-  setEditedItem,
 }) {
-  const [propertyOptions, setPropertyOptions] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [nestedNavigationPath, setNestedNavigationPath] = useState([]);
   const dispatch = useDispatch();
   const separator = useSelector(
     (state) => state.uiBuilder.columnSeparators[componentId]?.[columnId],
   );
+  const allEntities = useSelector((state) => state.fetchedData.allEntities);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -90,111 +48,175 @@ export default function CombinedPropertiesSection({
     }),
   );
 
-  useEffect(() => {
-    if (entity?.properties) {
-      const properties = [];
-      if (Array.isArray(entity.properties.properties)) {
-        properties.push(
-          ...entity.properties.properties.map((p) => ({
-            name: p.Name || p.name,
-            type: p.Type || p.type,
-            isNavigation: false,
-            ...p,
-          })),
-        );
-      }
-      if (Array.isArray(entity.properties.navigationProperties)) {
-        properties.push(
-          ...entity.properties.navigationProperties.map((p) => ({
-            name: p.Name || p.name,
-            type: p.Type || p.type,
-            isNavigation: true,
-            ...p,
-          })),
-        );
-      }
-      // Sort properties alphabetically by name
-      const sortedProperties = properties.sort((a, b) =>
-        a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }),
+  const propertyOptions = useMemo(() => {
+    if (!entity?.properties) return [];
+
+    const properties = [];
+    if (Array.isArray(entity.properties.properties)) {
+      properties.push(
+        ...entity.properties.properties.map((p) => ({
+          name: p.Name || p.name,
+          type: p.Type || p.type,
+          isNavigation: false,
+          ...p,
+        })),
       );
-      setPropertyOptions(sortedProperties);
-    } else {
-      setPropertyOptions([]);
     }
+    if (Array.isArray(entity.properties.navigationProperties)) {
+      properties.push(
+        ...entity.properties.navigationProperties.map((p) => ({
+          name: p.Name || p.name,
+          type: p.Type || p.type,
+          isNavigation: true,
+          ...p,
+        })),
+      );
+    }
+    return properties.sort((a, b) =>
+      a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }),
+    );
   }, [entity?.properties]);
 
-  const handleAddProperty = () => {
-    if (selectedProperty) {
-      setCombinedProperties([...combinedProperties, selectedProperty]);
+  const handlePropertyChange = useCallback(
+    (_, value) => {
+      if (!value) {
+        setSelectedProperty(null);
+        setNestedNavigationPath([]);
+        return;
+      }
+
+      if (value.isNavigation) {
+        setSelectedProperty(value);
+        setNestedNavigationPath([value]);
+      } else {
+        setSelectedProperty(null);
+        setCombinedProperties([
+          ...combinedProperties,
+          {
+            nestedProperty: value,
+            nestedNavigationPath: [],
+          },
+        ]);
+      }
+    },
+    [combinedProperties, setCombinedProperties],
+  );
+
+  const handleNestedPropertyChange = useCallback(
+    (property, path) => {
+      const propertyWithPath = {
+        nestedProperty: property,
+        nestedNavigationPath: path,
+      };
+      setCombinedProperties([...combinedProperties, propertyWithPath]);
       setSelectedProperty(null);
+      setNestedNavigationPath([]);
+    },
+    [combinedProperties, setCombinedProperties],
+  );
+
+  const handleDragEnd = useCallback(
+    (event) => {
+      const { active, over } = event;
+
+      if (active.id !== over.id) {
+        setCombinedProperties((items) => {
+          const getPropertyId = (item) => {
+            if (item.nestedProperty) {
+              return (
+                item.nestedNavigationPath.map((p) => p.name).join('/') +
+                '/' +
+                item.nestedProperty.name
+              );
+            }
+            return item.name;
+          };
+
+          const oldIndex = items.findIndex(
+            (item) => getPropertyId(item) === active.id,
+          );
+          const newIndex = items.findIndex(
+            (item) => getPropertyId(item) === over.id,
+          );
+
+          return arrayMove(items, oldIndex, newIndex);
+        });
+      }
+    },
+    [setCombinedProperties],
+  );
+
+  const handleSeparatorChange = useCallback(
+    (e) => {
+      const newValue = e.target.value;
+      dispatch(
+        setColumnSeparator({
+          componentId,
+          columnId,
+          separator: newValue || null,
+        }),
+      );
+    },
+    [dispatch, componentId, columnId],
+  );
+
+  const handleRemoveProperty = useCallback(
+    (index) => {
+      const newProperties = [...combinedProperties];
+      newProperties.splice(index, 1);
+      setCombinedProperties(newProperties);
+    },
+    [combinedProperties, setCombinedProperties],
+  );
+
+  const getPropertyKey = useCallback((property) => {
+    if (
+      property.nestedNavigationPath &&
+      property.nestedNavigationPath.length > 0
+    ) {
+      return (
+        property.nestedNavigationPath.map((p) => p.name).join('/') +
+        '/' +
+        property.nestedProperty.name
+      );
+    } else if (property.nestedProperty) {
+      return property.nestedProperty.name;
+    } else {
+      return property.name;
     }
-  };
-
-  const handleRemoveProperty = (index) => {
-    const newProperties = [...combinedProperties];
-    newProperties.splice(index, 1);
-    setCombinedProperties(newProperties);
-  };
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-
-    if (active.id !== over.id) {
-      setCombinedProperties((items) => {
-        const oldIndex = items.findIndex((item) => item.name === active.id);
-        const newIndex = items.findIndex((item) => item.name === over.id);
-
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  };
+  }, []);
 
   return (
     <div className='space-y-4'>
       <FormControl>
         <FormLabel>Add Property</FormLabel>
-        <div className='flex gap-2'>
-          <Autocomplete
-            value={selectedProperty}
-            onChange={(_, value) => {
-              setSelectedProperty(value);
-              setEditedItem((prev) => ({
-                ...prev,
-                combinedProperties: [...combinedProperties, value],
-              }));
-            }}
-            options={propertyOptions.filter(
-              (prop) => !combinedProperties.some((p) => p.name === prop.name),
-            )}
-            getOptionLabel={(option) => option?.name || ''}
-            placeholder='Select Property'
-            sx={{ flex: 1 }}
-          />
-          <IconButton
-            variant='solid'
-            color='primary'
-            onClick={handleAddProperty}
-            disabled={!selectedProperty}
-          >
-            Add
-          </IconButton>
-        </div>
+        <Autocomplete
+          value={selectedProperty}
+          onChange={handlePropertyChange}
+          options={propertyOptions}
+          getOptionLabel={(option) => option?.name || ''}
+          placeholder='Select Property'
+          sx={{ width: '100%' }}
+          groupBy={(option) => option?.name?.charAt(0)?.toUpperCase() || ''}
+        />
       </FormControl>
+
+      {selectedProperty?.isNavigation && (
+        <NavigationPropertySelector
+          entity={entity}
+          property={selectedProperty}
+          onPropertyChange={handleNestedPropertyChange}
+          allEntities={allEntities}
+          navigationPath={nestedNavigationPath}
+          onPathChange={setNestedNavigationPath}
+        />
+      )}
 
       <FormControl>
         <FormLabel>Separator</FormLabel>
         <Input
           value={separator || ''}
-          onChange={(e) => {
-            const newValue = e.target.value;
-            dispatch(
-              setColumnSeparator({
-                componentId,
-                columnId,
-                separator: newValue || null,
-              }),
-            );
-          }}
+          onChange={handleSeparatorChange}
           placeholder='Enter separator (e.g. space, comma)'
           onKeyDown={(e) => {
             if (e.key === ' ') {
@@ -214,13 +236,23 @@ export default function CombinedPropertiesSection({
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={combinedProperties.map((p) => p.name)}
+            items={combinedProperties.filter(Boolean).map((p) => {
+              if (p.nestedNavigationPath && p.nestedProperty) {
+                return (
+                  p.nestedNavigationPath.map((nav) => nav.name).join('/') +
+                  '/' +
+                  p.nestedProperty.name
+                );
+              } else {
+                return p.name;
+              }
+            })}
             strategy={verticalListSortingStrategy}
           >
             <div className='space-y-2'>
-              {combinedProperties.map((property, index) => (
+              {combinedProperties.filter(Boolean).map((property, index) => (
                 <SortablePropertyItem
-                  key={property.name}
+                  key={getPropertyKey(property)}
                   property={property}
                   index={index}
                   onRemove={handleRemoveProperty}
@@ -235,7 +267,19 @@ export default function CombinedPropertiesSection({
         <Typography level='body-sm' color='neutral'>
           Preview:{' '}
           {combinedProperties
-            .map((prop) => `{${prop.name}}`)
+            .filter(Boolean)
+            .map((prop) => {
+              if (
+                prop.nestedNavigationPath &&
+                prop.nestedNavigationPath.length > 0
+              ) {
+                return `{${prop.nestedNavigationPath.map((p) => p.name).join('/')}/${prop.nestedProperty.name}}`;
+              } else if (prop.nestedProperty) {
+                return `{${prop.nestedProperty.name}}`;
+              } else {
+                return `{${prop.name}}`;
+              }
+            })
             .join(separator || '')}
         </Typography>
       )}
@@ -260,5 +304,4 @@ CombinedPropertiesSection.propTypes = {
   setCombinedProperties: PropTypes.func.isRequired,
   componentId: PropTypes.string.isRequired,
   columnId: PropTypes.string.isRequired,
-  setEditedItem: PropTypes.func.isRequired,
 };
