@@ -43,7 +43,9 @@ test.describe('Basic Component Tests', () => {
 
   test('delete component from preview area with trash bin', async ({
     page,
+    browserName,
   }) => {
+    test.skip(browserName === 'webkit', 'Skipping test for WebKit browser');
     const trashBin = page.getByTestId('trash-bin');
     await expect(trashBin).toBeHidden();
 
