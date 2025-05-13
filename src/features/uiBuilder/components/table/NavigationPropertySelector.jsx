@@ -5,19 +5,34 @@ import {
   getNavigationProperties,
   findMatchingEntity,
 } from '../../../../shared/utils/entityNavigation';
+import { useSelector, useDispatch } from 'react-redux';
+import { setNavigationProperty } from '../../../../redux/uiBuilderSlice';
 
 const NavigationPropertySelector = ({
   entity,
   property,
   onPropertyChange,
-  associationSets,
   allEntities,
   navigationPath = [],
   onPathChange,
+  componentId,
+  columnId,
+  selectorId,
 }) => {
   const [matchingEntity, setMatchingEntity] = useState(null);
   const [propertyOptions, setPropertyOptions] = useState([]);
-  const [selectedProperty, setSelectedProperty] = useState(null);
+  const dispatch = useDispatch();
+
+  const selectedProperty = useSelector(
+    (state) =>
+      state.uiBuilder.navigationProperties[componentId]?.[columnId]?.[
+        selectorId
+      ],
+  );
+
+  const associationSets = useSelector(
+    (state) => state.fetchedData.associationSets,
+  );
 
   useEffect(() => {
     if (property?.isNavigation && associationSets && allEntities) {
@@ -63,12 +78,35 @@ const NavigationPropertySelector = ({
     } else {
       setMatchingEntity(null);
       setPropertyOptions([]);
-      setSelectedProperty(null);
+      dispatch(
+        setNavigationProperty({
+          componentId,
+          columnId,
+          selectorId,
+          property: null,
+        }),
+      );
     }
-  }, [property, entity, associationSets, allEntities]);
+  }, [
+    property,
+    entity,
+    associationSets,
+    allEntities,
+    componentId,
+    columnId,
+    selectorId,
+    dispatch,
+  ]);
 
   const handlePropertyChange = (_, value) => {
-    setSelectedProperty(value);
+    dispatch(
+      setNavigationProperty({
+        componentId,
+        columnId,
+        selectorId,
+        property: value,
+      }),
+    );
     if (value?.isNavigation) {
       // Add the newly selected property to the path
       const newPath = [...navigationPath, value];
@@ -102,6 +140,7 @@ const NavigationPropertySelector = ({
               ? navigationPath[navigationPath.length - 1].name
               : matchingEntity.name
           } Property`}
+          groupBy={(option) => option.name.charAt(0).toUpperCase()}
         />
       </FormControl>
       {selectedProperty?.isNavigation && (
@@ -113,6 +152,9 @@ const NavigationPropertySelector = ({
           allEntities={allEntities}
           navigationPath={navigationPath}
           onPathChange={onPathChange}
+          componentId={componentId}
+          columnId={columnId}
+          selectorId={`${selectorId}_${selectedProperty.name}`}
         />
       )}
     </>
@@ -123,10 +165,12 @@ NavigationPropertySelector.propTypes = {
   entity: PropTypes.object.isRequired,
   property: PropTypes.object.isRequired,
   onPropertyChange: PropTypes.func.isRequired,
-  associationSets: PropTypes.array.isRequired,
   allEntities: PropTypes.array.isRequired,
   navigationPath: PropTypes.array,
   onPathChange: PropTypes.func.isRequired,
+  componentId: PropTypes.string.isRequired,
+  columnId: PropTypes.string.isRequired,
+  selectorId: PropTypes.string.isRequired,
 };
 
 export default NavigationPropertySelector;

@@ -11,9 +11,6 @@ export default function EntityPropertyFields({
   loading,
 }) {
   const allEntities = useSelector((state) => state.fetchedData.allEntities);
-  const associationSets = useSelector(
-    (state) => state.fetchedData.associationSets,
-  );
 
   const [selectedEntity, setSelectedEntity] = useState(
     editedItem.entity || null,
@@ -132,10 +129,12 @@ export default function EntityPropertyFields({
           entity={selectedEntity}
           property={selectedProperty}
           onPropertyChange={handleNestedPropertyChange}
-          associationSets={associationSets}
           allEntities={allEntities}
           navigationPath={nestedNavigationPath}
           onPathChange={setNestedNavigationPath}
+          componentId={editedItem.componentId}
+          columnId={editedItem.columnId}
+          selectorId={`${editedItem.componentId}_${editedItem.columnId}_${selectedProperty.name}`}
         />
       )}
     </>
@@ -149,6 +148,8 @@ EntityPropertyFields.propTypes = {
     nestedProperty: PropTypes.object,
     nestedNavigationPath: PropTypes.array,
     label: PropTypes.string,
+    componentId: PropTypes.string.isRequired,
+    columnId: PropTypes.string.isRequired,
   }).isRequired,
   setEditedItem: PropTypes.func.isRequired,
   sortedEntities: PropTypes.array.isRequired,

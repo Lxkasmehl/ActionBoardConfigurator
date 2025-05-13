@@ -33,6 +33,7 @@ export default function TableComponent({ component, disabled = false }) {
   const [tableData, setTableData, isLoading] = useTableData(
     columns,
     getInitialDummyData(),
+    component.id,
   );
   const [relationData, setRelationData] = useState({});
   const sendRequest = useSendRequest();
@@ -509,6 +510,7 @@ export default function TableComponent({ component, disabled = false }) {
           type='column'
           title='Edit Column'
           mainEntity={mainEntity}
+          component={component}
         />
       )}
     </div>
