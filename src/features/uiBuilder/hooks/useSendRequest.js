@@ -43,7 +43,9 @@ export const useSendRequest = () => {
         const selectedProperties = properties || [property];
         queryParams.set(
           '$select',
-          selectedProperties.map((prop) => prop.name).join(','),
+          selectedProperties
+            .map((prop) => (typeof prop === 'object' ? prop.name : prop))
+            .join(','),
         );
       }
 
