@@ -165,18 +165,22 @@ export const useTableData = (columns, initialDummyData, componentId) => {
             // Get the separator for this column
             const separator = columnSeparators[column.id] || '';
 
-            // Combine the results by merging the arrays
+            // Combine the results by merging the arrays in the order of combinedProperties
             newEntityData[column.label] = combinedResults.reduce(
-              (acc, curr) => {
-                return acc.map((item, index) => {
-                  if (curr[index] !== undefined) {
-                    return item
-                      ? `${item}${separator}${curr[index]}`
-                      : curr[index];
+              (acc, curr, index) => {
+                return acc.map((item, i) => {
+                  if (curr[i] !== undefined) {
+                    // For the first item, just use the value
+                    if (index === 0) {
+                      return curr[i];
+                    }
+                    // For subsequent items, append with separator
+                    return item ? `${item}${separator}${curr[i]}` : curr[i];
                   }
                   return item;
                 });
               },
+              Array(combinedResults[0]?.length || 0).fill(''),
             );
           } else if (column.nestedProperty) {
             // For nested properties, build the complete path to the value
