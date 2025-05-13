@@ -197,8 +197,8 @@ export const useTableData = (columns, initialDummyData, componentId) => {
 
             // Extract the value using the complete path
             const result = results[resultIndex++];
-            const results = extractNestedValue(result, pathParts);
-            newEntityData[column.label] = results.map((value) =>
+            const nestedResults = extractNestedValue(result, pathParts);
+            newEntityData[column.label] = nestedResults.map((value) =>
               formatDateValue(value),
             );
           } else {
@@ -240,7 +240,8 @@ export const useTableData = (columns, initialDummyData, componentId) => {
     };
 
     fetchEntityData();
-  }, [columns, handleSendRequest, columnSeparators]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columns, handleSendRequest]);
 
   return [tableData, updateTableData, isLoading];
 };
