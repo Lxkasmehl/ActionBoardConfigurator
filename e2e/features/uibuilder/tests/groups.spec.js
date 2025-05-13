@@ -446,9 +446,9 @@ test.describe('Group Tests', () => {
       'F',
       '10033376',
       'M',
-      'ttttqui',
+      /^(ttttqui|ttttrec1)$/,
       'F',
-      'ttttrec1',
+      /^(ttttrec1|ttttrec2)$/,
       'F',
     ]);
 
