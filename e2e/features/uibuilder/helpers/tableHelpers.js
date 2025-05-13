@@ -54,6 +54,12 @@ export async function verifyTableData(page, table, expectedValues, testInfo) {
     .first()
     .waitFor({ state: 'visible' });
 
+  // Wait until we have at least expectedValues.length cells
+  await table
+    .locator('.MuiDataGrid-cell:not(.MuiDataGrid-cellEmpty)')
+    .nth(expectedValues.length - 1)
+    .waitFor({ state: 'visible' });
+
   // Get all non-empty cells
   const cells = await table
     .locator('.MuiDataGrid-cell:not(.MuiDataGrid-cellEmpty)')
