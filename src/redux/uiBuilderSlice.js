@@ -19,6 +19,7 @@ const initialState = {
   columnOrder: {},
   columnSeparators: {},
   combinedPropertiesMode: {},
+  navigationProperties: {},
 };
 
 const uiBuilderSlice = createSlice({
@@ -131,6 +132,16 @@ const uiBuilderSlice = createSlice({
       }
       state.combinedPropertiesMode[componentId][columnId] = isEnabled;
     },
+    setNavigationProperty: (state, action) => {
+      const { componentId, columnId, selectorId, property } = action.payload;
+      if (!state.navigationProperties[componentId]) {
+        state.navigationProperties[componentId] = {};
+      }
+      if (!state.navigationProperties[componentId][columnId]) {
+        state.navigationProperties[componentId][columnId] = {};
+      }
+      state.navigationProperties[componentId][columnId][selectorId] = property;
+    },
     updateComponentProps: (state, action) => {
       const { componentId, props } = action.payload;
       const componentIndex = state.components.findIndex(
@@ -171,6 +182,7 @@ export const {
   setColumnOrder,
   setColumnSeparator,
   setCombinedPropertiesMode,
+  setNavigationProperty,
   updateComponentProps,
 } = uiBuilderSlice.actions;
 

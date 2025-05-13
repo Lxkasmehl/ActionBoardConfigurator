@@ -209,6 +209,9 @@ export default function CombinedPropertiesSection({
           allEntities={allEntities}
           navigationPath={nestedNavigationPath}
           onPathChange={setNestedNavigationPath}
+          componentId={componentId}
+          columnId={columnId}
+          selectorId={`${componentId}_${columnId}_${selectedProperty.name}`}
         />
       )}
 
