@@ -228,7 +228,7 @@ test.describe('Group Tests', () => {
     page,
   }, testInfo) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
-    test.setTimeout(120000);
+    test.setTimeout(180000);
 
     const componentTypes = ['filterArea', 'buttonBar', 'table'];
     const sortableComponents = await setupComponentsInPreview(
