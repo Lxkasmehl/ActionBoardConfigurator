@@ -18,6 +18,7 @@ export default function TrashBin({ isVisible, onOverChange }) {
 
   return (
     <IconButton
+      data-testid='trash-bin'
       ref={setNodeRef}
       color='danger'
       variant='solid'

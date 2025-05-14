@@ -79,11 +79,7 @@ export default function TableComponent({ component, disabled = false }) {
           try {
             const response = await sendRequest({
               entity: column.entity.name,
-              properties: [
-                column.relation.property?.Name ||
-                  column.relation.currentEntityProperty?.Name,
-                column.property.name,
-              ],
+              properties: [column.property.name, column.relation.property.Name],
             });
             newRelationData[column.label] = response.d.results;
           } catch (error) {

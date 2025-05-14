@@ -86,6 +86,7 @@ export default function ChartComponent({ component, disabled = false }) {
       {children}
       {!disabled && (
         <IconButton
+          data-testid='chart-edit-button'
           variant='solid'
           color='primary'
           onClick={handleEditClick}

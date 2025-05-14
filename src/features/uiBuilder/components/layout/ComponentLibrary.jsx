@@ -112,6 +112,7 @@ export default function ComponentLibrary() {
             }}
             error={!!error}
             sx={{ zIndex: '20 !important', mb: 1 }}
+            data-testid='group-name-input'
           />
           {error && (
             <Typography color='danger' level='body-sm' sx={{ mb: 1 }}>
@@ -131,6 +132,7 @@ export default function ComponentLibrary() {
               sx={{ flex: 1 }}
               onClick={handleSaveNewGroup}
               disabled={!groupName.trim()}
+              data-testid='save-new-group-button'
             >
               Save
             </Button>
@@ -149,6 +151,7 @@ export default function ComponentLibrary() {
             color='success'
             sx={{ flex: 1 }}
             onClick={handleSaveEditedGroup}
+            data-testid='save-edited-group-button'
           >
             Save Changes
           </Button>
@@ -166,17 +169,29 @@ export default function ComponentLibrary() {
               onBlur={() => setShowGroupSelector(false)}
               placeholder='Select Group'
               sx={{ marginBottom: 2 }}
+              data-testid='group-selector'
             />
           )}
           <Dropdown>
-            <MenuButton color='primary' variant='solid' sx={{ width: '100%' }}>
+            <MenuButton
+              color='primary'
+              variant='solid'
+              sx={{ width: '100%' }}
+              data-testid='create-edit-group-button'
+            >
               Create / Edit Group
             </MenuButton>
             <Menu>
-              <MenuItem onClick={() => dispatch(setIsInCreateGroupMode(true))}>
+              <MenuItem
+                onClick={() => dispatch(setIsInCreateGroupMode(true))}
+                data-testid='create-new-group-button'
+              >
                 Create New Group
               </MenuItem>
-              <MenuItem onClick={() => setShowGroupSelector(true)}>
+              <MenuItem
+                onClick={() => setShowGroupSelector(true)}
+                data-testid='edit-existing-group-button'
+              >
                 Edit Existing Group
               </MenuItem>
             </Menu>

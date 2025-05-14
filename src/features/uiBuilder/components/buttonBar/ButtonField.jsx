@@ -73,6 +73,7 @@ export default function ButtonField({
     }),
     variant: field.variant || 'solid',
     color: field.color || 'primary',
+    'data-testid': field.dataTestId || '',
   };
 
   const handleMenuItemClick = (item) => {
@@ -140,6 +141,7 @@ export default function ButtonField({
                   color='neutral'
                   key={index}
                   onClick={() => handleMenuItemClick(item)}
+                  data-testid={`menu-item-${item.label}`}
                 >
                   {item.label}
                 </MenuItem>
@@ -173,6 +175,7 @@ ButtonField.propTypes = {
     onClick: PropTypes.func,
     variant: PropTypes.oneOf(['plain', 'outlined', 'soft', 'solid']),
     color: PropTypes.string,
+    dataTestId: PropTypes.string,
     menuItems: PropTypes.arrayOf(
       PropTypes.shape({
         label: PropTypes.string.isRequired,
