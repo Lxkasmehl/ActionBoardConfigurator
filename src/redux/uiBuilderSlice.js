@@ -20,6 +20,7 @@ const initialState = {
   columnSeparators: {},
   combinedPropertiesMode: {},
   navigationProperties: {},
+  textConfigEntries: {},
 };
 
 const uiBuilderSlice = createSlice({
@@ -157,6 +158,23 @@ const uiBuilderSlice = createSlice({
         };
       }
     },
+    setTextConfigEntries: (state, action) => {
+      const {
+        componentId,
+        value,
+        configEntries,
+        selectedProperty,
+        selectedValue,
+      } = action.payload;
+      if (!state.textConfigEntries[componentId]) {
+        state.textConfigEntries[componentId] = {};
+      }
+      state.textConfigEntries[componentId][value] = {
+        configEntries,
+        selectedProperty,
+        selectedValue,
+      };
+    },
   },
 });
 
@@ -184,6 +202,7 @@ export const {
   setCombinedPropertiesMode,
   setNavigationProperty,
   updateComponentProps,
+  setTextConfigEntries,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;

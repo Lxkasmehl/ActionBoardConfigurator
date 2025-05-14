@@ -325,10 +325,17 @@ export default function DataPicker() {
 
           const results = await handleSendRequest(selectedNode);
 
+          const configEntries = selectedNode
+            ? [[selectedNode, config[selectedNode]]]
+            : Object.entries(config);
+
           window.parent.postMessage(
             {
               type: 'IFRAME_DATA_RESPONSE',
-              payload: results,
+              payload: {
+                results,
+                configEntries,
+              },
             },
             window.location.origin,
           );
@@ -367,7 +374,7 @@ export default function DataPicker() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [handleSendRequest, selectedNode]);
+  }, [handleSendRequest, selectedNode, config]);
 
   if (loading) {
     return (

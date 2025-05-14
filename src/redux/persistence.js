@@ -53,6 +53,8 @@ export const loadState = () => {
       },
       fetchedData: {
         associationSets: [],
+        allEntities: [],
+        filteredEntities: [],
       },
     };
 

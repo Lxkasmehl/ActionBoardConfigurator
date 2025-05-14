@@ -10,7 +10,7 @@ export const useSendRequest = (config) => {
   const allEntities = useSelector((state) => state.fetchedData.allEntities);
 
   const handleSendRequest = useCallback(
-    async (nodeId = null) => {
+    async (nodeId = null, configEntries = null) => {
       try {
         const headers = new Headers();
         headers.set(
@@ -21,12 +21,21 @@ export const useSendRequest = (config) => {
         headers.set('successfactors-sourcetype', 'Application');
         headers.set('Accept', 'application/json');
 
-        // Filter config entries if nodeId is provided
-        const configEntries = nodeId
-          ? [[nodeId, config[nodeId]]]
-          : Object.entries(config);
+        // Handle both config and direct configEntries
+        let entriesToProcess;
+        if (configEntries) {
+          // Convert configEntries to the expected format
+          entriesToProcess = configEntries.map(([value, configEntry]) => [
+            value,
+            { [configEntry.entityName]: configEntry },
+          ]);
+        } else {
+          entriesToProcess = nodeId
+            ? [[nodeId, config[nodeId]]]
+            : Object.entries(config);
+        }
 
-        const requests = configEntries.flatMap(([, nodeConfig]) => {
+        const requests = entriesToProcess.flatMap(([, nodeConfig]) => {
           const [entityName, entityConfig] = Object.entries(nodeConfig)[0];
 
           return async () => {
