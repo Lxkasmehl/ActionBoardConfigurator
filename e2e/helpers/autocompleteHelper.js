@@ -19,9 +19,10 @@ export async function selectFromAutocomplete(
     .last()
     .click();
 
-  await page.getByRole('option', { name: optionName, exact: true }).waitFor({
-    state: 'visible',
-    timeout: 15000,
-  });
-  await page.getByRole('option', { name: optionName, exact: true }).click();
+  // Wait for the option to be visible and stable
+  const option = page.getByRole('option', { name: optionName, exact: true });
+  await option.waitFor({ state: 'visible', timeout: 15000 });
+
+  // Use a more reliable click approach with retry
+  await option.click({ timeout: 5000, force: true });
 }
