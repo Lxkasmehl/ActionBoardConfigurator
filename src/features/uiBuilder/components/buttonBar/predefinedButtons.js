@@ -13,6 +13,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Apply Filter',
     description: 'Applies the current filter settings',
     variant: 'solid',
+    dataTestId: 'apply-filter-button',
     onClick: (dispatch, groupName) => {
       dispatch(setGroupFiltersEnabled({ groupName, enabled: true }));
     },
@@ -23,6 +24,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Clear Filters',
     description: 'Clears all applied filters',
     variant: 'solid',
+    dataTestId: 'clear-filter-button',
     onClick: (dispatch, groupName) => {
       dispatch(setGroupFiltersEnabled({ groupName, enabled: false }));
     },
@@ -78,6 +80,7 @@ export const PREDEFINED_BUTTONS = [
     description: 'Export the current table data',
     variant: 'plain',
     color: 'primary',
+    dataTestId: 'export-button',
     menuItems: [
       {
         label: 'All columns',
@@ -119,6 +122,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Sort',
     description: 'Sort the current table data',
     variant: 'plain',
+    dataTestId: 'sort-button',
     onClick: (dispatch, groupName, tableData, componentId) => {
       dispatch(setSortModalOpen({ isOpen: true, componentId }));
     },
@@ -129,6 +133,7 @@ export const PREDEFINED_BUTTONS = [
     label: 'Column Selector',
     description: 'Select columns to display',
     variant: 'plain',
+    dataTestId: 'column-selector-button',
     onClick: (dispatch, groupName, tableData, componentId) => {
       dispatch(setColumnSelectorModalOpen({ isOpen: true, componentId }));
     },

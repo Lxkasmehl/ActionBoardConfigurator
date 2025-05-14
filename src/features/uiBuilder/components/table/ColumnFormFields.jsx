@@ -253,6 +253,7 @@ const ColumnFormFields = forwardRef(
               }
             }}
             placeholder='Enter column label'
+            data-testid='column-label-input'
           />
         </FormControl>
         <div className='my-3'>
@@ -279,6 +280,7 @@ const ColumnFormFields = forwardRef(
               sx={{
                 '--Switch-gap': '20px',
               }}
+              data-testid='data-picker-switch'
             />
             <Typography
               sx={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}
@@ -329,6 +331,7 @@ const ColumnFormFields = forwardRef(
                 }
                 placeholder='Select or define a relationship'
                 sx={{ flex: 1 }}
+                data-testid='relationship-select'
               />
               <Button
                 variant='plain'
@@ -368,6 +371,7 @@ const ColumnFormFields = forwardRef(
           }}
           disabled={!isIFrame && !editedItem.entity}
           sx={{ marginTop: 2, alignSelf: 'center' }}
+          data-testid='main-entity-checkbox'
         />
 
         {isInvalid && (

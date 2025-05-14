@@ -22,31 +22,25 @@ export const useSendRequest = () => {
       const queryParams = new URLSearchParams();
       queryParams.set('$format', 'json');
 
-      // Handle navigation properties
-      if (nestedNavigationPath && nestedNavigationPath.length > 0) {
-        // Build the expand path for nested navigation properties
+      // Handle query parameters based on navigation and property selection
+      if (nestedNavigationPath?.length > 0) {
         const expandPath = nestedNavigationPath.map((p) => p.name).join('/');
         queryParams.set('$expand', expandPath);
 
-        // If we have a final property selected, add it to the select
         if (property) {
-          // Only add the property name to the select path, not the full navigation path again
           queryParams.set('$select', `${expandPath}/${property.name}`);
         }
-      } else if (properties && properties.length > 1) {
-        // Handle simple navigation property case
-        const [navProperty, nestedProperty] = properties;
-        queryParams.set('$expand', navProperty);
-        queryParams.set('$select', `${navProperty}/${nestedProperty}`);
       } else {
-        // For regular properties, just use select
         const selectedProperties = properties || [property];
-        queryParams.set(
-          '$select',
-          selectedProperties
-            .map((prop) => (typeof prop === 'object' ? prop.name : prop))
-            .join(','),
-        );
+        if (selectedProperties?.length > 0) {
+          queryParams.set(
+            '$select',
+            selectedProperties
+              .filter(Boolean)
+              .map((prop) => (typeof prop === 'object' ? prop.name : prop))
+              .join(','),
+          );
+        }
       }
 
       const response = await fetch(`${baseUrl}?${queryParams.toString()}`, {

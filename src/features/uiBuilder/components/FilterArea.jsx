@@ -168,6 +168,7 @@ export default function FilterArea({ component, disabled = false }) {
                       setEditingValue(newValue.label);
                     }
                   }}
+                  data-testid='filter-column-select'
                 />
               </Tooltip>
             ) : (
@@ -213,13 +214,18 @@ export default function FilterArea({ component, disabled = false }) {
           <Autocomplete
             size='sm'
             placeholder='Select an option'
-            options={(
-              columnData[tableComponentId]?.[filter.label] || []
-            ).filter((option) => option !== undefined)}
+            options={Array.from(
+              new Set(
+                (columnData[tableComponentId]?.[filter.label] || []).filter(
+                  (option) => option !== undefined,
+                ),
+              ),
+            )}
             disabled={disabled}
             getOptionLabel={(option) => option.toString() || ''}
             multiple
             value={currentSelectedOptions[filter.id] || []}
+            data-testid={`filter-option-select-${filter.label}`}
             onChange={(event, newValue) => {
               dispatch(
                 setSelectedFilterOptions({

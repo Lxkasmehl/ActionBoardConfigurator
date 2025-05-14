@@ -103,6 +103,7 @@ export default function EntityPropertyFields({
           isOptionEqualToValue={(option, value) => option?.name === value?.name}
           placeholder='Select Entity'
           groupBy={(option) => option.name.charAt(0).toUpperCase()}
+          data-testid='entity-select'
         />
       </FormControl>
       <FormControl sx={{ maxWidth: '500px', width: '100%', marginTop: 1 }}>
@@ -120,6 +121,7 @@ export default function EntityPropertyFields({
           }}
           placeholder='Select Property'
           groupBy={(option) => option.name.charAt(0).toUpperCase()}
+          data-testid='property-select'
         />
       </FormControl>
       {selectedProperty?.isNavigation && (

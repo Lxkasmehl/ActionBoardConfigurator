@@ -290,7 +290,7 @@ export default function EditModal({
   }, [item, onDelete, onClose]);
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose} data-testid='edit-modal'>
       <ModalDialog>
         <ModalClose onClick={onClose} />
         <Typography level='h4'>{title}</Typography>
@@ -355,6 +355,7 @@ export default function EditModal({
                 onClick={handleSave}
                 loading={isWaitingForIframeData}
                 disabled={!!validationError && !isIframeValidationError}
+                data-testid='save-button'
               >
                 Save
               </Button>

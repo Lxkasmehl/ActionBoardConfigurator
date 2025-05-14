@@ -179,6 +179,7 @@ export default function ChartEditModal({
                   onChange={(_, value) => setSelectedColumn(value?.value || '')}
                   placeholder='Select data column'
                   sx={{ minWidth: 200 }}
+                  data-testid='chart-data-source-select'
                 />
                 <FormHelperText>
                   Select a column from the table in the same group
@@ -195,7 +196,9 @@ export default function ChartEditModal({
             <Button variant='plain' color='neutral' onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave} data-testid='chart-save-button'>
+              Save
+            </Button>
           </Stack>
         </Stack>
       </ModalDialog>

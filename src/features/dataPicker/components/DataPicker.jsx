@@ -56,6 +56,33 @@ export default function DataPicker() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
 
+  // Handle initial state from parent
+  useEffect(() => {
+    const handleInitialState = (event) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data.type === 'INIT_IFRAME_STATE') {
+        const { config, dataPicker, fetchedData } = event.data.payload;
+
+        // Initialize the store with parent data
+        Object.entries(config).forEach(([key, value]) => {
+          dispatch({ type: `config/${key}`, payload: value });
+        });
+
+        Object.entries(dataPicker).forEach(([key, value]) => {
+          dispatch({ type: `dataPicker/${key}`, payload: value });
+        });
+
+        Object.entries(fetchedData).forEach(([key, value]) => {
+          dispatch({ type: `fetchedData/${key}`, payload: value });
+        });
+      }
+    };
+
+    window.addEventListener('message', handleInitialState);
+    return () => window.removeEventListener('message', handleInitialState);
+  }, [dispatch]);
+
   useEffect(() => {
     window.parent.postMessage(
       {

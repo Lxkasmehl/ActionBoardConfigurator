@@ -95,6 +95,7 @@ export default function PreviewArea({
           position: 'relative',
           overflowY: 'auto',
         }}
+        data-testid='preview-area'
       >
         {components.length === 0 ? (
           <EmptyState isOver={isOver} />
