@@ -54,7 +54,10 @@ const DataPickerIframe = ({
       if (event.data.type === 'IFRAME_WARNING') {
         onWarning(event.data.payload.message);
       } else if (event.data.type === 'IFRAME_DATA_RESPONSE') {
-        onDataFetch(event.data.payload);
+        onDataFetch({
+          results: event.data.payload.results,
+          configEntries: event.data.payload.configEntries,
+        });
       } else if (event.data.type === 'SELECTED_NODE_CHANGED') {
         const { selectedEntity } = event.data.payload;
         const completeEntity = filteredEntities?.find(
