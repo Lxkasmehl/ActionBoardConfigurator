@@ -116,7 +116,7 @@ export default function TableComponent({ componentId, columnData, tableColumns }
           rows={sortedRows}
           columns={gridColumns}
           disableRowSelectionOnClick
-          columnReordering={false}
+          disableColumnReorder={true}
           experimentalFeatures={{ newEditingApi: true }}
           hideFooter
           disableColumnSorting
