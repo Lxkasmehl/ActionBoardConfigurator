@@ -35,11 +35,24 @@ export const generatePackageJson = () => {
 export const generateViteConfig = () => {
   return `import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000
-  }
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'https://api5.successfactors.eu',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\\/api/, ''),
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      },
+    },
+  },
 });`;
 };

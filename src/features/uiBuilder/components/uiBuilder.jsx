@@ -62,7 +62,6 @@ export default function UiBuilder() {
             }}
           >
             <PreviewArea
-              components={components}
               activeDragData={activeDragData}
               onTrashOver={(isOver) => setIsOverTrash(isOver)}
             />

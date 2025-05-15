@@ -11,6 +11,7 @@ import { generateChartComponent } from './chartComponentGenerator';
 import { exportToExcel } from '../exportToExcelUtils';
 import { generateColumnSelectorModal } from './columnSelectorModalGenerator';
 import { generateSortModal } from './sortModalGenerator';
+import { generateTextComponent } from './textComponentGenerator';
 
 export const exportWebsite = async (
   components,
@@ -53,6 +54,8 @@ export const exportToExcel = ${exportToExcel.toString()}`,
   componentsDir.file('TableComponent.jsx', generateTableComponent());
 
   componentsDir.file('ChartComponent.jsx', generateChartComponent());
+
+  componentsDir.file('TextComponent.jsx', generateTextComponent());
 
   // Add App.jsx
   src.file(

@@ -13,12 +13,12 @@ export const generateAppJsx = (
 
   components.forEach((component) => {
     switch (component.type) {
-      case 'heading':
-      case 'paragraph':
-        componentImports.add('Typography');
-        break;
       case 'button':
         componentImports.add('Button');
+        break;
+      case 'heading':
+      case 'paragraph':
+        customComponentImports.add('TextComponent');
         break;
       case 'filterArea':
         customComponentImports.add('FilterArea');

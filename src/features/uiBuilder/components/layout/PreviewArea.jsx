@@ -8,7 +8,6 @@ import { useSelector } from 'react-redux';
 import { exportWebsite } from '../../utils/exportUtils';
 
 export default function PreviewArea({
-  components,
   activeDragData,
   onTrashOver,
 }) {
@@ -18,6 +17,7 @@ export default function PreviewArea({
   const groupToEdit = useSelector((state) => state.uiBuilder.groupToEdit);
   const columnData = useSelector((state) => state.uiBuilder.columnData);
   const tableColumns = useSelector((state) => state.uiBuilder.tableColumns);
+  const components = useSelector((state) => state.uiBuilder.components);
   const componentGroups = useSelector(
     (state) => state.uiBuilder.componentGroups,
   );
@@ -40,6 +40,8 @@ export default function PreviewArea({
     });
 
   const isDraggingExistingComponent = activeDragData?.type === 'preview';
+
+  console.log('components', components);
 
   const handleExport = () => {
     exportWebsite(

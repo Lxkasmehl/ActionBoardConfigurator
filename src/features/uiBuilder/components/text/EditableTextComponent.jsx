@@ -114,7 +114,10 @@ export default function EditableTextComponent({
           dispatch(
             updateComponentProps({
               componentId: component.id,
-              props: { text: updatedText },
+              props: {
+                text: updatedText,
+                textConfigEntries: textConfigEntries,
+              },
             }),
           );
         }
@@ -139,7 +142,10 @@ export default function EditableTextComponent({
     dispatch(
       updateComponentProps({
         componentId: component.id,
-        props: { text: editedText },
+        props: {
+          text: editedText,
+          textConfigEntries: textConfigEntries,
+        },
       }),
     );
   };
