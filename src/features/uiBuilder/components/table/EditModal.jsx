@@ -154,14 +154,14 @@ export default function EditModal({
 
           dataItems.forEach((dataItem, index) => {
             const entityName =
-              dataItem.d.results[0].__metadata.type.split('.')[1];
+              dataItem.results[0].d.results[0].__metadata.type.split('.')[1];
 
-            const propertyNames = Object.keys(dataItem.d.results[0]).filter(
-              (key) => key !== '__metadata',
-            );
+            const propertyNames = Object.keys(
+              dataItem.results[0].d.results[0],
+            ).filter((key) => key !== '__metadata');
 
             propertyNames.forEach((propertyName, propertyIndex) => {
-              const extractedData = dataItem.d.results.map(
+              const extractedData = dataItem.results[0].d.results.map(
                 (result) => result[propertyName],
               );
 

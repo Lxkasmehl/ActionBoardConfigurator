@@ -41,8 +41,6 @@ export default function PreviewArea({
 
   const isDraggingExistingComponent = activeDragData?.type === 'preview';
 
-  console.log('components', components);
-
   const handleExport = () => {
     exportWebsite(
       components,
