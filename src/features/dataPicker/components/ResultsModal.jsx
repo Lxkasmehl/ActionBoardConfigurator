@@ -12,6 +12,7 @@ export default function ResultsModal({ open, onClose, isLoading, results }) {
         justifyContent: 'center',
         alignItems: 'center',
       }}
+      data-testid='results-modal'
     >
       <Sheet
         data-testid='results-modal'
