@@ -9,9 +9,8 @@ export const generateComponentCode = (
 
   switch (type) {
     case 'heading':
-      return `<Typography level="${props.level || 'h2'}" sx={{ marginBottom: '2rem' }}>${props.text}</Typography>`;
     case 'paragraph':
-      return `<Typography sx={{ marginBottom: '2rem' }}>${props.text}</Typography>`;
+      return `<TextComponent component={${JSON.stringify(component)}} />`;
     case 'button':
       return `<Button variant="${props.variant}" color="${props.color}">${props.text}</Button>`;
     case 'image':
