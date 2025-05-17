@@ -7,6 +7,7 @@ export async function setupDynamicDataEditing(
   sortableComponent,
   leftSteps,
   isTextarea = false,
+  isAlreadyConfigured = false,
 ) {
   await page.setViewportSize({ width: 1920, height: 1080 });
   test.setTimeout(45000);
@@ -30,7 +31,9 @@ export async function setupDynamicDataEditing(
   await expect(iFrame).toBeVisible();
 
   const frameLocator = page.frameLocator('[data-testid="data-picker-iframe"]');
-  await setupFlowConnection(frameLocator, true);
+  if (!isAlreadyConfigured) {
+    await setupFlowConnection(frameLocator, true);
+  }
 
   return { frameLocator, sortableComponent };
 }
