@@ -1,4 +1,4 @@
-import { selectFromAutocomplete } from '../../../helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
 
 export async function selectFilterProperty(page, propertyName) {
   await selectFromAutocomplete(
