@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { selectFromAutocomplete } from '../../../helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
 
 // Helper function to create and verify a group of components
 export async function createAndVerifyGroup(page, components, groupName) {
