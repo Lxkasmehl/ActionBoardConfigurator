@@ -13,11 +13,12 @@ export async function selectFromAutocomplete(
     element = sections.nth(sectionIndex);
   }
 
-  await element
+  const autocompleteButton = element
     .getByTestId(testId)
     .getByRole('button', { title: buttonTitle })
-    .last()
-    .click();
+    .last();
+
+  await autocompleteButton.click();
 
   // Wait for the option to be visible and stable
   const option = page.getByRole('option', { name: optionName, exact: true });
@@ -25,4 +26,8 @@ export async function selectFromAutocomplete(
 
   // Use a more reliable click approach with retry
   await option.click({ timeout: 5000, force: true });
+
+  // Focus and blur the button to close dropdown
+  await autocompleteButton.focus();
+  await autocompleteButton.evaluate((el) => el.blur());
 }

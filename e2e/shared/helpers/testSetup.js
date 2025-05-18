@@ -2,8 +2,20 @@ import { setupFlowConnection } from '../../features/datapicker/helpers/flowSetup
 import { setupFilterCondition } from '../../features/datapicker/helpers/filterSetup';
 import { selectFromAutocomplete } from './autocompleteHelper';
 
-export async function setupTestData(page) {
-  await setupFlowConnection(page);
+export async function setupTestData(page, isAlreadyConfigured = false) {
+  if (!isAlreadyConfigured) {
+    await setupFlowConnection(page);
+  } else {
+    await page
+      .getByTestId('flow-start')
+      .locator('div[class*="source"]')
+      .click();
+    await page
+      .getByTestId('entity-section')
+      .locator('div[class*="target"]')
+      .click();
+  }
+
   await page.locator('button svg[data-testid="AddIcon"]').click();
 
   const sections = page.getByTestId('entity-section');
