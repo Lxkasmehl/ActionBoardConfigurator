@@ -26,8 +26,4 @@ export async function selectFromAutocomplete(
 
   // Use a more reliable click approach with retry
   await option.click({ timeout: 5000, force: true });
-
-  // Focus and blur the button to close dropdown
-  await autocompleteButton.focus();
-  await autocompleteButton.evaluate((el) => el.blur());
 }
