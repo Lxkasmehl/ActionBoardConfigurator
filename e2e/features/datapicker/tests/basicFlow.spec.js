@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { setupBasePage, setupFlowConnection } from '../helpers/flowSetup';
-import { selectFromAutocomplete } from '../../../helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
 
 test('connect flow start to entity section', async ({ page }) => {
   await setupFlowConnection(page);

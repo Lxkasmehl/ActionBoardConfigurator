@@ -8,7 +8,7 @@ import {
   verifyTableData,
   handleTableDownload,
 } from '../helpers/tableHelpers';
-import { selectFromAutocomplete } from '../../../helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
 
 test.describe('Group Tests', () => {
   let previewArea;

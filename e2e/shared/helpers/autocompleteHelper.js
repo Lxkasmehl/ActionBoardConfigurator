@@ -13,11 +13,12 @@ export async function selectFromAutocomplete(
     element = sections.nth(sectionIndex);
   }
 
-  await element
+  const autocompleteButton = element
     .getByTestId(testId)
     .getByRole('button', { title: buttonTitle })
-    .last()
-    .click();
+    .last();
+
+  await autocompleteButton.click();
 
   // Wait for the option to be visible and stable
   const option = page.getByRole('option', { name: optionName, exact: true });
