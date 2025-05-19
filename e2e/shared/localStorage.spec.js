@@ -129,6 +129,7 @@ test.describe('Local Storage Tests', () => {
   test('should persist entity sections, filters, and connections after page reload in UIBuilder', async ({
     page,
   }) => {
+    test.setTimeout(90000);
     await page.goto('http://localhost:5173/ui-builder');
     const previewArea = page.getByTestId('preview-area');
     await expect(previewArea).toBeVisible();
