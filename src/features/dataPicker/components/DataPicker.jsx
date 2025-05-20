@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
 import useFetchEntities from '../../../shared/hooks/useFetchEntities.js';
@@ -55,6 +55,7 @@ export default function DataPicker() {
   const [results, setResults] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
+  const messageQueueRef = useRef([]);
 
   // Handle initial state from parent
   useEffect(() => {
@@ -329,16 +330,20 @@ export default function DataPicker() {
             ? [[selectedNode, config[selectedNode]]]
             : Object.entries(config);
 
-          window.parent.postMessage(
-            {
-              type: 'IFRAME_DATA_RESPONSE',
-              payload: {
-                results,
-                configEntries,
-              },
+          const message = {
+            type: 'IFRAME_DATA_RESPONSE',
+            payload: {
+              results,
+              configEntries,
             },
-            window.location.origin,
-          );
+          };
+
+          try {
+            const serializedMessage = JSON.parse(JSON.stringify(message));
+            messageQueueRef.current.push(serializedMessage);
+          } catch (error) {
+            console.error('Error queueing message:', error);
+          }
         } catch (error) {
           window.parent.postMessage(
             {
@@ -352,10 +357,15 @@ export default function DataPicker() {
         if (event.data.payload.confirmed) {
           try {
             const results = await handleSendRequest();
+
+            const configEntries = selectedNode
+              ? [[selectedNode, config[selectedNode]]]
+              : Object.entries(config);
+
             window.parent.postMessage(
               {
                 type: 'IFRAME_DATA_RESPONSE',
-                payload: results,
+                payload: { results, configEntries },
               },
               window.location.origin,
             );
@@ -375,6 +385,19 @@ export default function DataPicker() {
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [handleSendRequest, selectedNode, config]);
+
+  // Add message queue processor
+  useEffect(() => {
+    const processMessageQueue = () => {
+      if (messageQueueRef.current.length > 0) {
+        const message = messageQueueRef.current.shift();
+        window.parent.postMessage(message, window.location.origin);
+      }
+    };
+
+    const interval = setInterval(processMessageQueue, 100);
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading) {
     return (

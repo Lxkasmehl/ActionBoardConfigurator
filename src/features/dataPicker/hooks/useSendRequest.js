@@ -56,7 +56,7 @@ export const useSendRequest = (config) => {
               const collectNavigationProperties = (filterObj) => {
                 if (!filterObj) return;
 
-                if (filterObj.conditions) {
+                if (filterObj.conditions && filterObj.conditions.length > 0) {
                   filterObj.conditions.forEach(collectNavigationProperties);
                 } else if (filterObj.field && filterObj.field.includes('/')) {
                   const navPath = filterObj.field.substring(

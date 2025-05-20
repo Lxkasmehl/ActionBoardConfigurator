@@ -11,7 +11,7 @@ import {
 } from '@mui/joy';
 import useFetchEntities from '../../../../shared/hooks/useFetchEntities';
 import { sortEntities } from '../../../../shared/utils/entityOperations';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   useMemo,
   useEffect,
@@ -24,6 +24,7 @@ import EntityPropertyFields from './EntityPropertyFields';
 import WarningModal from './WarningModal';
 import CustomRelationModal from './CustomRelationModal';
 import DataPickerIframe from '../common/DataPickerIframe';
+import { setTableConfigEntries } from '@/redux/uiBuilderSlice';
 
 const ColumnFormFields = forwardRef(
   (
@@ -38,9 +39,12 @@ const ColumnFormFields = forwardRef(
       columnData,
       setColumnData,
       onSave,
+      componentId,
+      columnId,
     },
     ref,
   ) => {
+    const dispatch = useDispatch();
     const filteredEntities = useSelector(
       (state) => state.fetchedData.filteredEntities,
     );
@@ -224,6 +228,21 @@ const ColumnFormFields = forwardRef(
       [isIframeValidationError, setColumnData, setEditedItem],
     );
 
+    const handleDataFetch = useCallback(
+      (data) => {
+        setIsWaitingForIframeData(true);
+        const { configEntries } = data;
+        dispatch(
+          setTableConfigEntries({
+            componentId: componentId,
+            columnId: columnId,
+            configEntries: configEntries,
+          }),
+        );
+      },
+      [dispatch, setIsWaitingForIframeData, componentId, columnId],
+    );
+
     useImperativeHandle(ref, () => ({
       triggerIframeDataFetch: () => {
         if (isIFrame) {
@@ -304,7 +323,7 @@ const ColumnFormFields = forwardRef(
               setWarningMessage(message);
               setShowWarningModal(true);
             }}
-            onDataFetch={() => setIsWaitingForIframeData(true)}
+            onDataFetch={handleDataFetch}
             onEntitySelected={handleEntitySelected}
             titleText='table column'
           />
@@ -458,6 +477,8 @@ ColumnFormFields.propTypes = {
   }),
   setColumnData: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
+  componentId: PropTypes.string.isRequired,
+  columnId: PropTypes.string.isRequired,
 };
 
 export default ColumnFormFields;
