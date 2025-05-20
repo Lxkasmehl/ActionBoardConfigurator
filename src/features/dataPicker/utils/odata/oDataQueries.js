@@ -66,8 +66,11 @@ export const queryUtils = {
     let expandSet = new Set();
 
     selectedProperties.forEach((field) => {
-      if (field.includes('/')) {
-        const parts = field.split('/');
+      // Convert non-string values to strings
+      const fieldStr = String(field);
+
+      if (fieldStr.includes('/')) {
+        const parts = fieldStr.split('/');
         expandSet.add(parts[0]);
 
         if (parts.length > 2) {
@@ -79,7 +82,7 @@ export const queryUtils = {
         const entity = allEntities.find((e) => e.name === entityName);
         const navigationProperty =
           entity?.properties?.navigationProperties?.find(
-            (p) => p.Name === field,
+            (p) => p.Name === fieldStr,
           );
         if (navigationProperty) {
           expandSet.add(navigationProperty.Name);

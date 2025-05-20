@@ -6,6 +6,7 @@ import EditModal from './EditModal';
 import PropTypes from 'prop-types';
 import { useTableData } from '../../hooks/useTableData';
 import { useSendRequest } from '../../hooks/useSendRequest';
+import { useSendRequest as useSendRequestDataPicker } from '@/features/dataPicker/hooks/useSendRequest';
 import { getInitialDummyData } from '../../utils/tableUtils';
 import { DataGridPro } from '@mui/x-data-grid-pro';
 import CustomColumnMenu from './CustomColumnMenu';
@@ -18,6 +19,7 @@ import {
   setVisibleColumns,
   setColumnOrder,
   updateComponentProps,
+  setTableConfigEntries,
 } from '../../../../redux/uiBuilderSlice';
 
 export default function TableComponent({ component, disabled = false }) {
@@ -37,6 +39,7 @@ export default function TableComponent({ component, disabled = false }) {
   );
   const [relationData, setRelationData] = useState({});
   const sendRequest = useSendRequest();
+  const sendRequestDataPicker = useSendRequestDataPicker();
   const groupFilters = useSelector((state) => state.uiBuilder.groupFilters);
   const groupFiltersEnabled = useSelector(
     (state) => state.uiBuilder.groupFiltersEnabled,
@@ -53,6 +56,10 @@ export default function TableComponent({ component, disabled = false }) {
   const columnOrder = useSelector(
     (state) => state.uiBuilder.columnOrder[component.id] || [],
   );
+  const tableConfigEntries = useSelector(
+    (state) => state.uiBuilder.tableConfigEntries[component.id] || {},
+  );
+  const [shouldSyncWithBackend, setShouldSyncWithBackend] = useState(false);
   const isInitialized = useRef(false);
 
   const componentGroup = Object.values(componentGroups).find((group) =>
@@ -133,6 +140,129 @@ export default function TableComponent({ component, disabled = false }) {
     dispatch(setTableDataRedux({ componentId: component.id, data: tableData }));
   }, [tableData, dispatch, component.id, columns]);
 
+  // Add new effect for dynamic data fetching
+  useEffect(() => {
+    const fetchDynamicData = async () => {
+      // Only proceed if backend sync is enabled
+      if (!shouldSyncWithBackend) {
+        console.log('Backend sync is disabled, skipping fetch');
+        return;
+      }
+
+      // Skip if we don't have any table data yet
+      if (!tableData || tableData.length === 0) {
+        console.log('Skipping dynamic data fetch - no table data yet');
+        return;
+      }
+
+      console.log('Starting dynamic data fetch...');
+      console.log('Current columns:', columns);
+      console.log('Current tableConfigEntries:', tableConfigEntries);
+
+      const columnsWithConfig = columns.filter(
+        (col) => tableConfigEntries[col.id],
+      );
+      console.log('Columns with config:', columnsWithConfig);
+
+      if (columnsWithConfig.length === 0) {
+        console.log('No columns with config found, skipping fetch');
+        return;
+      }
+
+      try {
+        const configEntriesToFetch = columnsWithConfig.map((column) => {
+          const configEntry = tableConfigEntries[column.id];
+          const [id, config] = configEntry.configEntries;
+          const entityName = Object.keys(config)[0];
+          const entityConfig = config[entityName];
+
+          return [
+            id,
+            {
+              entityName,
+              selectedProperties: entityConfig.selectedProperties,
+              filter: entityConfig.filter,
+            },
+          ];
+        });
+        console.log('Config entries to fetch:', configEntriesToFetch);
+
+        const results = await sendRequestDataPicker(null, configEntriesToFetch);
+        console.log('Received results from data picker:', results);
+
+        const fetchedValues = {};
+
+        results.forEach((result, index) => {
+          const column = columnsWithConfig[index];
+          if (result.d.results && result.d.results.length > 0) {
+            // Store all fetched values for this column
+            fetchedValues[column.id] = result.d.results;
+            console.log(
+              `Fetched values for column ${column.label}:`,
+              result.d.results,
+            );
+          } else {
+            console.log(`No results received for column ${column.label}`);
+          }
+        });
+
+        // Update table data with fetched values
+        setTableData((prevData) => {
+          console.log('Previous table data:', prevData);
+          const newData = prevData.map((row, rowIndex) => {
+            const newRow = { ...row };
+            Object.entries(fetchedValues).forEach(([columnId, values]) => {
+              const column = columns.find((col) => col.id === columnId);
+              if (column && values[rowIndex]) {
+                // Update the value if it's different from the current value
+                const currentValue = row[column.label];
+                const newValue = Object.entries(values[rowIndex])
+                  .filter(([key]) => key !== '__metadata')
+                  .reduce(
+                    (acc, [key, value]) => ({ ...acc, [key]: value }),
+                    {},
+                  );
+                // Extract the actual value from the newValue object if it's a single property
+                const actualNewValue =
+                  Object.keys(newValue).length === 1
+                    ? Object.values(newValue)[0]
+                    : newValue;
+                if (
+                  JSON.stringify(currentValue) !==
+                  JSON.stringify(actualNewValue)
+                ) {
+                  console.log(
+                    `Updating value for column ${column.label} at row ${rowIndex}:`,
+                    {
+                      from: currentValue,
+                      to: actualNewValue,
+                    },
+                  );
+                  newRow[column.label] = actualNewValue;
+                }
+              }
+            });
+            return newRow;
+          });
+          console.log('New table data after updates:', newData);
+          return newData;
+        });
+      } catch (error) {
+        console.error('Error fetching dynamic data:', error);
+      }
+    };
+
+    fetchDynamicData();
+  }, [
+    columns,
+    tableConfigEntries,
+    component.id,
+    sendRequestDataPicker,
+    setTableData,
+    shouldSyncWithBackend,
+    tableData,
+  ]);
+
   const isColumnInvalid = (column) => {
     return (
       column.entity &&
@@ -201,6 +331,7 @@ export default function TableComponent({ component, disabled = false }) {
 
   const handleSaveColumn = (editedColumn) => {
     if (disabled) return;
+    setShouldSyncWithBackend(false);
     if (editedColumn.isMainEntity) {
       setMainEntity(editedColumn.entity);
       const updatedColumns = columns.map((col) => ({
@@ -223,6 +354,17 @@ export default function TableComponent({ component, disabled = false }) {
         : columns.map((col) =>
             col.id === editingColumn.id ? editedColumn : col,
           );
+
+      // Store config entries if we have entity configuration
+      if (editedColumn.entity && editedColumn.configEntries) {
+        dispatch(
+          setTableConfigEntries({
+            componentId: component.id,
+            columnId: editedColumn.id,
+            configEntries: editedColumn.configEntries,
+          }),
+        );
+      }
 
       // Always update table data when we have new data or entity changes
       if (editedColumn.data) {
@@ -273,6 +415,10 @@ export default function TableComponent({ component, disabled = false }) {
         }),
       );
     }
+    // Enable backend sync after a delay
+    setTimeout(() => {
+      setShouldSyncWithBackend(true);
+    }, 1000);
   };
 
   const handleDeleteColumn = (columnId) => {

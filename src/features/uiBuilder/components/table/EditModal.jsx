@@ -12,7 +12,10 @@ import {
 import ColumnFormFields from './ColumnFormFields';
 import { useSelector, useDispatch } from 'react-redux';
 import CombinedPropertiesSection from './CombinedPropertiesSection';
-import { setCombinedPropertiesMode } from '../../../../redux/uiBuilderSlice';
+import {
+  setCombinedPropertiesMode,
+  setTableConfigEntries,
+} from '../../../../redux/uiBuilderSlice';
 
 export default function EditModal({
   open,
@@ -41,6 +44,7 @@ export default function EditModal({
       state.uiBuilder.combinedPropertiesMode[component.id]?.[item.id] || false,
   );
   const stringifiedPath = JSON.stringify(editedItem.nestedNavigationPath);
+  const messageQueueRef = useRef([]);
 
   useEffect(() => {
     // Only proceed if combined properties mode is enabled
@@ -140,15 +144,15 @@ export default function EditModal({
     setIsIframeValidationError(false);
   }, [editedItem]);
 
+  // Add message queue processor
   useEffect(() => {
-    const handleMessage = (event) => {
-      if (event.origin !== window.location.origin) return;
-
-      if (event.data.type === 'IFRAME_DATA_RESPONSE') {
-        if (isWaitingForIframeData) {
-          const dataItems = Array.isArray(event.data.payload)
-            ? event.data.payload
-            : [event.data.payload];
+    const processMessageQueue = () => {
+      if (messageQueueRef.current.length > 0) {
+        const message = messageQueueRef.current.shift();
+        if (message.type === 'IFRAME_DATA_RESPONSE' && isWaitingForIframeData) {
+          const dataItems = Array.isArray(message.payload)
+            ? message.payload
+            : [message.payload];
 
           let hasValidationError = false;
 
@@ -186,11 +190,17 @@ export default function EditModal({
                 property: completeProperty,
               };
 
-              const newColumnData = {
-                ...(isIframeValidationError ? columnData : editedItem),
-                ...baseColumnData,
-              };
-
+              const newColumnData = isIframeValidationError
+                ? {
+                    ...columnData,
+                    ...baseColumnData,
+                    configEntries: columnData?.configEntries,
+                  }
+                : {
+                    ...editedItem,
+                    ...baseColumnData,
+                    configEntries: editedItem?.configEntries,
+                  };
               setColumnData(newColumnData);
 
               if (validateColumnData(newColumnData)) {
@@ -211,10 +221,9 @@ export default function EditModal({
       }
     };
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    const interval = setInterval(processMessageQueue, 100);
+    return () => clearInterval(interval);
   }, [
-    editedItem,
     isWaitingForIframeData,
     onSave,
     onClose,
@@ -223,7 +232,31 @@ export default function EditModal({
     columnData,
     isIframeValidationError,
     validateColumnData,
+    editedItem,
   ]);
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.origin !== window.location.origin) return;
+
+      // Filter out React DevTools messages
+      if (event.data?.source === 'react-devtools-bridge') {
+        return;
+      }
+
+      // Ensure we have a valid message structure
+      if (!event.data || typeof event.data !== 'object') {
+        return;
+      }
+
+      if (event.data.type === 'IFRAME_DATA_RESPONSE') {
+        messageQueueRef.current.push(event.data);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [isWaitingForIframeData]);
 
   const handleSave = useCallback(() => {
     if (
@@ -271,6 +304,26 @@ export default function EditModal({
       const itemToSave = isCombinedProperties
         ? { ...editedItem, combinedProperties }
         : editedItem;
+
+      dispatch(
+        setTableConfigEntries({
+          componentId: component.id,
+          columnId: itemToSave.id,
+          configEntries: [
+            itemToSave.id,
+            {
+              [itemToSave.entity.name]: {
+                filter: {
+                  entityLogic: 'AND',
+                  conditions: itemToSave.conditions || [],
+                },
+                selectedProperties: [itemToSave.property.name] || [],
+              },
+            },
+          ],
+        }),
+      );
+
       onSave(itemToSave);
       onClose();
     }
@@ -282,6 +335,8 @@ export default function EditModal({
     mainEntity,
     isCombinedProperties,
     combinedProperties,
+    dispatch,
+    component.id,
   ]);
 
   const handleDelete = useCallback(() => {
@@ -307,6 +362,8 @@ export default function EditModal({
             columnData={columnData}
             setColumnData={setColumnData}
             onSave={handleSave}
+            componentId={component.id}
+            columnId={item.id}
           />
 
           {!isIFrame && editedItem.entity && (

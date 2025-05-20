@@ -21,6 +21,7 @@ const initialState = {
   combinedPropertiesMode: {},
   navigationProperties: {},
   textConfigEntries: {},
+  tableConfigEntries: {},
 };
 
 const uiBuilderSlice = createSlice({
@@ -175,6 +176,15 @@ const uiBuilderSlice = createSlice({
         selectedValue,
       };
     },
+    setTableConfigEntries: (state, action) => {
+      const { componentId, columnId, configEntries } = action.payload;
+      if (!state.tableConfigEntries[componentId]) {
+        state.tableConfigEntries[componentId] = {};
+      }
+      state.tableConfigEntries[componentId][columnId] = {
+        configEntries,
+      };
+    },
   },
 });
 
@@ -203,6 +213,7 @@ export const {
   setNavigationProperty,
   updateComponentProps,
   setTextConfigEntries,
+  setTableConfigEntries,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;
