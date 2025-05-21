@@ -317,7 +317,13 @@ export default function EditModal({
                   entityLogic: 'AND',
                   conditions: itemToSave.conditions || [],
                 },
-                selectedProperties: [itemToSave.property.name] || [],
+                selectedProperties: itemToSave.combinedProperties
+                  ? itemToSave.combinedProperties.map((prop) =>
+                      prop.nestedProperty
+                        ? prop.nestedProperty.name
+                        : prop.name,
+                    )
+                  : [itemToSave.property.name] || [],
               },
             },
           ],

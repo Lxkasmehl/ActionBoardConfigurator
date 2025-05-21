@@ -222,11 +222,75 @@ export default function TableComponent({ component, disabled = false }) {
                     (acc, [key, value]) => ({ ...acc, [key]: value }),
                     {},
                   );
+
                 // Extract the actual value from the newValue object if it's a single property
-                const actualNewValue =
-                  Object.keys(newValue).length === 1
-                    ? Object.values(newValue)[0]
-                    : newValue;
+                let actualNewValue;
+                if (Object.keys(newValue).length === 1) {
+                  actualNewValue = Object.values(newValue)[0];
+                } else {
+                  // If we have multiple properties, try to find the separator from existing data
+                  const newValues = Object.values(newValue);
+                  let separator = ' ';
+
+                  // Look through all rows to find where these values appear together
+                  for (const existingRow of prevData) {
+                    const existingValue = existingRow[column.label];
+                    if (typeof existingValue === 'string') {
+                      // Check if all new values appear in this existing value
+                      const allValuesFound = newValues.every((val) =>
+                        existingValue.includes(String(val)),
+                      );
+
+                      if (allValuesFound) {
+                        // Find the separator by looking at the text between consecutive values
+                        let foundSeparator = null;
+                        let isValidSeparator = true;
+
+                        // Check each pair of consecutive values
+                        for (let i = 0; i < newValues.length - 1; i++) {
+                          const currentValue = String(newValues[i]);
+                          const nextValue = String(newValues[i + 1]);
+                          const currentIndex =
+                            existingValue.indexOf(currentValue);
+                          const nextIndex = existingValue.indexOf(nextValue);
+
+                          if (currentIndex !== -1 && nextIndex !== -1) {
+                            const start = currentIndex + currentValue.length;
+                            const end = nextIndex;
+                            if (start < end) {
+                              const currentSeparator = existingValue.substring(
+                                start,
+                                end,
+                              );
+
+                              // If this is the first separator we found, store it
+                              if (foundSeparator === null) {
+                                foundSeparator = currentSeparator;
+                              }
+                              // If we found a different separator, this row isn't valid
+                              else if (foundSeparator !== currentSeparator) {
+                                isValidSeparator = false;
+                                break;
+                              }
+                            }
+                          }
+                        }
+
+                        // If we found a valid separator that's consistent between all values
+                        if (isValidSeparator && foundSeparator !== null) {
+                          separator = foundSeparator;
+                          break;
+                        }
+                      }
+                    }
+                  }
+
+                  // Combine all values with the found separator
+                  actualNewValue = newValues
+                    .map((value) => (value === null ? 'null' : value))
+                    .join(separator);
+                }
+
                 if (
                   JSON.stringify(currentValue) !==
                   JSON.stringify(actualNewValue)
