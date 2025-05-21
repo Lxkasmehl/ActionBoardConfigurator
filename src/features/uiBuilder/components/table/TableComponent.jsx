@@ -172,7 +172,11 @@ export default function TableComponent({ component, disabled = false }) {
       try {
         const configEntriesToFetch = columnsWithConfig.map((column) => {
           const configEntry = tableConfigEntries[column.id];
-          const [id, config] = configEntry.configEntries;
+          // Handle both possible structures of configEntries
+          const configArray = Array.isArray(configEntry.configEntries[0])
+            ? configEntry.configEntries[0]
+            : configEntry.configEntries;
+          const [id, config] = configArray;
           const entityName = Object.keys(config)[0];
           const entityConfig = config[entityName];
 
