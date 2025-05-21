@@ -61,6 +61,9 @@ export default function TableComponent({ component, disabled = false }) {
   );
   const [shouldSyncWithBackend, setShouldSyncWithBackend] = useState(false);
   const isInitialized = useRef(false);
+  const columnSeparators = useSelector(
+    (state) => state.uiBuilder.columnSeparators[component.id] || {},
+  );
 
   const componentGroup = Object.values(componentGroups).find((group) =>
     group.components.includes(component.id),
@@ -176,15 +179,32 @@ export default function TableComponent({ component, disabled = false }) {
           const configArray = Array.isArray(configEntry.configEntries[0])
             ? configEntry.configEntries[0]
             : configEntry.configEntries;
-          const [id, config] = configArray;
+          const [, config] = configArray;
           const entityName = Object.keys(config)[0];
           const entityConfig = config[entityName];
 
+          // Handle navigation properties and combined properties
+          const selectedProperties = entityConfig.selectedProperties.map(
+            (prop) => {
+              // If the property has navigation properties, include them in the path
+              if (
+                prop.navigationProperties &&
+                prop.navigationProperties.length > 0
+              ) {
+                const navigationPath = prop.navigationProperties
+                  .map((nav) => nav.name)
+                  .join('/');
+                return `${navigationPath}/${prop.name}`;
+              }
+              return prop.name;
+            },
+          );
+
           return [
-            id,
+            column.id,
             {
               entityName,
-              selectedProperties: entityConfig.selectedProperties,
+              selectedProperties,
               filter: entityConfig.filter,
             },
           ];
@@ -218,101 +238,72 @@ export default function TableComponent({ component, disabled = false }) {
             Object.entries(fetchedValues).forEach(([columnId, values]) => {
               const column = columns.find((col) => col.id === columnId);
               if (column && values[rowIndex]) {
-                // Update the value if it's different from the current value
-                const currentValue = row[column.label];
-                const newValue = Object.entries(values[rowIndex])
-                  .filter(([key]) => key !== '__metadata')
-                  .reduce(
-                    (acc, [key, value]) => ({ ...acc, [key]: value }),
-                    {},
-                  );
+                // Get the config entry for this column
+                const configEntry = tableConfigEntries[columnId];
+                const configArray = Array.isArray(configEntry.configEntries[0])
+                  ? configEntry.configEntries[0]
+                  : configEntry.configEntries;
+                const [, config] = configArray;
+                const entityName = Object.keys(config)[0];
+                const entityConfig = config[entityName];
 
-                // Extract the actual value from the newValue object if it's a single property
-                let actualNewValue;
-                if (Object.keys(newValue).length === 1) {
-                  actualNewValue = Object.values(newValue)[0];
-                } else {
-                  // If we have multiple properties, try to find the separator from existing data
-                  const newValues = Object.values(newValue);
-                  let separator = ' ';
-
-                  // Look through all rows to find where these values appear together
-                  for (const existingRow of prevData) {
-                    const existingValue = existingRow[column.label];
-                    if (typeof existingValue === 'string') {
-                      // Check if all new values appear in this existing value
-                      const allValuesFound = newValues.every((val) =>
-                        existingValue.includes(String(val)),
-                      );
-
-                      if (allValuesFound) {
-                        // Find the separator by looking at the text between consecutive values
-                        let foundSeparator = null;
-                        let isValidSeparator = true;
-
-                        // Check each pair of consecutive values
-                        for (let i = 0; i < newValues.length - 1; i++) {
-                          const currentValue = String(newValues[i]);
-                          const nextValue = String(newValues[i + 1]);
-                          const currentIndex =
-                            existingValue.indexOf(currentValue);
-                          const nextIndex = existingValue.indexOf(nextValue);
-
-                          if (currentIndex !== -1 && nextIndex !== -1) {
-                            const start = currentIndex + currentValue.length;
-                            const end = nextIndex;
-                            if (start < end) {
-                              const currentSeparator = existingValue.substring(
-                                start,
-                                end,
-                              );
-
-                              // If this is the first separator we found, store it
-                              if (foundSeparator === null) {
-                                foundSeparator = currentSeparator;
-                              }
-                              // If we found a different separator, this row isn't valid
-                              else if (foundSeparator !== currentSeparator) {
-                                isValidSeparator = false;
-                                break;
-                              }
-                            }
+                // Handle combined properties
+                if (entityConfig.selectedProperties.length > 1) {
+                  const separator = columnSeparators[columnId] || ' ';
+                  const combinedValue = entityConfig.selectedProperties
+                    .map((prop) => {
+                      // Handle nested properties
+                      if (
+                        prop.navigationProperties &&
+                        prop.navigationProperties.length > 0
+                      ) {
+                        let value = values[rowIndex];
+                        // Navigate through the object structure
+                        for (const navProp of prop.navigationProperties) {
+                          if (!value) break;
+                          // Handle arrays with results property
+                          if (value[navProp.name]?.results) {
+                            value = value[navProp.name].results[0];
+                          } else {
+                            value = value[navProp.name];
                           }
                         }
-
-                        // If we found a valid separator that's consistent between all values
-                        if (isValidSeparator && foundSeparator !== null) {
-                          separator = foundSeparator;
-                          break;
-                        }
+                        return value?.[prop.name] || '';
+                      }
+                      // Handle regular properties
+                      const value = values[rowIndex][prop.name];
+                      return value !== undefined ? value : '';
+                    })
+                    .filter(Boolean)
+                    .join(separator);
+                  newRow[column.label] = combinedValue;
+                } else {
+                  // Handle single property with potential navigation path
+                  const prop = entityConfig.selectedProperties[0];
+                  if (
+                    prop.navigationProperties &&
+                    prop.navigationProperties.length > 0
+                  ) {
+                    // Navigate through the object to get the nested value
+                    let value = values[rowIndex];
+                    for (const navProp of prop.navigationProperties) {
+                      if (!value) break;
+                      // Handle arrays with results property
+                      if (value[navProp.name]?.results) {
+                        value = value[navProp.name].results[0];
+                      } else {
+                        value = value[navProp.name];
                       }
                     }
+                    newRow[column.label] = value?.[prop.name] || '';
+                  } else {
+                    newRow[column.label] = values[rowIndex][prop.name] || '';
                   }
-
-                  // Combine all values with the found separator
-                  actualNewValue = newValues
-                    .map((value) => (value === null ? 'null' : value))
-                    .join(separator);
-                }
-
-                if (
-                  JSON.stringify(currentValue) !==
-                  JSON.stringify(actualNewValue)
-                ) {
-                  console.log(
-                    `Updating value for column ${column.label} at row ${rowIndex}:`,
-                    {
-                      from: currentValue,
-                      to: actualNewValue,
-                    },
-                  );
-                  newRow[column.label] = actualNewValue;
                 }
               }
             });
             return newRow;
           });
-          console.log('New table data after updates:', newData);
           return newData;
         });
       } catch (error) {
@@ -329,6 +320,7 @@ export default function TableComponent({ component, disabled = false }) {
     setTableData,
     shouldSyncWithBackend,
     tableData,
+    columnSeparators,
   ]);
 
   const isColumnInvalid = (column) => {

@@ -318,12 +318,32 @@ export default function EditModal({
                   conditions: itemToSave.conditions || [],
                 },
                 selectedProperties: itemToSave.combinedProperties
-                  ? itemToSave.combinedProperties.map((prop) =>
-                      prop.nestedProperty
-                        ? prop.nestedProperty.name
-                        : prop.name,
-                    )
-                  : [itemToSave.property.name] || [],
+                  ? itemToSave.combinedProperties.map((prop) => {
+                      if (prop.nestedProperty) {
+                        return {
+                          name: prop.nestedProperty.name,
+                          navigationProperties: prop.nestedNavigationPath || [],
+                        };
+                      }
+                      return {
+                        name: prop.name,
+                        navigationProperties: [],
+                      };
+                    })
+                  : itemToSave.nestedProperty
+                    ? [
+                        {
+                          name: itemToSave.nestedProperty.name,
+                          navigationProperties:
+                            itemToSave.nestedNavigationPath || [],
+                        },
+                      ]
+                    : [
+                        {
+                          name: itemToSave.property.name,
+                          navigationProperties: [],
+                        },
+                      ],
               },
             },
           ],

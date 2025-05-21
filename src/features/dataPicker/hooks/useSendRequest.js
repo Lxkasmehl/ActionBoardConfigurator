@@ -70,7 +70,13 @@ export const useSendRequest = (config) => {
               collectNavigationProperties(entityConfig.filter);
 
               const allProperties = [
-                ...(entityConfig.selectedProperties || []),
+                ...(entityConfig.selectedProperties || []).map((prop) =>
+                  typeof prop === 'string'
+                    ? prop
+                    : prop.navigationProperties?.length > 0
+                      ? `${prop.navigationProperties.map((nav) => nav.name).join('/')}/${prop.name}`
+                      : prop.name,
+                ),
                 ...navigationPropertiesFromFilter,
               ];
 
