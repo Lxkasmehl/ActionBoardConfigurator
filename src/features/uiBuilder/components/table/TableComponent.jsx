@@ -192,11 +192,11 @@ export default function TableComponent({ component, disabled = false }) {
                 prop.navigationProperties.length > 0
               ) {
                 const navigationPath = prop.navigationProperties
-                  .map((nav) => nav.name)
+                  .map((nav) => nav.name || nav.Name)
                   .join('/');
-                return `${navigationPath}/${prop.name}`;
+                return `${navigationPath}/${prop.name || prop.Name}`;
               }
-              return prop.name;
+              return prop.name || prop.Name;
             },
           );
 
@@ -262,16 +262,19 @@ export default function TableComponent({ component, disabled = false }) {
                         for (const navProp of prop.navigationProperties) {
                           if (!value) break;
                           // Handle arrays with results property
-                          if (value[navProp.name]?.results) {
-                            value = value[navProp.name].results[0];
+                          const navPropName = navProp.name || navProp.Name;
+                          if (value[navPropName]?.results) {
+                            value = value[navPropName].results[0];
                           } else {
-                            value = value[navProp.name];
+                            value = value[navPropName];
                           }
                         }
-                        return value?.[prop.name] || '';
+                        const propName = prop.name || prop.Name;
+                        return value?.[propName] || '';
                       }
                       // Handle regular properties
-                      const value = values[rowIndex][prop.name];
+                      const propName = prop.name || prop.Name;
+                      const value = values[rowIndex][propName];
                       return value !== undefined ? value : '';
                     })
                     .filter(Boolean)
@@ -289,15 +292,18 @@ export default function TableComponent({ component, disabled = false }) {
                     for (const navProp of prop.navigationProperties) {
                       if (!value) break;
                       // Handle arrays with results property
-                      if (value[navProp.name]?.results) {
-                        value = value[navProp.name].results[0];
+                      const navPropName = navProp.name || navProp.Name;
+                      if (value[navPropName]?.results) {
+                        value = value[navPropName].results[0];
                       } else {
-                        value = value[navProp.name];
+                        value = value[navPropName];
                       }
                     }
-                    newRow[column.label] = value?.[prop.name] || '';
+                    const propName = prop.name || prop.Name;
+                    newRow[column.label] = value?.[propName] || '';
                   } else {
-                    newRow[column.label] = values[rowIndex][prop.name] || '';
+                    const propName = prop.name || prop.Name;
+                    newRow[column.label] = values[rowIndex][propName] || '';
                   }
                 }
               }
@@ -312,16 +318,12 @@ export default function TableComponent({ component, disabled = false }) {
     };
 
     fetchDynamicData();
-  }, [
-    columns,
-    tableConfigEntries,
-    component.id,
-    sendRequestDataPicker,
-    setTableData,
-    shouldSyncWithBackend,
-    tableData,
-    columnSeparators,
-  ]);
+    // Disable exhaustive-deps rule because we want to control when data is refetched.
+    // Including all dependencies would cause too frequent refetches and performance issues.
+    // Instead, we explicitly control refetching through the shouldSyncWithBackend state
+    // and the columns array, which allows us to optimize when data is actually needed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columns, shouldSyncWithBackend]);
 
   const isColumnInvalid = (column) => {
     return (

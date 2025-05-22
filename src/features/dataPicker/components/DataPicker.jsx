@@ -38,6 +38,7 @@ import ResultsModal from './ResultsModal.jsx';
 export default function DataPicker() {
   const loading = useFetchEntities();
   const dispatch = useDispatch();
+  const allEntities = useSelector((state) => state.fetchedData.allEntities);
 
   const {
     selectedEntities,
@@ -303,6 +304,70 @@ export default function DataPicker() {
     }
   };
 
+  const transformConfigEntries = useCallback(
+    (nodeConfig) => {
+      const [entityName, entityConfig] = Object.entries(nodeConfig)[0];
+      const currentEntity = allEntities.find((e) => e.name === entityName);
+
+      // First, filter out base properties that have extended versions
+      const filteredProperties = entityConfig.selectedProperties.filter(
+        (prop) => {
+          const parts = prop.split('/');
+          const baseProperty = parts[0];
+
+          // Check if there's any other property that starts with this base property
+          return !entityConfig.selectedProperties.some(
+            (otherProp) =>
+              otherProp !== prop && otherProp.startsWith(`${baseProperty}/`),
+          );
+        },
+      );
+
+      // Group properties by their final property name (after the last slash)
+      const groupedProperties = filteredProperties.reduce((acc, prop) => {
+        const parts = prop.split('/');
+        const finalProperty = parts[parts.length - 1];
+        const navigationPath = parts.slice(0, -1);
+
+        if (!acc[finalProperty]) {
+          acc[finalProperty] = {
+            name: finalProperty,
+            navigationProperties: [],
+          };
+        }
+
+        if (navigationPath.length > 0) {
+          // Build up the navigation properties array from left to right
+          let currentPath = '';
+
+          navigationPath.forEach((navProp) => {
+            currentPath = currentPath ? `${currentPath}/${navProp}` : navProp;
+
+            // Find the actual navigation property metadata
+            const navProperty =
+              currentEntity?.properties?.navigationProperties?.find(
+                (np) => np.Name === navProp,
+              );
+
+            if (navProperty) {
+              acc[finalProperty].navigationProperties.push(navProperty);
+            }
+          });
+        }
+
+        return acc;
+      }, {});
+
+      return {
+        [entityName]: {
+          ...entityConfig,
+          selectedProperties: Object.values(groupedProperties),
+        },
+      };
+    },
+    [allEntities],
+  );
+
   useEffect(() => {
     const handleMessage = async (event) => {
       if (event.origin !== window.location.origin) return;
@@ -327,8 +392,11 @@ export default function DataPicker() {
           const results = await handleSendRequest(selectedNode);
 
           const configEntries = selectedNode
-            ? [[selectedNode, config[selectedNode]]]
-            : Object.entries(config);
+            ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
+            : Object.entries(config).map(([nodeId, nodeConfig]) => [
+                nodeId,
+                transformConfigEntries(nodeConfig),
+              ]);
 
           const message = {
             type: 'IFRAME_DATA_RESPONSE',
@@ -359,8 +427,11 @@ export default function DataPicker() {
             const results = await handleSendRequest();
 
             const configEntries = selectedNode
-              ? [[selectedNode, config[selectedNode]]]
-              : Object.entries(config);
+              ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
+              : Object.entries(config).map(([nodeId, nodeConfig]) => [
+                  nodeId,
+                  transformConfigEntries(nodeConfig),
+                ]);
 
             window.parent.postMessage(
               {
@@ -384,7 +455,7 @@ export default function DataPicker() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [handleSendRequest, selectedNode, config]);
+  }, [handleSendRequest, selectedNode, config, transformConfigEntries]);
 
   // Add message queue processor
   useEffect(() => {
