@@ -74,29 +74,16 @@ export const exportToExcel = ${exportToExcel.toString()}`,
   src.file(
     'main.jsx',
     `import React from 'react';
-import { jsxDEV } from "react/jsx-dev-runtime";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { CssVarsProvider } from "@mui/joy/styles";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  /* @__PURE__ */ jsxDEV(React.StrictMode, { 
-    children: /* @__PURE__ */ jsxDEV(CssVarsProvider, { 
-      children: /* @__PURE__ */ jsxDEV(App, {}, void 0, false, {
-        fileName: "C:/Users/LukasMehl/Downloads/exported-website (9)/src/main.jsx",
-        lineNumber: 7,
-        columnNumber: 5
-      })
-    }, void 0, false, {
-      fileName: "C:/Users/LukasMehl/Downloads/exported-website (9)/src/main.jsx",
-      lineNumber: 6,
-      columnNumber: 5
-    })
-  }, void 0, false, {
-    fileName: "C:/Users/LukasMehl/Downloads/exported-website (9)/src/main.jsx",
-    lineNumber: 5,
-    columnNumber: 3
-  })
+  <React.StrictMode>
+    <CssVarsProvider>
+      <App />
+    </CssVarsProvider>
+  </React.StrictMode>
 );`,
   );
 
