@@ -64,12 +64,43 @@ export const useTableData = (columns, initialDummyData, componentId) => {
     const columnsWithData = columns.filter((col) => col.data);
     if (columnsWithData.length === 0) return;
 
+    const extractValueFromNestedResults = (obj) => {
+      if (!obj) return null;
+
+      // If we have a results array, take the first item
+      if (obj.results) {
+        const firstResult = Array.isArray(obj.results)
+          ? obj.results[0]
+          : obj.results;
+        return extractValueFromNestedResults(firstResult);
+      }
+
+      // If it's an object but not a results array, look for the first non-metadata property
+      if (typeof obj === 'object') {
+        const firstValue = Object.entries(obj).find(
+          ([key]) => key !== '__metadata',
+        )?.[1];
+        if (firstValue) {
+          return extractValueFromNestedResults(firstValue);
+        }
+      }
+
+      // If we've reached a primitive value, return it
+      return obj;
+    };
+
     setTableData((prevData) => {
       const updatedTableData = prevData.map((row, index) => {
         const newRow = { ...row };
         columnsWithData.forEach((column) => {
           if (column.data && column.data[index] !== undefined) {
-            newRow[column.label] = formatDateValue(column.data[index]);
+            const value = column.data[index];
+            if (value && typeof value === 'object') {
+              const extractedValue = extractValueFromNestedResults(value);
+              newRow[column.label] = formatDateValue(extractedValue);
+            } else {
+              newRow[column.label] = formatDateValue(value);
+            }
           }
         });
         return newRow;
