@@ -13,6 +13,51 @@ import {
 import PropTypes from 'prop-types';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
+// Helper function to recursively extract all properties from nested objects
+const extractProperties = (obj, prefix = '') => {
+  if (!obj || typeof obj !== 'object') {
+    return [];
+  }
+
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    if (key === '__metadata') return acc;
+
+    const currentPath = prefix ? `${prefix}.${key}` : key;
+
+    // Handle arrays of objects
+    if (
+      Array.isArray(value) &&
+      value.length > 0 &&
+      typeof value[0] === 'object'
+    ) {
+      const nestedProps = extractProperties(value[0], currentPath);
+      return [...acc, ...nestedProps];
+    }
+
+    // Handle nested objects
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      const nestedProps = extractProperties(value, currentPath);
+      return [...acc, ...nestedProps];
+    }
+
+    return [...acc, currentPath];
+  }, []);
+};
+
+// Helper function to get value from nested object using dot notation
+const getNestedValue = (obj, path) => {
+  return path.split('.').reduce((current, key) => {
+    if (!current) return undefined;
+
+    // If we're accessing an array, get the first item
+    if (Array.isArray(current[key])) {
+      return current[key][0];
+    }
+
+    return current[key];
+  }, obj);
+};
+
 export default function PropertySelectionModal({
   open,
   onClose,
@@ -32,16 +77,15 @@ export default function PropertySelectionModal({
     }
   }, [open]);
 
-  // Get all properties except __metadata
-  const properties = useMemo(
-    () =>
-      data && data[0]?.d?.results?.[0]
-        ? Object.keys(data[0].d.results[0]).filter(
-            (key) => key !== '__metadata',
-          )
-        : [],
-    [data],
-  );
+  // Get all properties from the first result, including nested ones
+  const properties = useMemo(() => {
+    if (!data?.[0]?.d?.results?.[0]) {
+      return [];
+    }
+
+    const firstResult = data[0].d.results[0];
+    return extractProperties(firstResult);
+  }, [data]);
 
   const handleConfirm = useCallback(() => {
     if (selectedProperty && selectedValue) {
@@ -57,12 +101,26 @@ export default function PropertySelectionModal({
       // Get all unique values for the selected property
       const values =
         data?.[0]?.d?.results
-          ?.map((result, index) => ({
-            id: `${result[property]}-${index}`,
-            label: result[property]?.toString() || '',
-            value: result[property],
-            metadata: result.__metadata,
-          }))
+          ?.map((result, index) => {
+            const value = getNestedValue(result, property);
+
+            // If the value is an object, try to get a meaningful string representation
+            let displayValue = value;
+            if (value && typeof value === 'object') {
+              displayValue = Object.values(value)
+                .filter(
+                  (v) => v !== null && v !== undefined && typeof v !== 'object',
+                )
+                .join(' ');
+            }
+
+            return {
+              id: `${value}-${index}`,
+              label: displayValue?.toString() || '',
+              value: value,
+              metadata: result.__metadata,
+            };
+          })
           .filter((item) => item.label && item.label.trim() !== '')
           .filter(
             (item, index, self) =>
@@ -98,12 +156,15 @@ export default function PropertySelectionModal({
   const values =
     (selectedProperty &&
       data?.[0]?.d?.results
-        ?.map((result, index) => ({
-          id: `${result[selectedProperty]}-${index}`,
-          label: result[selectedProperty]?.toString() || '',
-          value: result[selectedProperty],
-          metadata: result.__metadata,
-        }))
+        ?.map((result, index) => {
+          const value = getNestedValue(result, selectedProperty);
+          return {
+            id: `${value}-${index}`,
+            label: value?.toString() || '',
+            value: value,
+            metadata: result.__metadata,
+          };
+        })
         .filter((item) => item.label && item.label.trim() !== '')
         .filter(
           (item, index, self) =>
