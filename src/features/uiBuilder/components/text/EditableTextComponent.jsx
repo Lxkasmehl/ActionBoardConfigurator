@@ -56,60 +56,133 @@ export default function EditableTextComponent({
 
   // Effect to fetch values on mount and when text changes
   useEffect(() => {
+    console.log('useEffect triggered with editedText:', editedText);
+
     const fetchValues = async () => {
       const values = extractValues(editedText);
-      if (values.length === 0) return;
+      console.log('Extracted values:', values);
 
-      const configEntriesToFetch = values
-        .filter((value) => textConfigEntries[value])
+      // Filter out empty values
+      const validValues = values.filter((value) => value.trim() !== '');
+      if (validValues.length === 0) {
+        console.log('No valid values to fetch, returning early');
+        return;
+      }
+
+      const configEntriesToFetch = validValues
         .map((value) => {
           const configEntry = textConfigEntries[value];
+          if (!configEntry) {
+            console.log(`No config entry found for value: ${value}`);
+            return null;
+          }
+
+          console.log(
+            `Processing config entry for value: ${value}`,
+            configEntry,
+          );
+
+          // Handle both possible structures of configEntries
+          const configArray = Array.isArray(configEntry.configEntries[0])
+            ? configEntry.configEntries[0]
+            : configEntry.configEntries;
+          const [, config] = configArray;
+          const entityName = Object.keys(config)[0];
+          const entityConfig = config[entityName];
+
+          // Handle navigation properties and combined properties
+          const selectedProperties = entityConfig.selectedProperties.map(
+            (prop) => {
+              // If the property has navigation properties, include them in the path
+              if (
+                prop.navigationProperties &&
+                prop.navigationProperties.length > 0
+              ) {
+                const navigationPath = prop.navigationProperties
+                  .map((nav) => nav.name || nav.Name)
+                  .join('/');
+                return `${navigationPath}/${prop.name || prop.Name}`;
+              }
+              return prop.name || prop.Name;
+            },
+          );
+
           return [
             value,
             {
-              entityName: Object.keys(configEntry.configEntries[0][1])[0],
-              selectedProperties:
-                configEntry.configEntries[0][1][
-                  Object.keys(configEntry.configEntries[0][1])[0]
-                ].selectedProperties,
-              filter:
-                configEntry.configEntries[0][1][
-                  Object.keys(configEntry.configEntries[0][1])[0]
-                ].filter,
+              entityName,
+              selectedProperties,
+              filter: entityConfig.filter,
             },
           ];
-        });
+        })
+        .filter((entry) => entry !== null);
 
-      if (configEntriesToFetch.length === 0) return;
+      if (configEntriesToFetch.length === 0) {
+        console.log('No valid config entries to fetch');
+        return;
+      }
+
+      console.log('Config entries to fetch:', configEntriesToFetch);
 
       try {
         const results = await sendRequest(null, configEntriesToFetch);
+        console.log('Received results from sendRequest:', results);
+
         const fetchedValues = {};
 
         results.forEach((result, index) => {
-          const value = values[index];
+          const value = validValues[index];
           const configEntry = textConfigEntries[value];
+          console.log(`Processing result for value: ${value}`, result);
+
           if (result.d.results && result.d.results.length > 0) {
             // Use the stored selected property and value
             const selectedProperty = configEntry.selectedProperty;
             const selectedValue = configEntry.selectedValue;
 
+            // Helper function to get value from object using dot notation path
+            const getValueByPath = (obj, path) => {
+              return path.split('.').reduce((current, key) => {
+                // If we encounter 'results' in the path, we need to handle it specially
+                if (key === 'results') {
+                  return current?.results?.[0];
+                }
+                return current?.[key];
+              }, obj);
+            };
+
             // Find the result that matches our selected value
-            const matchingResult = result.d.results.find(
-              (r) => r[selectedProperty] === selectedValue.value,
-            );
+            const matchingResult = result.d.results.find((r) => {
+              const value = getValueByPath(r, selectedProperty);
+              return value === selectedValue.value;
+            });
 
             if (matchingResult) {
-              fetchedValues[value] = matchingResult[selectedProperty];
+              console.log(
+                `Found matching result for ${value}:`,
+                matchingResult,
+              );
+              fetchedValues[value] =
+                getValueByPath(matchingResult, selectedProperty) || '';
+            } else {
+              console.log(`No matching result found for ${value}`);
             }
+          } else {
+            console.log(`No results found in response for ${value}`);
           }
         });
+
+        console.log('Final fetched values:', fetchedValues);
 
         const updatedText = updateTextWithFetchedValues(
           editedText,
           fetchedValues,
         );
+        console.log('Updated text:', updatedText);
+
         if (updatedText !== editedText) {
+          console.log('Text was updated, dispatching changes');
           setEditedText(updatedText);
           dispatch(
             updateComponentProps({
@@ -120,6 +193,8 @@ export default function EditableTextComponent({
               },
             }),
           );
+        } else {
+          console.log('No text changes needed');
         }
       } catch (error) {
         console.error('Error fetching values:', error);
@@ -210,6 +285,7 @@ export default function EditableTextComponent({
         configEntries: selectedData.configEntries || [],
         selectedProperty: property,
         selectedValue: value,
+        navigationProperties: selectedData.navigationProperties || [],
       }),
     );
 

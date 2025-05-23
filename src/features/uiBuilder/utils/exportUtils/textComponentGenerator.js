@@ -120,13 +120,24 @@ export const generateTextComponent = () => {
               collectNavigationProperties(config.filter);
 
               const allProperties = [
-                ...(config.selectedProperties?.map(prop => prop.name || prop.Name) || []),
+                ...(config.selectedProperties?.map(prop => {
+                  // If the property has navigation properties, include the full path
+                  if (prop.navigationProperties?.length > 0) {
+                    return prop.navigationProperties.map(navProp => 
+                      navProp.Name + '/' + (prop.name || prop.Name)
+                    );
+                  }
+                  return prop.name || prop.Name;
+                }).flat() || []),
                 ...navigationPropertiesFromFilter,
               ];
 
               if (allProperties.length > 0 && !(allProperties.length === 1 && allProperties[0] === '/')) {
                 const filteredProperties = allProperties.filter(prop => {
-                  if (config.selectedProperties?.some(sp => (sp.name || sp.Name) === prop)) return true;
+                  if (config.selectedProperties?.some(sp => {
+                    const propName = sp.name || sp.Name;
+                    return prop === propName || prop.endsWith('/' + propName);
+                  })) return true;
                   if (!prop.includes('/')) {
                     return !allProperties.some(otherProp => 
                       otherProp !== prop && otherProp.startsWith(prop + '/')
@@ -145,7 +156,7 @@ export const generateTextComponent = () => {
                 );
 
                 if (selectProperties.length > 0) {
-                  queryString += \`&$select=\${urlUtils.fixedEncodeURIComponent(selectProperties.join(','))}\`;
+                  queryString += '&$select=' + urlUtils.fixedEncodeURIComponent(selectProperties.join(','));
                 }
 
                 // Get navigation properties from the selectedProperties objects
@@ -155,7 +166,7 @@ export const generateTextComponent = () => {
 
                 const expandParam = navigationProperties.join(',');
                 if (expandParam) {
-                  queryString += \`&$expand=\${urlUtils.fixedEncodeURIComponent(expandParam)}\`;
+                  queryString += '&$expand=' + urlUtils.fixedEncodeURIComponent(expandParam);
                 }
               }
 
