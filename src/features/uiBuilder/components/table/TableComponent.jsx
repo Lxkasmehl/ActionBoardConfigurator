@@ -6,7 +6,6 @@ import EditModal from './EditModal';
 import PropTypes from 'prop-types';
 import { useTableData } from '../../hooks/useTableData';
 import { useSendRequest } from '../../hooks/useSendRequest';
-import { useSendRequest as useSendRequestDataPicker } from '@/features/dataPicker/hooks/useSendRequest';
 import { getInitialDummyData } from '../../utils/tableUtils';
 import { DataGridPro } from '@mui/x-data-grid-pro';
 import CustomColumnMenu from './CustomColumnMenu';
@@ -21,6 +20,7 @@ import {
   updateComponentProps,
   setTableConfigEntries,
 } from '../../../../redux/uiBuilderSlice';
+import { useConfigDataFetching } from '../../hooks/useConfigDataFetching';
 
 export default function TableComponent({ component, disabled = false }) {
   const dispatch = useDispatch();
@@ -39,7 +39,6 @@ export default function TableComponent({ component, disabled = false }) {
   );
   const [relationData, setRelationData] = useState({});
   const sendRequest = useSendRequest();
-  const sendRequestDataPicker = useSendRequestDataPicker();
   const groupFilters = useSelector((state) => state.uiBuilder.groupFilters);
   const groupFiltersEnabled = useSelector(
     (state) => state.uiBuilder.groupFiltersEnabled,
@@ -143,187 +142,93 @@ export default function TableComponent({ component, disabled = false }) {
     dispatch(setTableDataRedux({ componentId: component.id, data: tableData }));
   }, [tableData, dispatch, component.id, columns]);
 
-  // Add new effect for dynamic data fetching
-  useEffect(() => {
-    const fetchDynamicData = async () => {
-      // Only proceed if backend sync is enabled
-      if (!shouldSyncWithBackend) {
-        console.log('Backend sync is disabled, skipping fetch');
-        return;
-      }
+  // Use the new hook for data fetching
+  useConfigDataFetching({
+    configEntries: tableConfigEntries,
+    onDataFetched: (fetchedValues) => {
+      setTableData((prevData) => {
+        const newData = prevData.map((row, rowIndex) => {
+          const newRow = { ...row };
+          Object.entries(fetchedValues).forEach(([columnId, values]) => {
+            const column = columns.find((col) => col.id === columnId);
+            if (column && values[rowIndex]) {
+              // Get the config entry for this column
+              const configEntry = tableConfigEntries[columnId];
+              const configArray = Array.isArray(configEntry.configEntries[0])
+                ? configEntry.configEntries[0]
+                : configEntry.configEntries;
+              const [, config] = configArray;
+              const entityName = Object.keys(config)[0];
+              const entityConfig = config[entityName];
 
-      // Skip if we don't have any table data yet
-      if (!tableData || tableData.length === 0) {
-        console.log('Skipping dynamic data fetch - no table data yet');
-        return;
-      }
-
-      console.log('Starting dynamic data fetch...');
-      console.log('Current columns:', columns);
-      console.log('Current tableConfigEntries:', tableConfigEntries);
-
-      const columnsWithConfig = columns.filter(
-        (col) => tableConfigEntries[col.id],
-      );
-      console.log('Columns with config:', columnsWithConfig);
-
-      if (columnsWithConfig.length === 0) {
-        console.log('No columns with config found, skipping fetch');
-        return;
-      }
-
-      try {
-        const configEntriesToFetch = columnsWithConfig.map((column) => {
-          const configEntry = tableConfigEntries[column.id];
-          // Handle both possible structures of configEntries
-          const configArray = Array.isArray(configEntry.configEntries[0])
-            ? configEntry.configEntries[0]
-            : configEntry.configEntries;
-          const [, config] = configArray;
-          const entityName = Object.keys(config)[0];
-          const entityConfig = config[entityName];
-
-          // Handle navigation properties and combined properties
-          const selectedProperties = entityConfig.selectedProperties.map(
-            (prop) => {
-              // If the property has navigation properties, include them in the path
-              if (
-                prop.navigationProperties &&
-                prop.navigationProperties.length > 0
-              ) {
-                const navigationPath = prop.navigationProperties
-                  .map((nav) => nav.name || nav.Name)
-                  .join('/');
-                return `${navigationPath}/${prop.name || prop.Name}`;
-              }
-              return prop.name || prop.Name;
-            },
-          );
-
-          return [
-            column.id,
-            {
-              entityName,
-              selectedProperties,
-              filter: entityConfig.filter,
-            },
-          ];
-        });
-        console.log('Config entries to fetch:', configEntriesToFetch);
-
-        const results = await sendRequestDataPicker(null, configEntriesToFetch);
-        console.log('Received results from data picker:', results);
-
-        const fetchedValues = {};
-
-        results.forEach((result, index) => {
-          const column = columnsWithConfig[index];
-          if (result.d.results && result.d.results.length > 0) {
-            // Store all fetched values for this column
-            fetchedValues[column.id] = result.d.results;
-            console.log(
-              `Fetched values for column ${column.label}:`,
-              result.d.results,
-            );
-          } else {
-            console.log(`No results received for column ${column.label}`);
-          }
-        });
-
-        // Update table data with fetched values
-        setTableData((prevData) => {
-          console.log('Previous table data:', prevData);
-          const newData = prevData.map((row, rowIndex) => {
-            const newRow = { ...row };
-            Object.entries(fetchedValues).forEach(([columnId, values]) => {
-              const column = columns.find((col) => col.id === columnId);
-              if (column && values[rowIndex]) {
-                // Get the config entry for this column
-                const configEntry = tableConfigEntries[columnId];
-                const configArray = Array.isArray(configEntry.configEntries[0])
-                  ? configEntry.configEntries[0]
-                  : configEntry.configEntries;
-                const [, config] = configArray;
-                const entityName = Object.keys(config)[0];
-                const entityConfig = config[entityName];
-
-                // Handle combined properties
-                if (entityConfig.selectedProperties.length > 1) {
-                  const separator = columnSeparators[columnId] || ' ';
-                  const combinedValue = entityConfig.selectedProperties
-                    .map((prop) => {
-                      // Handle nested properties
-                      if (
-                        prop.navigationProperties &&
-                        prop.navigationProperties.length > 0
-                      ) {
-                        let value = values[rowIndex];
-                        // Navigate through the object structure
-                        for (const navProp of prop.navigationProperties) {
-                          if (!value) break;
-                          // Handle arrays with results property
-                          const navPropName = navProp.name || navProp.Name;
-                          if (value[navPropName]?.results) {
-                            value = value[navPropName].results[0];
-                          } else {
-                            value = value[navPropName];
-                          }
+              // Handle combined properties
+              if (entityConfig.selectedProperties.length > 1) {
+                const separator = columnSeparators[columnId] || ' ';
+                const combinedValue = entityConfig.selectedProperties
+                  .map((prop) => {
+                    // Handle nested properties
+                    if (
+                      prop.navigationProperties &&
+                      prop.navigationProperties.length > 0
+                    ) {
+                      let value = values[rowIndex];
+                      // Navigate through the object structure
+                      for (const navProp of prop.navigationProperties) {
+                        if (!value) break;
+                        // Handle arrays with results property
+                        const navPropName = navProp.name || navProp.Name;
+                        if (value[navPropName]?.results) {
+                          value = value[navPropName].results[0];
+                        } else {
+                          value = value[navPropName];
                         }
-                        const propName = prop.name || prop.Name;
-                        return value?.[propName] || '';
                       }
-                      // Handle regular properties
                       const propName = prop.name || prop.Name;
-                      const value = values[rowIndex][propName];
-                      return value !== undefined ? value : '';
-                    })
-                    .filter(Boolean)
-                    .join(separator);
-                  newRow[column.label] = combinedValue;
-                } else {
-                  // Handle single property with potential navigation path
-                  const prop = entityConfig.selectedProperties[0];
-                  if (
-                    prop.navigationProperties &&
-                    prop.navigationProperties.length > 0
-                  ) {
-                    // Navigate through the object to get the nested value
-                    let value = values[rowIndex];
-                    for (const navProp of prop.navigationProperties) {
-                      if (!value) break;
-                      // Handle arrays with results property
-                      const navPropName = navProp.name || navProp.Name;
-                      if (value[navPropName]?.results) {
-                        value = value[navPropName].results[0];
-                      } else {
-                        value = value[navPropName];
-                      }
+                      return value?.[propName] || '';
                     }
+                    // Handle regular properties
                     const propName = prop.name || prop.Name;
-                    newRow[column.label] = value?.[propName] || '';
-                  } else {
-                    const propName = prop.name || prop.Name;
-                    newRow[column.label] = values[rowIndex][propName] || '';
+                    const value = values[rowIndex][propName];
+                    return value !== undefined ? value : '';
+                  })
+                  .filter(Boolean)
+                  .join(separator);
+                newRow[column.label] = combinedValue;
+              } else {
+                // Handle single property with potential navigation path
+                const prop = entityConfig.selectedProperties[0];
+                if (
+                  prop.navigationProperties &&
+                  prop.navigationProperties.length > 0
+                ) {
+                  // Navigate through the object to get the nested value
+                  let value = values[rowIndex];
+                  for (const navProp of prop.navigationProperties) {
+                    if (!value) break;
+                    // Handle arrays with results property
+                    const navPropName = navProp.name || navProp.Name;
+                    if (value[navPropName]?.results) {
+                      value = value[navPropName].results[0];
+                    } else {
+                      value = value[navPropName];
+                    }
                   }
+                  const propName = prop.name || prop.Name;
+                  newRow[column.label] = value?.[propName] || '';
+                } else {
+                  const propName = prop.name || prop.Name;
+                  newRow[column.label] = values[rowIndex][propName] || '';
                 }
               }
-            });
-            return newRow;
+            }
           });
-          return newData;
+          return newRow;
         });
-      } catch (error) {
-        console.error('Error fetching dynamic data:', error);
-      }
-    };
-
-    fetchDynamicData();
-    // Disable exhaustive-deps rule because we want to control when data is refetched.
-    // Including all dependencies would cause too frequent refetches and performance issues.
-    // Instead, we explicitly control refetching through the shouldSyncWithBackend state
-    // and the columns array, which allows us to optimize when data is actually needed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columns, shouldSyncWithBackend]);
+        return newData;
+      });
+    },
+    deps: [columns, shouldSyncWithBackend],
+  });
 
   const isColumnInvalid = (column) => {
     return (
