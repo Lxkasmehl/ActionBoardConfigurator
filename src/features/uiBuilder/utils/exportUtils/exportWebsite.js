@@ -12,6 +12,7 @@ import { exportToExcel } from '../exportToExcelUtils';
 import { generateColumnSelectorModal } from './columnSelectorModalGenerator';
 import { generateSortModal } from './sortModalGenerator';
 import { generateTextComponent } from './textComponentGenerator';
+import { generateUseSendRequest } from './useSendRequestGenerator';
 
 export const exportWebsite = async (
   components,
@@ -39,6 +40,9 @@ export const exportWebsite = async (
 
 export const exportToExcel = ${exportToExcel.toString()}`,
   );
+
+  const hooksDir = src.folder('hooks');
+  hooksDir.file('useSendRequest.js', generateUseSendRequest());
 
   // Create components directory
   const componentsDir = src.folder('components');
