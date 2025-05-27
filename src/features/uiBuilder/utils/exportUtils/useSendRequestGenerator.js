@@ -3,6 +3,7 @@ export const generateUseSendRequest = () => {
   // API Configuration
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
+const BASE_PATH = import.meta.env.PROD ? '' : '/api';
 
 // URL Utilities
 const urlUtils = {
@@ -103,7 +104,7 @@ export const useSendRequest = () => {
         let hasMoreResults = true;
 
         while (hasMoreResults) {
-          const baseUrl = \`/api/odata/v2/\${config.entityName}\`;
+          const baseUrl = \`\${BASE_PATH}/odata/v2/\${config.entityName}\`;
           let queryString = \`$format=json&$inlinecount=allpages&$top=\${top}&$skip=\${skip}\`;
 
           const navigationPropertiesFromFilter = [];
