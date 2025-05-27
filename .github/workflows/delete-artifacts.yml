@@ -1,0 +1,18 @@
+name: Delete All Artifacts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  delete-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          artifacts=$(gh api repos/${{ github.repository }}/actions/artifacts | jq -r '.artifacts[].id')
+          for artifact_id in $artifacts; do
+            echo "Deleting artifact $artifact_id"
+            gh api --method DELETE repos/${{ github.repository }}/actions/artifacts/$artifact_id
+          done
