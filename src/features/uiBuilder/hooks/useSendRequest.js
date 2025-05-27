@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
+const BASE_PATH = import.meta.env.PROD ? '' : '/api';
 
 export const useSendRequest = () => {
   const handleSendRequest = useCallback(async (config) => {
@@ -16,7 +17,7 @@ export const useSendRequest = () => {
       headers.set('Accept', 'application/json');
 
       const { entity, property, properties, nestedNavigationPath } = config;
-      const baseUrl = `/api/odata/v2/${entity}`;
+      const baseUrl = `${BASE_PATH}/odata/v2/${entity}`;
 
       // Build query parameters
       const queryParams = new URLSearchParams();

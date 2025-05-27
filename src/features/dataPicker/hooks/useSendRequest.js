@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
+const BASE_PATH = import.meta.env.PROD ? '' : '/api';
 
 export const useSendRequest = (config) => {
   const allEntities = useSelector((state) => state.fetchedData.allEntities);
@@ -45,7 +46,7 @@ export const useSendRequest = (config) => {
             let hasMoreResults = true;
 
             while (hasMoreResults) {
-              const baseUrl = `/api/odata/v2/${entityName}`;
+              const baseUrl = `${BASE_PATH}/odata/v2/${entityName}`;
               let queryString =
                 '$format=json&$inlinecount=allpages&$top=' +
                 top +

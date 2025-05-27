@@ -9,6 +9,7 @@ import { RELEVANT_ENTITY_NAMES } from './useFetchEntities.constants';
 
 const API_USER = import.meta.env.VITE_API_USER;
 const API_PASSWORD = import.meta.env.VITE_API_PASSWORD;
+const BASE_PATH = import.meta.env.PROD ? '' : '/api';
 
 const useFetchEntities = () => {
   const dispatch = useDispatch();
@@ -26,7 +27,7 @@ const useFetchEntities = () => {
 
       let allFilteredData = [];
       let allData = [];
-      let url = '/api/odata/v2/$metadata';
+      let url = `${BASE_PATH}/odata/v2/$metadata`;
 
       try {
         while (url) {
