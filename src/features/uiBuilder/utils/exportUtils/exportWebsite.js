@@ -20,6 +20,7 @@ export const exportWebsite = async (
   componentGroups,
   tableData,
   visibleColumns,
+  tableConfigEntries,
 ) => {
   const zip = new JSZip();
 
@@ -67,6 +68,7 @@ export const exportToExcel = ${exportToExcel.toString()}`,
       componentGroups,
       tableData,
       visibleColumns,
+      tableConfigEntries,
     ),
   );
 
