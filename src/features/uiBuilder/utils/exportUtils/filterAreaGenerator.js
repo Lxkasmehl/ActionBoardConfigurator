@@ -68,9 +68,10 @@ export default function FilterArea({ componentId, fields, columnData, tableColum
             <Autocomplete
               size='sm'
               placeholder='Select an option'
-              options={(
-                columnData[tableComponentId]?.[filter.label] || []
-              ).filter((option) => option !== undefined)}
+              options={Array.from(new Set(
+                (columnData[tableComponentId]?.[filter.label] || [])
+                  .filter((option) => option !== undefined)
+              ))}
               getOptionLabel={(option) => option.toString() || ''}
               multiple
               value={selectedFilters[tableComponentId]?.[filter.label] || []}

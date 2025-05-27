@@ -70,11 +70,12 @@ export const useConfigDataFetching = ({
 
           if (result.d.results && result.d.results.length > 0) {
             // Use the stored selected property and value
-            const selectedProperty = configEntry.selectedProperty;
-            const selectedValue = configEntry.selectedValue;
+            const selectedProperty = configEntry?.selectedProperty;
+            const selectedValue = configEntry?.selectedValue;
 
             // Helper function to get value from object using dot notation path
             const getValueByPath = (obj, path) => {
+              if (!path || !obj) return undefined;
               return path.split('.').reduce((current, key) => {
                 // If we encounter 'results' in the path, we need to handle it specially
                 if (key === 'results') {
@@ -86,11 +87,12 @@ export const useConfigDataFetching = ({
 
             // Find the result that matches our selected value
             const matchingResult = result.d.results.find((r) => {
+              if (!selectedProperty || !selectedValue?.value) return false;
               const value = getValueByPath(r, selectedProperty);
               return value === selectedValue.value;
             });
 
-            if (matchingResult) {
+            if (matchingResult && selectedProperty) {
               fetchedValues[value] =
                 getValueByPath(matchingResult, selectedProperty) || '';
             }
