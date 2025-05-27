@@ -23,6 +23,7 @@ export default function PreviewArea({
   );
   const tableData = useSelector((state) => state.uiBuilder.tableData);
   const visibleColumns = useSelector((state) => state.uiBuilder.visibleColumns);
+  const tableConfigEntries = useSelector((state) => state.uiBuilder.tableConfigEntries);
   const { setNodeRef, isOver } = useDroppable({
     id: 'preview-area',
     data: { type: 'preview-area' },
@@ -49,6 +50,7 @@ export default function PreviewArea({
       componentGroups,
       tableData,
       visibleColumns,
+      tableConfigEntries,
     );
   };
 
