@@ -1,7 +1,21 @@
 import PropTypes from 'prop-types';
 import { Typography } from '@mui/joy';
 import { useRef, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  addEntity,
+  setEntityFilter,
+  setPropertySelection,
+} from '@/redux/configSlice';
+import {
+  setEdgesForFlow,
+  setPropertyOptions,
+  setPropertiesBySection,
+  setMatchingEntitiesForAccordions,
+  setSelectedPropertiesInAccordions,
+  setConditionsForFilterModal,
+  setFormData,
+} from '@/redux/dataPickerSlice';
 
 const DataPickerIframe = ({
   onWarning,
@@ -10,7 +24,7 @@ const DataPickerIframe = ({
   titleText,
 }) => {
   const iframeRef = useRef(null);
-
+  const dispatch = useDispatch();
   const store = useSelector((state) => state);
 
   const filteredEntities = useSelector(
@@ -70,9 +84,115 @@ const DataPickerIframe = ({
             isNewColumn: false,
           });
         }
+      } else if (event.data.type === 'DATAPICKER_STATE_SAVED') {
+        try {
+          // Update parent's localStorage
+          localStorage.setItem('dataPickerState', event.data.payload);
+
+          // Parse the saved state
+          const savedState = JSON.parse(event.data.payload);
+
+          // Update config state
+          Object.entries(savedState.config).forEach(([nodeId, nodeConfig]) => {
+            Object.entries(nodeConfig).forEach(([entityName, entityConfig]) => {
+              // Add entity if it doesn't exist
+              dispatch(addEntity({ id: nodeId, entityName }));
+
+              // Set property selection
+              if (entityConfig.selectedProperties) {
+                dispatch(
+                  setPropertySelection({
+                    id: nodeId,
+                    entityName,
+                    propertyNames: entityConfig.selectedProperties,
+                  }),
+                );
+              }
+
+              // Set entity filter
+              if (entityConfig.filter) {
+                dispatch(
+                  setEntityFilter({
+                    id: nodeId,
+                    entityName,
+                    filterObject: entityConfig.filter,
+                  }),
+                );
+              }
+            });
+          });
+
+          // Update dataPicker state
+          if (savedState.propertyOptions) {
+            Object.entries(savedState.propertyOptions).forEach(
+              ([id, properties]) => {
+                dispatch(setPropertyOptions({ id, properties }));
+              },
+            );
+          }
+
+          if (savedState.propertiesBySection) {
+            Object.entries(savedState.propertiesBySection).forEach(
+              ([id, properties]) => {
+                dispatch(
+                  setPropertiesBySection({
+                    id,
+                    propertiesBySection: properties,
+                  }),
+                );
+              },
+            );
+          }
+
+          if (savedState.matchingEntitiesForAccordions) {
+            Object.entries(savedState.matchingEntitiesForAccordions).forEach(
+              ([id, entities]) => {
+                dispatch(
+                  setMatchingEntitiesForAccordions({
+                    id,
+                    matchingEntities: entities,
+                  }),
+                );
+              },
+            );
+          }
+
+          if (savedState.selectedPropertiesInAccordions) {
+            Object.entries(savedState.selectedPropertiesInAccordions).forEach(
+              ([id, properties]) => {
+                dispatch(
+                  setSelectedPropertiesInAccordions({
+                    id,
+                    accordionSelectedProperties: properties,
+                  }),
+                );
+              },
+            );
+          }
+
+          if (savedState.conditionsForFilterModal) {
+            Object.entries(savedState.conditionsForFilterModal).forEach(
+              ([id, conditions]) => {
+                dispatch(setConditionsForFilterModal({ id, conditions }));
+              },
+            );
+          }
+
+          if (savedState.formData) {
+            Object.entries(savedState.formData).forEach(([id, formObject]) => {
+              dispatch(setFormData({ id, formObject }));
+            });
+          }
+
+          if (savedState.edgesForFlow) {
+            dispatch(setEdgesForFlow(savedState.edgesForFlow));
+          }
+        } catch (error) {
+          console.error('Error updating parent state:', error);
+        }
       }
     },
-    [onWarning, onDataFetch, onEntitySelected, filteredEntities],
+    [onWarning, onDataFetch, onEntitySelected, filteredEntities, dispatch],
   );
 
   useEffect(() => {
