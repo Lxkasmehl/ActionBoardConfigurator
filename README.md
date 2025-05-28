@@ -1,27 +1,28 @@
 # WebAppConfigurator
 
-A modern enterprise data visualization and UI builder platform that combines powerful data querying capabilities with an intuitive drag-and-drop interface. Features include interactive flow diagrams for data relationships, advanced filtering, real-time JSON results, and a component-based UI builder.
+A modern enterprise data visualization and UI builder platform developed for Pentos AG. This application serves as a powerful interface for SAP SuccessFactors data, enabling users to create custom data queries and build tailored user interfaces for their specific business needs. The platform combines powerful data querying capabilities with an intuitive drag-and-drop interface, making it easy to work with complex SAP SuccessFactors data structures.
 
 ## 📋 About the Project
 
-The WebAppConfigurator is an advanced web application designed to visually represent and analyze enterprise data and their relationships. The application consists of two main features:
+The WebAppConfigurator is an advanced web application designed to visually represent and analyze SAP SuccessFactors data and their relationships. It provides a user-friendly way to interact with SuccessFactors APIs and build custom interfaces for data visualization and manipulation. The application consists of two main features:
 
 ### Data Picker
 
-- **Interactive Flow Diagrams**: Create and connect entity sections to build complex data queries
-- **Dynamic Entity Selection**: Choose from a predefined set of enterprise entities (User, Employee, Job, etc.)
-- **Property Selection**: Select specific properties to display for each entity
-- **Advanced Filtering**: Create complex filters with multiple conditions and logical operators
-- **Real-time Results**: View query results in a formatted JSON viewer
-- **Drag & Drop Interface**: Intuitive interface for building entity relationships
+- **Interactive Flow Diagrams**: Create and connect entity sections to build complex SAP SuccessFactors data queries
+- **Dynamic Entity Selection**: Choose from a comprehensive set of SuccessFactors entities (User, Employee, Job, Position, etc.)
+- **Property Selection**: Select specific properties to display for each entity, with full support for SuccessFactors metadata
+- **Advanced Filtering**: Create complex filters with multiple conditions and logical operators, matching SuccessFactors OData query capabilities
+- **Real-time Results**: View query results in a formatted JSON viewer with direct SuccessFactors API integration
+- **Drag & Drop Interface**: Intuitive interface for building entity relationships and data flows
 
 ### UI Builder
 
-- **Component Library**: Pre-built set of UI components (Headings, Paragraphs, Buttons, Cards, Images, Forms)
+- **Component Library**: Pre-built set of UI components optimized for SuccessFactors data display
 - **Drag & Drop Interface**: Build user interfaces by dragging and dropping components
 - **Live Preview**: Real-time preview of your UI as you build
-- **Component Customization**: Customize component properties and styling
+- **Component Customization**: Customize component properties and styling to match your SuccessFactors instance
 - **Responsive Design**: Components adapt to different screen sizes
+- **SuccessFactors Integration**: Direct integration with SuccessFactors APIs for real-time data display
 
 ## 🚀 Features
 
@@ -46,7 +47,12 @@ src/
 ├── redux/          # Redux store, slices, and selectors
 ├── routes/         # Route definitions
 ├── shared/         # Shared components and utilities
+├── theme/          # Theme configuration and styling
 └── __tests__/      # Unit tests
+
+e2e/
+├── features/       # End-to-end test scenarios
+└── shared/         # Shared E2E test utilities and configurations
 ```
 
 ## 🛠️ Getting Started
@@ -55,6 +61,8 @@ src/
 
 - Node.js (v16 or higher recommended)
 - npm or yarn
+- Access to SAP SuccessFactors instance
+- Valid SuccessFactors API credentials
 
 ### Installation
 
@@ -72,7 +80,12 @@ npm install
 yarn install
 ```
 
-3. Create a `.env` file in the root directory and add necessary environment variables.
+3. Create a `.env` file in the root directory and add necessary environment variables:
+
+```env
+VITE_API_USER=your_user_id
+VITE_API_PASSWORD=your_password
+```
 
 ### Development
 
@@ -171,11 +184,13 @@ yarn format
 - Day.js
 - Framer Motion
 - React Router DOM
+- SAP SuccessFactors OData API
+- SuccessFactors Metadata API
+
+## 📄 Ownership and License
+
+This project is developed by Lukas Mehl as an employee of Pentos AG. All rights, including but not limited to copyright, patent rights, and trade secrets, are owned by Pentos AG. This software is proprietary and confidential. Unauthorized copying, distribution, or use of this software, via any medium, is strictly prohibited.
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome!
-
-## 📄 License
-
-This project is licensed under the terms of the [MIT license](LICENSE).
+This is a proprietary project owned by Pentos AG. External contributions are not accepted at this time.
