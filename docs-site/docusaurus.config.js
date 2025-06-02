@@ -12,7 +12,7 @@ const config = {
     'https://www.pentoslabs.com/wp-content/uploads/2020/03/pentos_labs_favicon.jpg',
 
   // Set the production url of your site here
-  url: 'https://Lxkasmehl.github.io',
+  url: 'https://lxkasmehl.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/WebAppConfigurator/',
