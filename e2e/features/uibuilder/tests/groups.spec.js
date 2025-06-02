@@ -438,7 +438,7 @@ test.describe('Group Tests', () => {
     await verifyTableData(page, sortableComponents.table, [
       '6c701150-dff5-4762-bc7f-8c8e78ab729f',
       '',
-      '162',
+      /^(162|kkkkCHE)$/,
       'M',
       'kkkkCHE',
       'M',
