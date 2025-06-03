@@ -84,7 +84,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { CssVarsProvider } from "@mui/joy/styles";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(document.getElementById("pidgetReactContainer")).render(
   <React.StrictMode>
     <CssVarsProvider>
       <App />
@@ -114,7 +114,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="pidgetReactContainer"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>`,
