@@ -61,7 +61,14 @@ export default function DataPicker() {
   // Handle initial state from parent
   useEffect(() => {
     const handleInitialState = (event) => {
-      if (event.origin !== window.location.origin) return;
+      // Allow messages from the same origin or from the configured allowed origins
+      const allowedOrigins = [
+        window.location.origin,
+        import.meta.env.VITE_ALLOWED_ORIGIN,
+        import.meta.env.VITE_APP_URL,
+      ].filter(Boolean);
+
+      if (!allowedOrigins.includes(event.origin)) return;
 
       if (event.data.type === 'INIT_IFRAME_STATE') {
         const { config, dataPicker, fetchedData } = event.data.payload;

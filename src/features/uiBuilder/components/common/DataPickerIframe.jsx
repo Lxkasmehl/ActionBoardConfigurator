@@ -63,7 +63,14 @@ const DataPickerIframe = ({
 
   const handleMessage = useCallback(
     (event) => {
-      if (event.origin !== window.location.origin) return;
+      // Allow messages from the same origin or from the configured allowed origins
+      const allowedOrigins = [
+        window.location.origin,
+        import.meta.env.VITE_ALLOWED_ORIGIN,
+        import.meta.env.VITE_APP_URL,
+      ].filter(Boolean);
+
+      if (!allowedOrigins.includes(event.origin)) return;
 
       if (event.data.type === 'IFRAME_WARNING') {
         onWarning(event.data.payload.message);
@@ -230,7 +237,7 @@ const DataPickerIframe = ({
       <iframe
         data-testid='data-picker-iframe'
         ref={iframeRef}
-        src='/data-picker'
+        src='/#/data-picker'
         style={{
           width: '80vw',
           height: '45vh',
