@@ -3,7 +3,9 @@ name: Deploy Docusaurus site to GitHub Pages
 on:
   push:
     branches:
-      - main # oder dein Hauptbranch-Name
+      - main
+    paths:
+      - 'docs-site/**'
 
 jobs:
   build-deploy:
