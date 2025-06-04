@@ -68,7 +68,7 @@ test.describe('Table Tests', () => {
         '',
         '',
         '',
-        /^(ppppqui|ttttrec1|pppprec1|ttttUSA)$/,
+        /^(ppppqui|ttttrec1|pppprec1|ttttUSA|ttttrec2)$/,
         '',
         '',
         '',

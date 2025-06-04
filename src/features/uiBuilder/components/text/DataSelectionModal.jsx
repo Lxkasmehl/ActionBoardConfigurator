@@ -26,7 +26,7 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
     if (iframeRef.current) {
       iframeRef.current.triggerDataFetch();
     } else {
-      const iframe = document.querySelector('iframe[src="/data-picker"]');
+      const iframe = document.querySelector('iframe[src="/#/data-picker"]');
       if (iframe && iframe.triggerDataFetch) {
         iframe.triggerDataFetch();
       }
