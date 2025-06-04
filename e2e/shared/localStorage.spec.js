@@ -78,7 +78,7 @@ test.describe('Local Storage Tests', () => {
     const resultBeforeReload = await getResults(page);
 
     // Switch to UIBuilder
-    await page.goto('http://localhost:5173/ui-builder');
+    await page.goto('http://localhost:5173/#/ui-builder');
     const previewArea = page.getByTestId('preview-area');
     await expect(previewArea).toBeVisible();
 
@@ -132,7 +132,7 @@ test.describe('Local Storage Tests', () => {
   }) => {
     test.skip(browserName === 'webkit', 'Skipping test for WebKit');
 
-    await page.goto('http://localhost:5173/ui-builder');
+    await page.goto('http://localhost:5173/#/ui-builder');
     const previewArea = page.getByTestId('preview-area');
     await expect(previewArea).toBeVisible();
 

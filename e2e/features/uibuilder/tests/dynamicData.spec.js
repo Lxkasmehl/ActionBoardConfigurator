@@ -10,7 +10,7 @@ test.describe('Dynamic Data Tests', () => {
 
   test.beforeEach(async ({ page }) => {
     // Navigate to the UIBuilder page
-    await page.goto('http://localhost:5173/ui-builder');
+    await page.goto('http://localhost:5173/#/ui-builder');
 
     // Define components needed for dynamic data tests
     components = {
