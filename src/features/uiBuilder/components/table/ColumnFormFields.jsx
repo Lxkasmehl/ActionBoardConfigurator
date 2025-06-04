@@ -246,7 +246,7 @@ const ColumnFormFields = forwardRef(
     useImperativeHandle(ref, () => ({
       triggerIframeDataFetch: () => {
         if (isIFrame) {
-          const iframe = document.querySelector('iframe[src="/data-picker"]');
+          const iframe = document.querySelector('iframe[src="/#/data-picker"]');
           if (iframe && iframe.triggerDataFetch) {
             iframe.triggerDataFetch();
           }
