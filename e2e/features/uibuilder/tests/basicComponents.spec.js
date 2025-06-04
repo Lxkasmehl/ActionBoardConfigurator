@@ -10,7 +10,7 @@ test.describe('Basic Component Tests', () => {
 
   test.beforeEach(async ({ page }) => {
     // Navigate to the UIBuilder page
-    await page.goto('http://localhost:5173/ui-builder');
+    await page.goto('http://localhost:5173/#/ui-builder');
 
     // Define all components
     components = {
