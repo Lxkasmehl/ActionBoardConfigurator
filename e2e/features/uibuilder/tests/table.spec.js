@@ -129,7 +129,7 @@ test.describe('Table Tests', () => {
         '',
         '',
         '',
-        /^(ttttrec1|pppprec1|ttttrec2|tttt_TAL)$/,
+        /^(ttttrec1|pppprec1|ttttrec2|tttt_TAL|ttttrec3)$/,
         '',
         '',
         '',
