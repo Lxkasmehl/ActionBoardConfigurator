@@ -4,19 +4,18 @@ sidebar_position: 1
 
 # Technical Architecture
 
-This documentation describes the technical architecture of the WebAppConfigurator and its main components.
+This documentation describes the technical architecture of the WebAppConfigurator, a tool for building data-driven web applications with a visual interface.
 
 ## System Overview
 
-The WebAppConfigurator is a modern Single-Page Application (SPA) based on the following technologies:
+The WebAppConfigurator is a modern Single-Page Application (SPA) built with:
 
-- **Frontend**: React 19 with Vite 5
+- **Frontend**: React with Vite
 - **State Management**: Redux Toolkit
 - **UI Framework**: Material-UI Joy
 - **Styling**: Tailwind CSS
 - **Flow Diagrams**: @xyflow/react
 - **Testing**: Jest & Playwright
-- **API**: SAP SuccessFactors OData API
 
 ## Main Components
 
@@ -24,87 +23,69 @@ The WebAppConfigurator is a modern Single-Page Application (SPA) based on the fo
 
 ```
 src/
-├── components/         # Reusable UI components
 ├── features/          # Feature-specific components
-│   ├── data-picker/   # Data Picker functionality
-│   └── ui-builder/    # UI Builder functionality
-├── store/             # Redux store and slices
-├── services/          # API and service layer
-└── utils/             # Helper functions
+│   ├── dataPicker/   # Data Picker functionality
+│   └── uiBuilder/    # UI Builder functionality
+├── redux/            # Redux store and slices
+├── routes/           # Application routing
+├── shared/           # Shared components and utilities
+├── theme/            # Theme configuration
+└── assets/          # Static assets
 ```
 
 ### 2. Data Picker
 
-The Data Picker is a complex component that:
+The Data Picker is a flow-based interface that allows users to:
 
-- Manages flow diagrams for data queries
-- Communicates with the SuccessFactors API
-- Processes and displays data in real-time
+- Create complex data queries through a visual flow diagram
+- Connect multiple entity sections to build nested queries
+- Configure filters and property selections for each entity
+- Preview and test queries in real-time
 
-#### Main Features:
+#### Key Components:
 
-- Entity Selection
-- Property Filtering
-- Query Building
-- Real-time Preview
+- `FlowStart`: The entry point of the flow diagram
+- `EntitySection`: Configurable section for entity selection and filtering
+- `ButtonEdge`: Custom edge type for connecting nodes in the flow
 
 ### 3. UI Builder
 
-The UI Builder enables:
+The UI Builder provides a visual interface for:
 
-- Drag & Drop component management
-- Live Preview
-- Responsive Design
-- Component Configuration
-
-#### Available Components:
-
-- Charts
-- Tables
-- Forms
-- Custom Components
+- Building user interfaces through drag-and-drop
+- Configuring components with data from Data Picker flows
+- Previewing the interface in real-time
+- Exporting the final application as a standalone React project
 
 ## Data Flow
 
-1. **User Interaction**
+1. **Data Picker Flow**
 
-   - User interacts with Data Picker or UI Builder
-   - Actions are forwarded to Redux store
+   - User creates a flow diagram with Entity Sections
+   - Each section configures an entity, its filters, and properties
+   - Sections can be connected to create nested queries
+   - The flow is stored in Redux state
 
-2. **State Management**
+2. **UI Builder Flow**
 
-   - Redux processes actions
-   - State is updated
-   - UI is re-rendered
+   - User drags components from the library
+   - Components can be configured with static content or data from Data Picker flows
+   - Changes are reflected in real-time in the preview
+   - The final configuration is stored in Redux state
 
-3. **API Communication**
-   - Services communicate with SuccessFactors API
-   - Data is stored in the store
-   - UI is updated with new data
+3. **Export Process**
+   - The configured UI and data flows are processed
+   - A new React project is generated
+   - All necessary components and configurations are included
+   - The project is packaged as a downloadable zip file
 
-## Security
+## State Management
 
-- OAuth 2.0 for API authentication
-- HTTPS for all communication
-- XSS Protection
-- CSRF Protection
-- Input Validation
+The application uses Redux Toolkit for state management with the following main slices:
 
-## Performance
-
-- Code Splitting
-- Lazy Loading
-- Memoization
-- Caching
-- Optimized API calls
-
-## Deployment
-
-The WebAppConfigurator is deployed as Docker containers:
-
-- Frontend container
-- Nginx for static assets
-- CI/CD pipeline for automated deployment
+- Data Picker state (flows, nodes, edges)
+- UI Builder state (components, layout, configurations)
+- Application state (navigation, settings)
 
 ## Development Environment
 
@@ -112,37 +93,37 @@ The WebAppConfigurator is deployed as Docker containers:
 
 - Node.js v16+
 - npm or yarn
-- Docker (optional)
-- IDE with TypeScript support
+- IDE with React support
 
 ### Local Development
 
-1. Clone repository
-2. Install dependencies
-3. Start development server
-4. Run tests
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Start development server: `npm run dev`
+4. Run tests: `npm test`
 
 ## Best Practices
 
 ### Code Style
 
-- ESLint for code quality
-- Prettier for formatting
-- TypeScript for type safety
+- Follow the existing component structure
+- Use functional components with hooks
+- Implement proper error handling
+- Add comments for complex logic
 
 ### Testing
 
-- Unit tests with Jest
-- E2E tests with Playwright
-- Integration tests
-- Performance tests
+- Write unit tests for components
+- Test flow diagram functionality
+- Verify UI Builder interactions
+- Test the export process
 
 ### Documentation
 
-- JSDoc for code documentation
-- Storybook for components
-- API documentation
-- Architecture documentation
+- Keep component documentation up to date
+- Document any changes to the flow system
+- Update API integration details
+- Maintain clear commit messages
 
 ## Next Steps
 

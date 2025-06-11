@@ -34,15 +34,15 @@ function HomepageFeatures() {
         <div className='row'>
           <div className='col col--6'>
             <div className={styles.feature}>
-              <h2>Data Picker</h2>
+              <h2>User Guide</h2>
               <p>
-                Build complex SAP SuccessFactors data queries through an
-                intuitive interface. Create visual flow diagrams, select
-                entities, and filter data with ease.
+                Learn how to use the WebApp Configurator effectively. Find
+                detailed guides, tutorials, and best practices for creating and
+                managing your applications.
               </p>
               <Link
                 className={clsx('button', styles.button)}
-                to='/docs/features/data-picker'
+                to='/docs/user-guide/getting-started'
               >
                 Learn More →
               </Link>
@@ -50,15 +50,15 @@ function HomepageFeatures() {
           </div>
           <div className='col col--6'>
             <div className={styles.feature}>
-              <h2>UI Builder</h2>
+              <h2>Developer Guide</h2>
               <p>
-                Create custom user interfaces for your SuccessFactors data. Drag
-                and drop components, customize layouts, and preview in
-                real-time.
+                Technical documentation for developers. Learn about the
+                architecture, APIs, and how to extend the WebApp Configurator
+                with custom components.
               </p>
               <Link
                 className={clsx('button', styles.button)}
-                to='/docs/features/ui-builder'
+                to='/docs/developer-guide/architecture'
               >
                 Learn More →
               </Link>

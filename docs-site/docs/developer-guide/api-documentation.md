@@ -4,215 +4,191 @@ sidebar_position: 3
 
 # API Documentation
 
-This guide provides detailed information about the WebAppConfigurator API.
+This documentation describes the internal APIs and data structures used in the WebAppConfigurator.
 
-## Overview
+## Data Picker API
 
-The WebAppConfigurator API is built on top of the SAP SuccessFactors OData API, providing additional functionality for data visualization and UI building.
+### Node Types
 
-## Authentication
+The Data Picker uses a flow-based system with the following node types:
 
-### OAuth 2.0
+```javascript
+// From app.constants.js
+export const NODE_TYPES = {
+  EntitySection: EntitySection,
+  FlowStart: FlowStart,
+};
+
+export const EDGE_TYPES = {
+  ButtonEdge: ButtonEdge,
+};
+```
+
+### Flow Structure
+
+A flow consists of nodes and edges with the following structure:
 
 ```typescript
-interface AuthConfig {
-  clientId: string;
-  clientSecret: string;
-  tokenUrl: string;
-  scope: string[];
+interface Node {
+  id: string;
+  type: 'EntitySection' | 'FlowStart';
+  position: {
+    x: number;
+    y: number;
+  };
+  data?: {
+    entity?: string;
+    filters?: Filter[];
+    properties?: string[];
+  };
+}
+
+interface Edge {
+  id: string;
+  source: string;
+  target: string;
+  type: 'ButtonEdge';
 }
 ```
 
-### Usage
+### Entity Section Configuration
+
+Each Entity Section node can be configured with:
+
+- Entity selection
+- Property filters
+- Selected properties
+- Connection points for data flow
+
+## UI Builder API
+
+### Component Library
+
+The UI Builder provides a library of components that can be used to build interfaces:
 
 ```typescript
-const auth = new OAuth2Client(config);
-const token = await auth.getToken();
-```
-
-## API Endpoints
-
-### Data Picker API
-
-#### Get Entities
-
-```typescript
-GET /api/entities
-Response: Entity[]
-```
-
-#### Get Properties
-
-```typescript
-GET /api/entities/{entityId}/properties
-Response: Property[]
-```
-
-#### Create Query
-
-```typescript
-POST / api / queries;
-Body: QueryConfig;
-Response: Query;
-```
-
-### UI Builder API
-
-#### Get Components
-
-```typescript
-GET /api/components
-Response: Component[]
-```
-
-#### Save Layout
-
-```typescript
-POST / api / layouts;
-Body: LayoutConfig;
-Response: Layout;
-```
-
-## Data Types
-
-### Entity
-
-```typescript
-interface Entity {
+interface Component {
   id: string;
-  name: string;
   type: string;
-  properties: Property[];
-  relationships: Relationship[];
+  props: {
+    [key: string]: any;
+  };
+  position: {
+    x: number;
+    y: number;
+  };
+  dataSource?: {
+    flowId: string;
+    mapping: {
+      [key: string]: string;
+    };
+  };
 }
 ```
 
-### Property
+### Component Types
+
+Available component types include:
+
+- Text components
+- Input fields
+- Buttons
+- Containers
+- Data displays
+
+## Redux State Structure
+
+### Data Picker State
 
 ```typescript
-interface Property {
-  id: string;
-  name: string;
-  type: string;
-  format?: string;
-  validation?: ValidationRule[];
+interface DataPickerState {
+  nodes: Node[];
+  edges: Edge[];
+  selectedNode: string | null;
+  flowId: string;
 }
 ```
 
-### Query
+### UI Builder State
 
 ```typescript
-interface Query {
-  id: string;
-  name: string;
-  entities: Entity[];
-  filters: Filter[];
-  sort: Sort[];
-  pagination: Pagination;
+interface UIBuilderState {
+  components: Component[];
+  selectedComponent: string | null;
+  layout: {
+    width: number;
+    height: number;
+  };
 }
 ```
 
-## Error Handling
+## Export API
 
-### Error Types
+The export process generates a new React project with the following structure:
 
 ```typescript
-enum ErrorType {
-  AUTHENTICATION = 'AUTHENTICATION',
-  AUTHORIZATION = 'AUTHORIZATION',
-  VALIDATION = 'VALIDATION',
-  NOT_FOUND = 'NOT_FOUND',
-  SERVER = 'SERVER',
+interface ExportConfig {
+  components: Component[];
+  dataFlows: {
+    [flowId: string]: {
+      nodes: Node[];
+      edges: Edge[];
+    };
+  };
+  theme: ThemeConfig;
+  routing: RouteConfig[];
 }
 ```
 
-### Error Response
+## Development Guidelines
 
-```typescript
-interface ErrorResponse {
-  type: ErrorType;
-  message: string;
-  details?: any;
-  code: number;
-}
-```
+### Adding New Node Types
 
-## Rate Limiting
+1. Create the component in `features/dataPicker/components`
+2. Register the node type in `app.constants.js`
+3. Update the Redux state to handle the new node type
+4. Add necessary validation and error handling
 
-- 100 requests per minute
-- 1000 requests per hour
-- Retry-After header included
+### Creating New Components
+
+1. Define the component interface
+2. Implement the component in `features/uiBuilder/components`
+3. Add to the component library
+4. Update the export process if needed
+
+### State Management
+
+1. Use Redux Toolkit for state management
+2. Create new slices for new features
+3. Use selectors for accessing state
+4. Implement proper error handling
 
 ## Best Practices
 
-### API Usage
+### Data Picker
 
-- Use appropriate endpoints
-- Handle errors properly
-- Implement retry logic
-- Cache responses
+- Keep node types simple and focused
+- Validate connections between nodes
+- Handle edge cases in the flow
+- Provide clear error messages
 
-### Security
+### UI Builder
 
-- Secure credentials
-- Validate input
-- Sanitize output
-- Monitor usage
+- Make components reusable
+- Support data binding
+- Handle responsive layouts
+- Validate component configurations
 
-## Examples
+### Export Process
 
-### Basic Query
-
-```typescript
-const query = {
-  entities: ['Employee'],
-  properties: ['firstName', 'lastName'],
-  filters: [
-    {
-      field: 'department',
-      operator: 'eq',
-      value: 'IT',
-    },
-  ],
-};
-```
-
-### Component Configuration
-
-```typescript
-const component = {
-  type: 'Table',
-  data: {
-    source: 'query',
-    queryId: 'employee-list',
-  },
-  options: {
-    pagination: true,
-    sorting: true,
-    filtering: true,
-  },
-};
-```
-
-## Testing
-
-### API Testing
-
-- Unit tests
-- Integration tests
-- Load tests
-- Security tests
-
-### Mock Data
-
-- Test fixtures
-- Mock responses
-- Error scenarios
-- Edge cases
+- Validate all configurations
+- Include necessary dependencies
+- Generate clean, maintainable code
+- Provide clear documentation
 
 ## Next Steps
 
-- Review [Architecture](architecture)
-- Check [Setup](setup) guide
-- Learn about [Contributing](contributing)
-- Read [Deployment](deployment) guide
+- Review the [Architecture](architecture) documentation
+- Check the [Setup](setup) guide
+- Read [Contributing Guidelines](contributing)
+- Learn about [Deployment](deployment)
