@@ -15,16 +15,31 @@
  @type {import('@docusaurus/plugin-content-docs').SidebarsConfig}
  */
 const sidebars = {
-  tutorialSidebar: [
+  docs: [
+    'intro',
     {
-      type: 'doc',
-      id: 'intro',
-      label: 'Introduction',
+      type: 'category',
+      label: 'User Guide',
+      items: [
+        'user-guide/getting-started',
+        'user-guide/basic-features',
+        'user-guide/data-picker',
+        'user-guide/ui-builder',
+        'user-guide/faq',
+        'user-guide/best-practices',
+      ],
     },
     {
       type: 'category',
-      label: 'Features',
-      items: ['features/data-picker', 'features/ui-builder'],
+      label: 'Developer Guide',
+      items: [
+        'developer-guide/architecture',
+        'developer-guide/setup',
+        'developer-guide/api-documentation',
+        'developer-guide/contributing',
+        'developer-guide/deployment',
+        'developer-guide/troubleshooting',
+      ],
     },
   ],
 };

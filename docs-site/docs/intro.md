@@ -4,15 +4,37 @@ sidebar_position: 1
 
 # WebAppConfigurator Documentation
 
-Welcome to the WebAppConfigurator documentation. This platform is a modern enterprise data visualization and UI builder developed for Pentos AG, specifically designed to work with SAP SuccessFactors data.
+Welcome to the WebAppConfigurator documentation. This platform is a modern enterprise data visualization and UI builder, specifically designed to work with SAP SuccessFactors data.
 
-## Overview
+## Documentation Structure
+
+This documentation is divided into two main sections:
+
+### User Guide
+
+- [Getting Started](user-guide/getting-started) - Quick start and basic concepts
+- [Basic Features](user-guide/basic-features) - Overview of main features
+- [Data Picker](user-guide/data-picker) - Detailed guide for data selection
+- [UI Builder](user-guide/ui-builder) - Step-by-step guide for creating user interfaces
+- [FAQ](user-guide/faq) - Frequently asked questions
+- [Best Practices](user-guide/best-practices) - Recommendations for optimal usage
+
+### Developer Guide
+
+- [Architecture](developer-guide/architecture) - Technical overview and system design
+- [Setup](developer-guide/setup) - Development environment setup
+- [API Documentation](developer-guide/api-documentation) - Technical API reference
+- [Contributing](developer-guide/contributing) - Contribution guidelines
+- [Deployment](developer-guide/deployment) - Deployment process
+- [Troubleshooting](developer-guide/troubleshooting) - Solutions for common issues
+
+## About WebAppConfigurator
 
 The WebAppConfigurator provides two main features:
 
 ### Data Picker
 
-- Interactive flow diagrams for building complex SAP SuccessFactors data queries
+- Interactive flow diagrams for complex SAP SuccessFactors data queries
 - Dynamic entity selection from SuccessFactors
 - Advanced property selection and filtering
 - Real-time results with JSON viewer
