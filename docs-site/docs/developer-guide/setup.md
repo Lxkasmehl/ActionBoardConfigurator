@@ -4,142 +4,138 @@ sidebar_position: 2
 
 # Development Setup
 
-This guide explains how to set up your development environment for the WebAppConfigurator.
+This guide will help you set up your development environment for the WebAppConfigurator project.
 
 ## Prerequisites
 
-### Required Software
+Before you begin, ensure you have the following installed:
 
 - Node.js (v16 or higher)
-- npm or yarn
+- npm (comes with Node.js)
+- A modern code editor (VS Code recommended)
 - Git
-- Modern code editor (VS Code recommended)
-- Docker (optional)
 
-### Required Accounts
+## Getting Started
 
-- SAP SuccessFactors access
-- GitHub account
-- Docker Hub account (optional)
+1. **Clone the Repository**
 
-## Installation Steps
+   ```bash
+   git clone [repository-url]
+   cd WebAppConfigurator
+   ```
 
-### 1. Clone Repository
+2. **Install Dependencies**
 
-```bash
-git clone [repository-url]
-cd WebAppConfigurator
-```
+   ```bash
+   npm install
+   ```
 
-### 2. Install Dependencies
+3. **Start Development Server**
 
-```bash
-npm install
-# or
-yarn install
-```
+   ```bash
+   npm run dev
+   ```
 
-### 3. Environment Setup
-
-1. Create `.env` file:
-
-```env
-VITE_API_USER=your_user_id
-VITE_API_PASSWORD=your_password
-VITE_API_URL=your_api_url
-```
-
-### 4. Development Server
-
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-## Development Tools
-
-### Recommended Extensions
-
-- ESLint
-- Prettier
-- TypeScript
-- GitLens
-- Docker
-
-### Browser Extensions
-
-- React Developer Tools
-- Redux DevTools
-- Network Monitor
+   The application will be available at `http://localhost:5173`
 
 ## Project Structure
 
 ```
-src/
-├── components/         # Reusable UI components
-├── features/          # Feature-specific components
-├── store/             # Redux store and slices
-├── services/          # API and service layer
-└── utils/             # Helper functions
+WebAppConfigurator/
+├── src/
+│   ├── features/          # Main application features
+│   │   ├── dataPicker/   # Data Picker implementation
+│   │   └── uiBuilder/    # UI Builder implementation
+│   ├── redux/            # Redux store and slices
+│   ├── routes/           # Application routing
+│   ├── shared/           # Shared components
+│   ├── theme/            # Theme configuration
+│   └── assets/          # Static assets
+├── docs-site/           # Documentation website
+└── package.json         # Project dependencies
 ```
 
-## Configuration
+## Key Dependencies
 
-### ESLint
-
-- `.eslintrc.js` for linting rules
-- Prettier integration
-- TypeScript support
-
-### Testing
-
-- Jest configuration
-- Playwright setup
-- Test utilities
+- **React**: Frontend framework
+- **Vite**: Build tool and development server
+- **@mui/joy**: UI component library
+- **@xyflow/react**: Flow diagram library
+- **Redux Toolkit**: State management
+- **Tailwind CSS**: Utility-first CSS framework
 
 ## Development Workflow
 
-### 1. Code Style
+1. **Feature Development**
 
-- Follow ESLint rules
-- Use Prettier formatting
-- Follow TypeScript guidelines
-- Write meaningful comments
+   - Create new features in the `src/features` directory
+   - Follow the existing component structure
+   - Use Redux for state management
+   - Implement proper error handling
 
-### 2. Version Control
+2. **Testing**
 
-- Use feature branches
-- Write clear commit messages
-- Create pull requests
-- Review code changes
+   ```bash
+   # Run unit tests
+   npm test
 
-### 3. Testing
+   # Run tests in watch mode
+   npm test -- --watch
+   ```
 
-- Write unit tests
-- Run integration tests
-- Perform E2E testing
-- Check coverage
+3. **Building for Production**
 
-## Common Issues
+   ```bash
+   npm run build
+   ```
 
-### Installation Problems
+## Common Development Tasks
 
-- Node version mismatch
-- Dependency conflicts
-- Environment variables
-- Network issues
+### Adding a New Component
 
-### Development Issues
+1. Create the component file in the appropriate feature directory
+2. Import and use Material-UI Joy components
+3. Style with Tailwind CSS
+4. Add to the component library if it's a reusable component
 
-- TypeScript errors
-- Linting problems
-- Test failures
-- Build errors
+### Modifying the Data Picker
+
+1. Work with the flow diagram components in `features/dataPicker`
+2. Update node types in `app.constants.js`
+3. Modify the Redux state as needed
+4. Test the flow diagram functionality
+
+### Updating the UI Builder
+
+1. Modify components in `features/uiBuilder`
+2. Update the component library
+3. Test the drag-and-drop functionality
+4. Verify the export process
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Development Server Issues**
+
+   - Clear the `node_modules` folder and run `npm install` again
+   - Check for port conflicts
+   - Verify Node.js version
+
+2. **Build Issues**
+
+   - Check for missing dependencies
+   - Verify import paths
+   - Check for syntax errors
+
+3. **Flow Diagram Issues**
+   - Verify node types are properly registered
+   - Check edge connections
+   - Validate node positions
 
 ## Next Steps
 
-- Read the [Architecture](architecture) guide
-- Check [API Documentation](api-documentation)
-- Learn about [Contributing](contributing)
-- Review [Deployment](deployment) process
+- Read the [Architecture](architecture) documentation
+- Check the [API Documentation](api-documentation)
+- Review [Contributing Guidelines](contributing)
+- Learn about [Deployment](deployment)
