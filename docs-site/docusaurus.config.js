@@ -69,7 +69,7 @@ const config = {
         items: [
           {
             type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            sidebarId: 'docs',
             position: 'left',
             label: 'Documentation',
           },
@@ -100,7 +100,7 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/pentos/webappconfigurator',
+                href: 'https://github.com/Lxkasmehl/WebAppConfigurator',
               },
             ],
           },
