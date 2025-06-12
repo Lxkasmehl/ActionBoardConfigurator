@@ -86,12 +86,12 @@ const config = {
                 to: '/docs/intro',
               },
               {
-                label: 'Data Picker',
-                to: '/docs/features/data-picker',
+                label: 'User Guide',
+                to: '/docs/user-guide/getting-started',
               },
               {
-                label: 'UI Builder',
-                to: '/docs/features/ui-builder',
+                label: 'Developer Guide',
+                to: '/docs/developer-guide/architecture',
               },
             ],
           },
