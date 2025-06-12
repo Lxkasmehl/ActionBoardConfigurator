@@ -87,9 +87,3 @@ This guide covers the fundamental features of the WebAppConfigurator that you'll
    - Deploy to any React-compatible hosting
    - Maintain data security
 
-## Next Steps
-
-- Learn more about the [Data Picker](data-picker)
-- Explore the [UI Builder](ui-builder)
-- Check out [Best Practices](best-practices)
-- Read the [FAQ](faq)

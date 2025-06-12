@@ -4,7 +4,26 @@ sidebar_position: 1
 
 # Getting Started
 
-This guide will walk you through your first steps with the WebAppConfigurator. You'll learn the basic concepts and create your first visualization.
+Welcome to the WebAppConfigurator! This guide will help you get started with the platform.
+
+## Quick Start
+
+1. Access the WebAppConfigurator through your organization's portal
+2. Log in with your credentials
+3. Start creating your first visualization or UI
+
+## Basic Concepts
+
+- **Data Picker**: A visual tool for selecting and filtering SAP SuccessFactors data
+- **UI Builder**: A drag-and-drop interface for creating custom user interfaces
+- **Components**: Pre-built elements that can be used to build your interface
+- **Flows**: Visual representations of data relationships and transformations
+
+## Next Steps
+
+- Learn about [Basic Features](../user-guide/basic-features)
+- Explore the [Data Picker](../user-guide/data-picker)
+- Try the [UI Builder](../user-guide/ui-builder)
 
 ## Prerequisites
 
@@ -40,13 +59,6 @@ Before you begin, make sure you have:
 3. To enable API requests in the new React project, create a .env file with your credentials after extracting the zip folder. The exact format of this file is described in the exported project's README
 4. The exported app can then be viewed in dev mode, deployed, or used like any other React app. Note that the components will no longer be editable in this exported version
 
-## Next Steps
-
-- Read the [Basic Features](basic-features) for detailed information
-- Learn more about the [Data Picker](data-picker)
-- Explore the capabilities of the [UI Builder](ui-builder)
-- Check out the [Best Practices](best-practices)
-
 ## Common Issues
 
 ### Data Picker Issues
@@ -59,6 +71,7 @@ Before you begin, make sure you have:
 ### UI Builder Issues
 
 1. **Component Rendering**
+
    - If components don't appear in the preview, try clearing your browser cache
    - Ensure all required properties are filled in the component configuration
 
@@ -69,11 +82,10 @@ Before you begin, make sure you have:
 ### Export Issues
 
 1. **Build Failures**
+
    - Ensure all required dependencies are listed in the project's package.json
    - Check for any console errors before exporting
 
 2. **Environment Setup**
    - If the exported app doesn't connect to the API, verify your .env file configuration
    - Make sure all required environment variables are properly set
-
-For additional help, please refer to our [Troubleshooting Guide](../troubleshooting).
