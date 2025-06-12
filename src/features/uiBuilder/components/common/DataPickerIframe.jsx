@@ -234,6 +234,7 @@ const DataPickerIframe = ({
         Select a node in the DataPicker Flow to display its corresponding
         backend result in the {titleText}
       </Typography>
+      {/* TODO: Ohne iframe auskommen */}
       <iframe
         data-testid='data-picker-iframe'
         ref={iframeRef}
