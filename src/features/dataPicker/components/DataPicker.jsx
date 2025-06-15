@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
 import useFetchEntities from '../../../shared/hooks/useFetchEntities.js';
@@ -36,7 +36,13 @@ import {
 import '@xyflow/react/dist/style.css';
 import ResultsModal from './ResultsModal.jsx';
 
-export default function DataPicker({ containerRef }) {
+export default function DataPicker({
+  containerRef,
+  onNodeSelected,
+  onDataFetch,
+  onWarning,
+  triggerFetch,
+}) {
   const loading = useFetchEntities();
   const dispatch = useDispatch();
   const allEntities = useSelector((state) => state.fetchedData.allEntities);
@@ -57,54 +63,124 @@ export default function DataPicker({ containerRef }) {
   const [results, setResults] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
-  const messageQueueRef = useRef([]);
 
-  // Handle initial state from parent
-  useEffect(() => {
-    const handleInitialState = (event) => {
-      // Allow messages from the same origin or from the configured allowed origins
-      const allowedOrigins = [
-        window.location.origin,
-        import.meta.env.VITE_ALLOWED_ORIGIN,
-        import.meta.env.VITE_APP_URL,
-      ].filter(Boolean);
+  const handleSendRequest = useSendRequest(config);
 
-      if (!allowedOrigins.includes(event.origin)) return;
+  const transformConfigEntries = useCallback(
+    (nodeConfig) => {
+      const [entityName, entityConfig] = Object.entries(nodeConfig)[0];
+      const currentEntity = allEntities.find((e) => e.name === entityName);
 
-      if (event.data.type === 'INIT_IFRAME_STATE') {
-        const { config, dataPicker, fetchedData } = event.data.payload;
+      // First, filter out base properties that have extended versions
+      const filteredProperties = entityConfig.selectedProperties.filter(
+        (prop) => {
+          const parts = prop.split('/');
+          const baseProperty = parts[0];
 
-        // Initialize the store with parent data
-        Object.entries(config).forEach(([key, value]) => {
-          dispatch({ type: `config/${key}`, payload: value });
-        });
-
-        Object.entries(dataPicker).forEach(([key, value]) => {
-          dispatch({ type: `dataPicker/${key}`, payload: value });
-        });
-
-        Object.entries(fetchedData).forEach(([key, value]) => {
-          dispatch({ type: `fetchedData/${key}`, payload: value });
-        });
-      }
-    };
-
-    window.addEventListener('message', handleInitialState);
-    return () => window.removeEventListener('message', handleInitialState);
-  }, [dispatch]);
-
-  useEffect(() => {
-    window.parent.postMessage(
-      {
-        type: 'SELECTED_NODE_CHANGED',
-        payload: {
-          nodeId: selectedNode,
-          selectedEntity: selectedNode ? selectedEntities[selectedNode] : null,
+          // Check if there's any other property that starts with this base property
+          return !entityConfig.selectedProperties.some(
+            (otherProp) =>
+              otherProp !== prop && otherProp.startsWith(`${baseProperty}/`),
+          );
         },
-      },
-      window.location.origin,
-    );
-  }, [selectedNode, selectedEntities]);
+      );
+
+      // Group properties by their final property name (after the last slash)
+      const groupedProperties = filteredProperties.reduce((acc, prop) => {
+        const parts = prop.split('/');
+        const finalProperty = parts[parts.length - 1];
+        const navigationPath = parts.slice(0, -1);
+
+        if (!acc[finalProperty]) {
+          acc[finalProperty] = {
+            name: finalProperty,
+            navigationProperties: [],
+          };
+        }
+
+        if (navigationPath.length > 0) {
+          // Build up the navigation properties array from left to right
+          let currentPath = '';
+
+          navigationPath.forEach((navProp) => {
+            currentPath = currentPath ? `${currentPath}/${navProp}` : navProp;
+
+            // Find the actual navigation property metadata
+            const navProperty =
+              currentEntity?.properties?.navigationProperties?.find(
+                (np) => np.Name === navProp,
+              );
+
+            if (navProperty) {
+              acc[finalProperty].navigationProperties.push(navProperty);
+            }
+          });
+        }
+
+        return acc;
+      }, {});
+
+      return {
+        [entityName]: {
+          ...entityConfig,
+          selectedProperties: Object.values(groupedProperties),
+        },
+      };
+    },
+    [allEntities],
+  );
+
+  const handleRequest = useCallback(
+    async (showModal = true) => {
+      setIsLoading(true);
+      if (showModal) {
+        setModalOpen(true);
+      }
+      try {
+        const results = await handleSendRequest();
+        const formattedResults = formatUtils.formatODataResult(results);
+        setResults(formattedResults);
+
+        const configEntries = selectedNode
+          ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
+          : Object.entries(config).map(([nodeId, nodeConfig]) => [
+              nodeId,
+              transformConfigEntries(nodeConfig),
+            ]);
+
+        onDataFetch({
+          results: formattedResults,
+          configEntries,
+        });
+      } catch (error) {
+        console.error('Error handling request:', error);
+        setResults({ error: 'An error occurred' });
+        onWarning('An error occurred while fetching data');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [
+      handleSendRequest,
+      selectedNode,
+      config,
+      transformConfigEntries,
+      onDataFetch,
+      onWarning,
+    ],
+  );
+
+  useEffect(() => {
+    if (selectedNode && onNodeSelected) {
+      onNodeSelected(selectedNode, selectedEntities[selectedNode]);
+    }
+  }, [selectedNode, selectedEntities, onNodeSelected]);
+
+  useEffect(() => {
+    if (triggerFetch) {
+      handleRequest(false);
+    }
+  }, [triggerFetch, handleRequest]);
 
   const createNodeId = useCallback(() => crypto.randomUUID(), []);
 
@@ -300,188 +376,6 @@ export default function DataPicker({ containerRef }) {
     setNodes((prev) => [...prev, newNode]);
   }, [createNodeId, nodes, setNodes, containerRef]);
 
-  const handleSendRequest = useSendRequest(config);
-
-  const handleRequest = async () => {
-    setIsLoading(true);
-    setModalOpen(true);
-    try {
-      const results = await handleSendRequest();
-      setResults(formatUtils.formatODataResult(results));
-    } catch (error) {
-      console.error('Error handling request:', error);
-      setResults({ error: 'An error occurred' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const transformConfigEntries = useCallback(
-    (nodeConfig) => {
-      const [entityName, entityConfig] = Object.entries(nodeConfig)[0];
-      const currentEntity = allEntities.find((e) => e.name === entityName);
-
-      // First, filter out base properties that have extended versions
-      const filteredProperties = entityConfig.selectedProperties.filter(
-        (prop) => {
-          const parts = prop.split('/');
-          const baseProperty = parts[0];
-
-          // Check if there's any other property that starts with this base property
-          return !entityConfig.selectedProperties.some(
-            (otherProp) =>
-              otherProp !== prop && otherProp.startsWith(`${baseProperty}/`),
-          );
-        },
-      );
-
-      // Group properties by their final property name (after the last slash)
-      const groupedProperties = filteredProperties.reduce((acc, prop) => {
-        const parts = prop.split('/');
-        const finalProperty = parts[parts.length - 1];
-        const navigationPath = parts.slice(0, -1);
-
-        if (!acc[finalProperty]) {
-          acc[finalProperty] = {
-            name: finalProperty,
-            navigationProperties: [],
-          };
-        }
-
-        if (navigationPath.length > 0) {
-          // Build up the navigation properties array from left to right
-          let currentPath = '';
-
-          navigationPath.forEach((navProp) => {
-            currentPath = currentPath ? `${currentPath}/${navProp}` : navProp;
-
-            // Find the actual navigation property metadata
-            const navProperty =
-              currentEntity?.properties?.navigationProperties?.find(
-                (np) => np.Name === navProp,
-              );
-
-            if (navProperty) {
-              acc[finalProperty].navigationProperties.push(navProperty);
-            }
-          });
-        }
-
-        return acc;
-      }, {});
-
-      return {
-        [entityName]: {
-          ...entityConfig,
-          selectedProperties: Object.values(groupedProperties),
-        },
-      };
-    },
-    [allEntities],
-  );
-
-  useEffect(() => {
-    const handleMessage = async (event) => {
-      if (event.origin !== window.location.origin) return;
-
-      if (event.data.type === 'FETCH_DATA_REQUEST') {
-        try {
-          if (!selectedNode) {
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_WARNING',
-                payload: {
-                  message:
-                    'No node selected. Please select a node before fetching data.',
-                  requestId: crypto.randomUUID(),
-                },
-              },
-              window.location.origin,
-            );
-            return;
-          }
-
-          const results = await handleSendRequest(selectedNode);
-
-          const configEntries = selectedNode
-            ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
-            : Object.entries(config).map(([nodeId, nodeConfig]) => [
-                nodeId,
-                transformConfigEntries(nodeConfig),
-              ]);
-
-          const message = {
-            type: 'IFRAME_DATA_RESPONSE',
-            payload: {
-              results,
-              configEntries,
-            },
-          };
-
-          try {
-            const serializedMessage = JSON.parse(JSON.stringify(message));
-            messageQueueRef.current.push(serializedMessage);
-          } catch (error) {
-            console.error('Error queueing message:', error);
-          }
-        } catch (error) {
-          window.parent.postMessage(
-            {
-              type: 'IFRAME_ERROR',
-              payload: error.message,
-            },
-            window.location.origin,
-          );
-        }
-      } else if (event.data.type === 'IFRAME_WARNING_RESPONSE') {
-        if (event.data.payload.confirmed) {
-          try {
-            const results = await handleSendRequest();
-
-            const configEntries = selectedNode
-              ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
-              : Object.entries(config).map(([nodeId, nodeConfig]) => [
-                  nodeId,
-                  transformConfigEntries(nodeConfig),
-                ]);
-
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_DATA_RESPONSE',
-                payload: { results, configEntries },
-              },
-              window.location.origin,
-            );
-          } catch (error) {
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_ERROR',
-                payload: error.message,
-              },
-              window.location.origin,
-            );
-          }
-        }
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [handleSendRequest, selectedNode, config, transformConfigEntries]);
-
-  // Add message queue processor
-  useEffect(() => {
-    const processMessageQueue = () => {
-      if (messageQueueRef.current.length > 0) {
-        const message = messageQueueRef.current.shift();
-        window.parent.postMessage(message, window.location.origin);
-      }
-    };
-
-    const interval = setInterval(processMessageQueue, 100);
-    return () => clearInterval(interval);
-  }, []);
-
   if (loading) {
     return (
       <div className='flex justify-center items-center w-full h-screen'>
@@ -527,7 +421,7 @@ export default function DataPicker({ containerRef }) {
 
       <Button
         data-testid='send-request-button'
-        onClick={handleRequest}
+        onClick={() => handleRequest(true)}
         variant='solid'
         color='neutral'
         size='lg'
@@ -566,4 +460,15 @@ DataPicker.propTypes = {
       clientHeight: PropTypes.number,
     }),
   }).isRequired,
+  onNodeSelected: PropTypes.func,
+  onDataFetch: PropTypes.func,
+  onWarning: PropTypes.func,
+  triggerFetch: PropTypes.bool,
+};
+
+DataPicker.defaultProps = {
+  onNodeSelected: () => {},
+  onDataFetch: () => {},
+  onWarning: () => {},
+  triggerFetch: false,
 };

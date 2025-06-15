@@ -1,12 +1,12 @@
 import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import DataPickerIframe from '../common/DataPickerIframe';
 
 export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   const [warningMessage, setWarningMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const iframeRef = useRef(null);
+  const [triggerFetch, setTriggerFetch] = useState(false);
 
   const handleWarning = useCallback((message) => {
     setWarningMessage(message);
@@ -17,20 +17,19 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
       onDataSelected(data);
       onClose();
       setIsLoading(false);
+      setTriggerFetch(false);
     },
     [onDataSelected, onClose],
   );
 
+  const handleEntitySelected = useCallback(() => {
+    // We don't need to do anything with the selected entity in this context
+    // as we only care about the final data selection
+  }, []);
+
   const handleConfirm = useCallback(() => {
     setIsLoading(true);
-    if (iframeRef.current) {
-      iframeRef.current.triggerDataFetch();
-    } else {
-      const iframe = document.querySelector('iframe[src="/#/data-picker"]');
-      if (iframe && iframe.triggerDataFetch) {
-        iframe.triggerDataFetch();
-      }
-    }
+    setTriggerFetch(true);
   }, []);
 
   return (
@@ -40,10 +39,11 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
         <Typography level='h4'>Select Data</Typography>
         <div className='flex flex-col gap-4 mt-3'>
           <DataPickerIframe
-            ref={iframeRef}
             onWarning={handleWarning}
             onDataFetch={handleDataFetch}
+            onEntitySelected={handleEntitySelected}
             titleText='text area'
+            triggerFetch={triggerFetch}
           />
           {warningMessage && (
             <Typography color='warning' level='body-sm'>

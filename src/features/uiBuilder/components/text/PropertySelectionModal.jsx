@@ -67,6 +67,7 @@ export default function PropertySelectionModal({
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [selectedValue, setSelectedValue] = useState(null);
   const [showValueSelection, setShowValueSelection] = useState(false);
+  const [availableValues, setAvailableValues] = useState([]);
 
   // Reset all states when modal is closed
   useEffect(() => {
@@ -74,17 +75,31 @@ export default function PropertySelectionModal({
       setSelectedProperty(null);
       setSelectedValue(null);
       setShowValueSelection(false);
+      setAvailableValues([]);
     }
   }, [open]);
 
   // Get all properties from the first result, including nested ones
   const properties = useMemo(() => {
-    if (!data?.[0]?.d?.results?.[0]) {
+    if (!data) {
       return [];
     }
 
-    const firstResult = data[0].d.results[0];
-    return extractProperties(firstResult);
+    // Handle case where data is an array directly
+    const results = Array.isArray(data) ? data : data.results;
+
+    if (!results?.[0]) {
+      return [];
+    }
+
+    const firstResult = results[0];
+
+    // If the first result is an array, use its first item for property extraction
+    const targetObject = Array.isArray(firstResult)
+      ? firstResult[0]
+      : firstResult;
+
+    return extractProperties(targetObject);
   }, [data]);
 
   const handleConfirm = useCallback(() => {
@@ -99,33 +114,41 @@ export default function PropertySelectionModal({
       setSelectedProperty(property);
 
       // Get all unique values for the selected property
-      const values =
-        data?.[0]?.d?.results
-          ?.map((result, index) => {
-            const value = getNestedValue(result, property);
+      const results = Array.isArray(data) ? data : data.results;
+      if (!results?.[0] || !Array.isArray(results[0])) {
+        setShowValueSelection(true);
+        return;
+      }
 
-            // If the value is an object, try to get a meaningful string representation
-            let displayValue = value;
-            if (value && typeof value === 'object') {
-              displayValue = Object.values(value)
-                .filter(
-                  (v) => v !== null && v !== undefined && typeof v !== 'object',
-                )
-                .join(' ');
-            }
+      const values = results[0]
+        .map((item, index) => {
+          const value = getNestedValue(item, property);
 
-            return {
-              id: `${value}-${index}`,
-              label: displayValue?.toString() || '',
-              value: value,
-              metadata: result.__metadata,
-            };
-          })
-          .filter((item) => item.label && item.label.trim() !== '')
-          .filter(
-            (item, index, self) =>
-              index === self.findIndex((t) => t.label === item.label),
-          ) || [];
+          // If the value is an object, try to get a meaningful string representation
+          let displayValue = value;
+          if (value && typeof value === 'object') {
+            displayValue = Object.values(value)
+              .filter(
+                (v) => v !== null && v !== undefined && typeof v !== 'object',
+              )
+              .join(' ');
+          }
+
+          return {
+            id: `${value}-${index}`,
+            label: displayValue?.toString() || '',
+            value: value,
+            metadata: item.__metadata,
+          };
+        })
+        .filter((item) => item.label && item.label.trim() !== '')
+        .filter(
+          (item, index, self) =>
+            index === self.findIndex((t) => t.label === item.label),
+        );
+
+      // Update available values
+      setAvailableValues(values);
 
       // If there's only one value, automatically select it
       if (values.length === 1) {
@@ -149,28 +172,9 @@ export default function PropertySelectionModal({
     setSelectedProperty(null);
     setSelectedValue(null);
     setShowValueSelection(false);
+    setAvailableValues([]);
     onClose();
   };
-
-  // Get all unique values for the selected property from all results
-  const values =
-    (selectedProperty &&
-      data?.[0]?.d?.results
-        ?.map((result, index) => {
-          const value = getNestedValue(result, selectedProperty);
-          return {
-            id: `${value}-${index}`,
-            label: value?.toString() || '',
-            value: value,
-            metadata: result.__metadata,
-          };
-        })
-        .filter((item) => item.label && item.label.trim() !== '')
-        .filter(
-          (item, index, self) =>
-            index === self.findIndex((t) => t.label === item.label),
-        )) ||
-    [];
 
   return (
     <Modal open={open} onClose={handleClose}>
@@ -197,7 +201,7 @@ export default function PropertySelectionModal({
             </RadioGroup>
           ) : (
             <Autocomplete
-              options={values}
+              options={availableValues}
               value={selectedValue}
               onChange={(_, newValue) => setSelectedValue(newValue)}
               getOptionLabel={(option) => option.label}
