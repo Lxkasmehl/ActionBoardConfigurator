@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { Typography } from '@mui/joy';
+import { Typography, Card } from '@mui/joy';
 import { useRef, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -16,6 +16,7 @@ import {
   setConditionsForFilterModal,
   setFormData,
 } from '@/redux/dataPickerSlice';
+import DataPicker from '@/features/dataPicker/components/DataPicker';
 
 const DataPickerIframe = ({
   onWarning,
@@ -23,6 +24,7 @@ const DataPickerIframe = ({
   onEntitySelected,
   titleText,
 }) => {
+  const cardRef = useRef(null);
   const iframeRef = useRef(null);
   const dispatch = useDispatch();
   const store = useSelector((state) => state);
@@ -234,18 +236,17 @@ const DataPickerIframe = ({
         Select a node in the DataPicker Flow to display its corresponding
         backend result in the {titleText}
       </Typography>
-      {/* TODO: Ohne iframe auskommen */}
-      <iframe
-        data-testid='data-picker-iframe'
-        ref={iframeRef}
-        src='/#/data-picker'
-        style={{
+      <Card
+        ref={cardRef}
+        sx={{
           width: '80vw',
           height: '45vh',
           borderRadius: '8px',
           border: '1px solid #ced8e2',
         }}
-      />
+      >
+        <DataPicker containerRef={cardRef} />
+      </Card>
     </div>
   );
 };
