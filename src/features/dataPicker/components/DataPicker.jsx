@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
+import PropTypes from 'prop-types';
 import useFetchEntities from '../../../shared/hooks/useFetchEntities.js';
 import { useSendRequest } from '../hooks/useSendRequest.js';
 import { formatUtils } from '../utils/odata/oDataQueries.js';
@@ -35,7 +36,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import ResultsModal from './ResultsModal.jsx';
 
-export default function DataPicker() {
+export default function DataPicker({ containerRef }) {
   const loading = useFetchEntities();
   const dispatch = useDispatch();
   const allEntities = useSelector((state) => state.fetchedData.allEntities);
@@ -121,15 +122,17 @@ export default function DataPicker() {
 
   useEffect(() => {
     if (config && Object.keys(config).length > 0) {
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
+      const containerWidth =
+        containerRef?.current?.clientWidth || window.innerWidth;
+      const containerHeight =
+        containerRef?.current?.clientHeight || window.innerHeight;
 
       setNodes(() => {
         const configKeys = Object.keys(config);
 
         const entityNodes = configKeys.map((id, index) => {
-          let nodeX = windowWidth / 2 - 320 + index * 120;
-          let nodeY = windowHeight / 2 - 55 + index * 120;
+          let nodeX = containerWidth / 2 - 320 + index * 120;
+          let nodeY = containerHeight / 2 - 55 + index * 120;
 
           return {
             id: id,
@@ -145,7 +148,7 @@ export default function DataPicker() {
           {
             id: '0',
             position: {
-              x: window.innerWidth / 2 - 100,
+              x: containerWidth / 2 - 100,
               y: 50,
             },
             type: 'FlowStart',
@@ -271,11 +274,13 @@ export default function DataPicker() {
   );
 
   const addSection = useCallback(() => {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+    const containerWidth =
+      containerRef?.current?.clientWidth || window.innerWidth;
+    const containerHeight =
+      containerRef?.current?.clientHeight || window.innerHeight;
 
-    let newX = windowWidth / 2 - 320;
-    let newY = windowHeight / 2 - 55;
+    let newX = containerWidth / 2 - 320;
+    let newY = containerHeight / 2 - 55;
 
     const occupiedPositions = nodes.map((s) => s.position);
     while (
@@ -293,7 +298,7 @@ export default function DataPicker() {
       type: 'EntitySection',
     };
     setNodes((prev) => [...prev, newNode]);
-  }, [createNodeId, nodes, setNodes]);
+  }, [createNodeId, nodes, setNodes, containerRef]);
 
   const handleSendRequest = useSendRequest(config);
 
@@ -479,14 +484,14 @@ export default function DataPicker() {
 
   if (loading) {
     return (
-      <div className='flex justify-center items-center w-screen h-screen'>
+      <div className='flex justify-center items-center w-full h-screen'>
         <CircularProgress size='lg' />
       </div>
     );
   }
 
   return (
-    <div className='w-full h-screen'>
+    <div className='w-full h-screen' ref={containerRef}>
       <ReactFlow
         nodes={nodes.map((node) => ({
           ...node,
@@ -527,7 +532,7 @@ export default function DataPicker() {
         color='neutral'
         size='lg'
         sx={{
-          position: 'fixed',
+          position: 'absolute',
           bottom: '40px',
           left: '50%',
           transform: 'translateX(-50%)',
@@ -542,7 +547,7 @@ export default function DataPicker() {
         aria-label='Add new entity section'
         size='lg'
         sx={{
-          position: 'fixed',
+          position: 'absolute',
           bottom: '40px',
           right: '40px',
           borderRadius: '50%',
@@ -553,3 +558,12 @@ export default function DataPicker() {
     </div>
   );
 }
+
+DataPicker.propTypes = {
+  containerRef: PropTypes.shape({
+    current: PropTypes.shape({
+      clientWidth: PropTypes.number,
+      clientHeight: PropTypes.number,
+    }),
+  }),
+};
