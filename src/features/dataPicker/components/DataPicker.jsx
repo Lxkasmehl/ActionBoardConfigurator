@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
@@ -57,54 +57,53 @@ export default function DataPicker({ containerRef }) {
   const [results, setResults] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
-  const messageQueueRef = useRef([]);
 
-  // Handle initial state from parent
-  useEffect(() => {
-    const handleInitialState = (event) => {
-      // Allow messages from the same origin or from the configured allowed origins
-      const allowedOrigins = [
-        window.location.origin,
-        import.meta.env.VITE_ALLOWED_ORIGIN,
-        import.meta.env.VITE_APP_URL,
-      ].filter(Boolean);
+  // // Handle initial state from parent
+  // useEffect(() => {
+  //   const handleInitialState = (event) => {
+  //     // Allow messages from the same origin or from the configured allowed origins
+  //     const allowedOrigins = [
+  //       window.location.origin,
+  //       import.meta.env.VITE_ALLOWED_ORIGIN,
+  //       import.meta.env.VITE_APP_URL,
+  //     ].filter(Boolean);
 
-      if (!allowedOrigins.includes(event.origin)) return;
+  //     if (!allowedOrigins.includes(event.origin)) return;
 
-      if (event.data.type === 'INIT_IFRAME_STATE') {
-        const { config, dataPicker, fetchedData } = event.data.payload;
+  //     if (event.data.type === 'INIT_IFRAME_STATE') {
+  //       const { config, dataPicker, fetchedData } = event.data.payload;
 
-        // Initialize the store with parent data
-        Object.entries(config).forEach(([key, value]) => {
-          dispatch({ type: `config/${key}`, payload: value });
-        });
+  //       // Initialize the store with parent data
+  //       Object.entries(config).forEach(([key, value]) => {
+  //         dispatch({ type: `config/${key}`, payload: value });
+  //       });
 
-        Object.entries(dataPicker).forEach(([key, value]) => {
-          dispatch({ type: `dataPicker/${key}`, payload: value });
-        });
+  //       Object.entries(dataPicker).forEach(([key, value]) => {
+  //         dispatch({ type: `dataPicker/${key}`, payload: value });
+  //       });
 
-        Object.entries(fetchedData).forEach(([key, value]) => {
-          dispatch({ type: `fetchedData/${key}`, payload: value });
-        });
-      }
-    };
+  //       Object.entries(fetchedData).forEach(([key, value]) => {
+  //         dispatch({ type: `fetchedData/${key}`, payload: value });
+  //       });
+  //     }
+  //   };
 
-    window.addEventListener('message', handleInitialState);
-    return () => window.removeEventListener('message', handleInitialState);
-  }, [dispatch]);
+  //   window.addEventListener('message', handleInitialState);
+  //   return () => window.removeEventListener('message', handleInitialState);
+  // }, [dispatch]);
 
-  useEffect(() => {
-    window.parent.postMessage(
-      {
-        type: 'SELECTED_NODE_CHANGED',
-        payload: {
-          nodeId: selectedNode,
-          selectedEntity: selectedNode ? selectedEntities[selectedNode] : null,
-        },
-      },
-      window.location.origin,
-    );
-  }, [selectedNode, selectedEntities]);
+  // useEffect(() => {
+  //   window.parent.postMessage(
+  //     {
+  //       type: 'SELECTED_NODE_CHANGED',
+  //       payload: {
+  //         nodeId: selectedNode,
+  //         selectedEntity: selectedNode ? selectedEntities[selectedNode] : null,
+  //       },
+  //     },
+  //     window.location.origin,
+  //   );
+  // }, [selectedNode, selectedEntities]);
 
   const createNodeId = useCallback(() => crypto.randomUUID(), []);
 
@@ -380,107 +379,107 @@ export default function DataPicker({ containerRef }) {
     [allEntities],
   );
 
-  useEffect(() => {
-    const handleMessage = async (event) => {
-      if (event.origin !== window.location.origin) return;
+  // useEffect(() => {
+  //   const handleMessage = async (event) => {
+  //     if (event.origin !== window.location.origin) return;
 
-      if (event.data.type === 'FETCH_DATA_REQUEST') {
-        try {
-          if (!selectedNode) {
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_WARNING',
-                payload: {
-                  message:
-                    'No node selected. Please select a node before fetching data.',
-                  requestId: crypto.randomUUID(),
-                },
-              },
-              window.location.origin,
-            );
-            return;
-          }
+  //     if (event.data.type === 'FETCH_DATA_REQUEST') {
+  //       try {
+  //         if (!selectedNode) {
+  //           window.parent.postMessage(
+  //             {
+  //               type: 'IFRAME_WARNING',
+  //               payload: {
+  //                 message:
+  //                   'No node selected. Please select a node before fetching data.',
+  //                 requestId: crypto.randomUUID(),
+  //               },
+  //             },
+  //             window.location.origin,
+  //           );
+  //           return;
+  //         }
 
-          const results = await handleSendRequest(selectedNode);
+  //         const results = await handleSendRequest(selectedNode);
 
-          const configEntries = selectedNode
-            ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
-            : Object.entries(config).map(([nodeId, nodeConfig]) => [
-                nodeId,
-                transformConfigEntries(nodeConfig),
-              ]);
+  //         const configEntries = selectedNode
+  //           ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
+  //           : Object.entries(config).map(([nodeId, nodeConfig]) => [
+  //               nodeId,
+  //               transformConfigEntries(nodeConfig),
+  //             ]);
 
-          const message = {
-            type: 'IFRAME_DATA_RESPONSE',
-            payload: {
-              results,
-              configEntries,
-            },
-          };
+  //         const message = {
+  //           type: 'IFRAME_DATA_RESPONSE',
+  //           payload: {
+  //             results,
+  //             configEntries,
+  //           },
+  //         };
 
-          try {
-            const serializedMessage = JSON.parse(JSON.stringify(message));
-            messageQueueRef.current.push(serializedMessage);
-          } catch (error) {
-            console.error('Error queueing message:', error);
-          }
-        } catch (error) {
-          window.parent.postMessage(
-            {
-              type: 'IFRAME_ERROR',
-              payload: error.message,
-            },
-            window.location.origin,
-          );
-        }
-      } else if (event.data.type === 'IFRAME_WARNING_RESPONSE') {
-        if (event.data.payload.confirmed) {
-          try {
-            const results = await handleSendRequest();
+  //         try {
+  //           const serializedMessage = JSON.parse(JSON.stringify(message));
+  //           messageQueueRef.current.push(serializedMessage);
+  //         } catch (error) {
+  //           console.error('Error queueing message:', error);
+  //         }
+  //       } catch (error) {
+  //         window.parent.postMessage(
+  //           {
+  //             type: 'IFRAME_ERROR',
+  //             payload: error.message,
+  //           },
+  //           window.location.origin,
+  //         );
+  //       }
+  //     } else if (event.data.type === 'IFRAME_WARNING_RESPONSE') {
+  //       if (event.data.payload.confirmed) {
+  //         try {
+  //           const results = await handleSendRequest();
 
-            const configEntries = selectedNode
-              ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
-              : Object.entries(config).map(([nodeId, nodeConfig]) => [
-                  nodeId,
-                  transformConfigEntries(nodeConfig),
-                ]);
+  //           const configEntries = selectedNode
+  //             ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
+  //             : Object.entries(config).map(([nodeId, nodeConfig]) => [
+  //                 nodeId,
+  //                 transformConfigEntries(nodeConfig),
+  //               ]);
 
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_DATA_RESPONSE',
-                payload: { results, configEntries },
-              },
-              window.location.origin,
-            );
-          } catch (error) {
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_ERROR',
-                payload: error.message,
-              },
-              window.location.origin,
-            );
-          }
-        }
-      }
-    };
+  //           window.parent.postMessage(
+  //             {
+  //               type: 'IFRAME_DATA_RESPONSE',
+  //               payload: { results, configEntries },
+  //             },
+  //             window.location.origin,
+  //           );
+  //         } catch (error) {
+  //           window.parent.postMessage(
+  //             {
+  //               type: 'IFRAME_ERROR',
+  //               payload: error.message,
+  //             },
+  //             window.location.origin,
+  //           );
+  //         }
+  //       }
+  //     }
+  //   };
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [handleSendRequest, selectedNode, config, transformConfigEntries]);
+  //   window.addEventListener('message', handleMessage);
+  //   return () => window.removeEventListener('message', handleMessage);
+  // }, [handleSendRequest, selectedNode, config, transformConfigEntries]);
 
   // Add message queue processor
-  useEffect(() => {
-    const processMessageQueue = () => {
-      if (messageQueueRef.current.length > 0) {
-        const message = messageQueueRef.current.shift();
-        window.parent.postMessage(message, window.location.origin);
-      }
-    };
+  // useEffect(() => {
+  //   const processMessageQueue = () => {
+  //     if (messageQueueRef.current.length > 0) {
+  //       const message = messageQueueRef.current.shift();
+  //       window.parent.postMessage(message, window.location.origin);
+  //     }
+  //   };
 
-    const interval = setInterval(processMessageQueue, 100);
-    return () => clearInterval(interval);
-  }, []);
+  //   const interval = setInterval(processMessageQueue, 100);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   if (loading) {
     return (

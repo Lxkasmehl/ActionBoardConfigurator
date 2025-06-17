@@ -15,7 +15,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   useMemo,
   useEffect,
-  useImperativeHandle,
   forwardRef,
   useState,
   useCallback,
@@ -243,16 +242,16 @@ const ColumnFormFields = forwardRef(
       [dispatch, setIsWaitingForIframeData, componentId, columnId],
     );
 
-    useImperativeHandle(ref, () => ({
-      triggerIframeDataFetch: () => {
-        if (isIFrame) {
-          const iframe = document.querySelector('iframe[src="/#/data-picker"]');
-          if (iframe && iframe.triggerDataFetch) {
-            iframe.triggerDataFetch();
-          }
-        }
-      },
-    }));
+    // useImperativeHandle(ref, () => ({
+    //   triggerIframeDataFetch: () => {
+    //     if (isIFrame) {
+    //       const iframe = document.querySelector('iframe[src="/#/data-picker"]');
+    //       if (iframe && iframe.triggerDataFetch) {
+    //         iframe.triggerDataFetch();
+    //       }
+    //     }
+    //   },
+    // }));
 
     return (
       <>
