@@ -6,7 +6,6 @@ import DataPickerIframe from '../common/DataPickerIframe';
 export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   const [warningMessage, setWarningMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const iframeRef = useRef(null);
 
   const handleWarning = useCallback((message) => {
     setWarningMessage(message);
@@ -23,14 +22,15 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
 
   const handleConfirm = useCallback(() => {
     setIsLoading(true);
-    if (iframeRef.current) {
-      iframeRef.current.triggerDataFetch();
-    } else {
-      const iframe = document.querySelector('iframe[src="/#/data-picker"]');
-      if (iframe && iframe.triggerDataFetch) {
-        iframe.triggerDataFetch();
-      }
-    }
+    // if (iframeRef.current) {
+    //   iframeRef.current.triggerDataFetch();
+    // } else {
+    //   const iframe = document.querySelector('iframe[src="/#/data-picker"]');
+    //   if (iframe && iframe.triggerDataFetch) {
+    //     iframe.triggerDataFetch();
+    //   }
+    // }
+    
   }, []);
 
   return (
@@ -40,7 +40,6 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
         <Typography level='h4'>Select Data</Typography>
         <div className='flex flex-col gap-4 mt-3'>
           <DataPickerIframe
-            ref={iframeRef}
             onWarning={handleWarning}
             onDataFetch={handleDataFetch}
             titleText='text area'
