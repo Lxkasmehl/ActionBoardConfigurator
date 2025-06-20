@@ -9,6 +9,7 @@ import {
   Radio,
   RadioGroup,
   Autocomplete,
+  Alert,
 } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -63,6 +64,7 @@ export default function PropertySelectionModal({
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [selectedValue, setSelectedValue] = useState(null);
   const [showValueSelection, setShowValueSelection] = useState(false);
+  const [showNodeWarning, setShowNodeWarning] = useState(false);
 
   // Get selectedNode and dataPickerConfigEntries from Redux store
   const selectedNode = useSelector((state) => state.dataPicker.selectedNode);
@@ -76,11 +78,26 @@ export default function PropertySelectionModal({
       setSelectedProperty(null);
       setSelectedValue(null);
       setShowValueSelection(false);
+      setShowNodeWarning(false);
     }
   }, [open]);
 
+  // Check if a node is selected when modal opens
+  useEffect(() => {
+    if (open && !selectedNode) {
+      setShowNodeWarning(true);
+    } else if (open && selectedNode) {
+      setShowNodeWarning(false);
+    }
+  }, [open, selectedNode]);
+
   // Get all properties from the first result, including nested ones
   const properties = useMemo(() => {
+    // If no node is selected, return empty array
+    if (!selectedNode) {
+      return [];
+    }
+
     // Find the correct data based on selectedNode
     let targetData = null;
     if (selectedNode && data && data.length > 0) {
@@ -97,13 +114,16 @@ export default function PropertySelectionModal({
         if (selectedConfigIndex >= 0 && data[selectedConfigIndex]) {
           targetData = data[selectedConfigIndex];
         } else {
-          targetData = data[0];
+          // If selected node not found in config, don't fallback to first data
+          return [];
         }
       } else {
-        targetData = data[0];
+        // If no config entries, don't fallback to first data
+        return [];
       }
     } else {
-      targetData = data?.[0];
+      // If no data, return empty array
+      return [];
     }
 
     if (!targetData) {
@@ -153,13 +173,16 @@ export default function PropertySelectionModal({
           if (selectedConfigIndex >= 0 && data[selectedConfigIndex]) {
             targetData = data[selectedConfigIndex];
           } else {
-            targetData = data[0];
+            // If selected node not found in config, don't fallback to first data
+            return;
           }
         } else {
-          targetData = data[0];
+          // If no config entries, don't fallback to first data
+          return;
         }
       } else {
-        targetData = data?.[0];
+        // If no data, return
+        return;
       }
 
       // Get all unique values for the selected property
@@ -241,23 +264,24 @@ export default function PropertySelectionModal({
     [data, onPropertySelected, onClose, selectedNode, dataPickerConfigEntries],
   );
 
-  // Auto-select property if there's only one
+  // Auto-select property if there's only one and a node is selected
   useEffect(() => {
-    if (open && properties.length === 1) {
+    if (open && properties.length === 1 && selectedNode) {
       handlePropertySelect(properties[0]);
     }
-  }, [open, properties, handlePropertySelect]);
+  }, [open, properties, handlePropertySelect, selectedNode]);
 
   const handleClose = () => {
     setSelectedProperty(null);
     setSelectedValue(null);
     setShowValueSelection(false);
+    setShowNodeWarning(false);
     onClose();
   };
 
   // Get all unique values for the selected property from all results
   const values = useMemo(() => {
-    if (!selectedProperty) {
+    if (!selectedProperty || !selectedNode) {
       return [];
     }
 
@@ -273,13 +297,16 @@ export default function PropertySelectionModal({
         if (selectedConfigIndex >= 0 && data[selectedConfigIndex]) {
           targetData = data[selectedConfigIndex];
         } else {
-          targetData = data[0];
+          // If selected node not found in config, don't fallback to first data
+          return [];
         }
       } else {
-        targetData = data[0];
+        // If no config entries, don't fallback to first data
+        return [];
       }
     } else {
-      targetData = data?.[0];
+      // If no data, return empty array
+      return [];
     }
 
     // Try different data structures
@@ -339,7 +366,14 @@ export default function PropertySelectionModal({
         <ModalClose onClick={handleClose} />
         <Typography level='h4'>Select Property and Value</Typography>
         <div className='flex flex-col gap-4 mt-3'>
-          {!showValueSelection ? (
+          {showNodeWarning ? (
+            <Alert color='warning' variant='soft'>
+              <Typography level='body-sm'>
+                Please select a node in the DataPicker flow first before you can
+                select a property.
+              </Typography>
+            </Alert>
+          ) : !showValueSelection ? (
             <RadioGroup
               value={selectedProperty}
               onChange={(e) => handlePropertySelect(e.target.value)}
@@ -387,7 +421,7 @@ export default function PropertySelectionModal({
               variant='solid'
               color='primary'
               onClick={handleConfirm}
-              disabled={!selectedProperty || !selectedValue}
+              disabled={!selectedProperty || !selectedValue || showNodeWarning}
             >
               Confirm Selection
             </Button>

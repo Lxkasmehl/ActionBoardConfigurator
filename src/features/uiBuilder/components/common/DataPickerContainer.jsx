@@ -8,7 +8,7 @@ import {
 } from '@/redux/dataPickerSlice';
 import DataPicker from '@/features/dataPicker/components/DataPicker';
 
-const DataPickerIframe = ({
+const DataPickerContainer = ({
   onWarning,
   onDataFetch,
   onEntitySelected,
@@ -22,7 +22,6 @@ const DataPickerIframe = ({
     dataPickerResults,
     dataPickerConfigEntries,
     dataPickerWarning,
-    selectedNode,
   } = useSelector((state) => state.dataPicker);
 
   useEffect(() => {
@@ -62,24 +61,6 @@ const DataPickerIframe = ({
         Select a node in the DataPicker Flow to display its corresponding
         backend result in the {titleText}
       </Typography>
-      {selectedNode && (
-        <Typography
-          level='body-sm'
-          color='success'
-          sx={{ textAlign: 'center', marginBottom: 1 }}
-        >
-          ✓ Node selected: {selectedNode}
-        </Typography>
-      )}
-      {!selectedNode && (
-        <Typography
-          level='body-sm'
-          color='warning'
-          sx={{ textAlign: 'center', marginBottom: 1 }}
-        >
-          ⚠ Please click on a node in the flow to select it
-        </Typography>
-      )}
       <Card
         ref={cardRef}
         sx={{
@@ -95,11 +76,11 @@ const DataPickerIframe = ({
   );
 };
 
-DataPickerIframe.propTypes = {
+DataPickerContainer.propTypes = {
   onWarning: PropTypes.func.isRequired,
   onDataFetch: PropTypes.func.isRequired,
   onEntitySelected: PropTypes.func.isRequired,
   titleText: PropTypes.string.isRequired,
 };
 
-export default DataPickerIframe;
+export default DataPickerContainer;

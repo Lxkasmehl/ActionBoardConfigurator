@@ -16,7 +16,7 @@ import { useMemo, useEffect, useState, useCallback } from 'react';
 import EntityPropertyFields from './EntityPropertyFields';
 import WarningModal from './WarningModal';
 import CustomRelationModal from './CustomRelationModal';
-import DataPickerIframe from '../common/DataPickerIframe';
+import DataPickerContainer from '../common/DataPickerContainer';
 import { setTableConfigEntries } from '@/redux/uiBuilderSlice';
 import { setDataPickerLoading } from '@/redux/dataPickerSlice';
 
@@ -292,7 +292,7 @@ const ColumnFormFields = ({
           />
         </>
       ) : (
-        <DataPickerIframe
+        <DataPickerContainer
           onWarning={(message) => {
             setWarningMessage(message);
             setShowWarningModal(true);
