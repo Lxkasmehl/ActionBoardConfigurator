@@ -1,11 +1,20 @@
 import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
 import PropTypes from 'prop-types';
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import DataPickerIframe from '../common/DataPickerIframe';
+import {
+  setDataPickerLoading,
+  triggerDataFetch,
+} from '@/redux/dataPickerSlice';
 
 export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   const [warningMessage, setWarningMessage] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+
+  const isDataPickerLoading = useSelector(
+    (state) => state.dataPicker.isDataPickerLoading,
+  );
 
   const handleWarning = useCallback((message) => {
     setWarningMessage(message);
@@ -15,23 +24,20 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
     (data) => {
       onDataSelected(data);
       onClose();
-      setIsLoading(false);
+      dispatch(setDataPickerLoading(false));
     },
-    [onDataSelected, onClose],
+    [onDataSelected, onClose, dispatch],
   );
 
-  const handleConfirm = useCallback(() => {
-    setIsLoading(true);
-    // if (iframeRef.current) {
-    //   iframeRef.current.triggerDataFetch();
-    // } else {
-    //   const iframe = document.querySelector('iframe[src="/#/data-picker"]');
-    //   if (iframe && iframe.triggerDataFetch) {
-    //     iframe.triggerDataFetch();
-    //   }
-    // }
-    
+  const handleEntitySelected = useCallback(() => {
+    // For text components, we don't need to track entity selection
+    // This is just to satisfy the DataPickerIframe prop requirements
   }, []);
+
+  const handleConfirm = useCallback(() => {
+    dispatch(setDataPickerLoading(true));
+    dispatch(triggerDataFetch());
+  }, [dispatch]);
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -42,6 +48,7 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
           <DataPickerIframe
             onWarning={handleWarning}
             onDataFetch={handleDataFetch}
+            onEntitySelected={handleEntitySelected}
             titleText='text area'
           />
           {warningMessage && (
@@ -57,7 +64,7 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
               variant='solid'
               color='primary'
               onClick={handleConfirm}
-              loading={isLoading}
+              loading={isDataPickerLoading}
               data-testid='confirm-selection-button'
             >
               Confirm Selection

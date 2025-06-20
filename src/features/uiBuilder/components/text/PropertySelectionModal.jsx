@@ -12,6 +12,7 @@ import {
 } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 
 // Helper function to recursively extract all properties from nested objects
 const extractProperties = (obj, prefix = '') => {
@@ -24,14 +25,9 @@ const extractProperties = (obj, prefix = '') => {
 
     const currentPath = prefix ? `${prefix}.${key}` : key;
 
-    // Handle arrays of objects
-    if (
-      Array.isArray(value) &&
-      value.length > 0 &&
-      typeof value[0] === 'object'
-    ) {
-      const nestedProps = extractProperties(value[0], currentPath);
-      return [...acc, ...nestedProps];
+    // Handle arrays - treat them as a single property, don't extract individual items
+    if (Array.isArray(value)) {
+      return [...acc, currentPath];
     }
 
     // Handle nested objects
@@ -49,9 +45,9 @@ const getNestedValue = (obj, path) => {
   return path.split('.').reduce((current, key) => {
     if (!current) return undefined;
 
-    // If we're accessing an array, get the first item
+    // If we're accessing an array, return the entire array
     if (Array.isArray(current[key])) {
-      return current[key][0];
+      return current[key];
     }
 
     return current[key];
@@ -68,6 +64,12 @@ export default function PropertySelectionModal({
   const [selectedValue, setSelectedValue] = useState(null);
   const [showValueSelection, setShowValueSelection] = useState(false);
 
+  // Get selectedNode and dataPickerConfigEntries from Redux store
+  const selectedNode = useSelector((state) => state.dataPicker.selectedNode);
+  const dataPickerConfigEntries = useSelector(
+    (state) => state.dataPicker.dataPickerConfigEntries,
+  );
+
   // Reset all states when modal is closed
   useEffect(() => {
     if (!open) {
@@ -79,13 +81,54 @@ export default function PropertySelectionModal({
 
   // Get all properties from the first result, including nested ones
   const properties = useMemo(() => {
-    if (!data?.[0]?.d?.results?.[0]) {
+    // Find the correct data based on selectedNode
+    let targetData = null;
+    if (selectedNode && data && data.length > 0) {
+      // The data array should correspond to the dataPickerConfigEntries array
+      // We need to find the index of the selectedNode in the config entries
+      // and use that same index for the data array
+
+      if (dataPickerConfigEntries && dataPickerConfigEntries.length > 0) {
+        // Find the index of the selectedNode in the config entries
+        const selectedConfigIndex = dataPickerConfigEntries.findIndex(
+          ([nodeId]) => nodeId === selectedNode,
+        );
+
+        if (selectedConfigIndex >= 0 && data[selectedConfigIndex]) {
+          targetData = data[selectedConfigIndex];
+        } else {
+          targetData = data[0];
+        }
+      } else {
+        targetData = data[0];
+      }
+    } else {
+      targetData = data?.[0];
+    }
+
+    if (!targetData) {
       return [];
     }
 
-    const firstResult = data[0].d.results[0];
-    return extractProperties(firstResult);
-  }, [data]);
+    if (!targetData?.d?.results?.[0]) {
+      // Try alternative data structures
+      if (targetData && Array.isArray(targetData) && targetData.length > 0) {
+        const firstResult = targetData[0]; // Take first object from the array
+        const extractedProps = extractProperties(firstResult);
+        return extractedProps;
+      } else if (targetData && typeof targetData === 'object') {
+        const firstResult = targetData;
+        const extractedProps = extractProperties(firstResult);
+        return extractedProps;
+      }
+
+      return [];
+    }
+
+    const firstResult = targetData.d.results[0];
+    const extractedProps = extractProperties(firstResult);
+    return extractedProps;
+  }, [data, selectedNode, dataPickerConfigEntries]);
 
   const handleConfirm = useCallback(() => {
     if (selectedProperty && selectedValue) {
@@ -98,44 +141,104 @@ export default function PropertySelectionModal({
     (property) => {
       setSelectedProperty(property);
 
+      // Find the correct data based on selectedNode
+      let targetData = null;
+      if (selectedNode && data && data.length > 0) {
+        if (dataPickerConfigEntries && dataPickerConfigEntries.length > 0) {
+          // Find the index of the selectedNode in the config entries
+          const selectedConfigIndex = dataPickerConfigEntries.findIndex(
+            ([nodeId]) => nodeId === selectedNode,
+          );
+
+          if (selectedConfigIndex >= 0 && data[selectedConfigIndex]) {
+            targetData = data[selectedConfigIndex];
+          } else {
+            targetData = data[0];
+          }
+        } else {
+          targetData = data[0];
+        }
+      } else {
+        targetData = data?.[0];
+      }
+
       // Get all unique values for the selected property
-      const values =
-        data?.[0]?.d?.results
-          ?.map((result, index) => {
-            const value = getNestedValue(result, property);
+      let results = null;
 
-            // If the value is an object, try to get a meaningful string representation
-            let displayValue = value;
-            if (value && typeof value === 'object') {
-              displayValue = Object.values(value)
-                .filter(
-                  (v) => v !== null && v !== undefined && typeof v !== 'object',
-                )
-                .join(' ');
-            }
+      if (targetData?.d?.results) {
+        // Original structure
+        results = targetData.d.results;
+      } else if (Array.isArray(targetData)) {
+        // Alternative structure - targetData is an array of objects
+        results = targetData;
+      }
 
-            return {
+      if (!results) {
+        return;
+      }
+
+      const values = results
+        .map((result, index) => {
+          const value = getNestedValue(result, property);
+
+          // If the value is an array, extract values from each element
+          if (Array.isArray(value)) {
+            const arrayValues = value.map((item, itemIndex) => {
+              let displayValue = item;
+              if (item && typeof item === 'object') {
+                displayValue = Object.values(item)
+                  .filter(
+                    (v) =>
+                      v !== null && v !== undefined && typeof v !== 'object',
+                  )
+                  .join(' ');
+              }
+              return {
+                id: `${item}-${index}-${itemIndex}`,
+                label: displayValue?.toString() || '',
+                value: item,
+                metadata: result.__metadata,
+              };
+            });
+            return arrayValues;
+          }
+
+          // If the value is an object, try to get a meaningful string representation
+          let displayValue = value;
+          if (value && typeof value === 'object') {
+            displayValue = Object.values(value)
+              .filter(
+                (v) => v !== null && v !== undefined && typeof v !== 'object',
+              )
+              .join(' ');
+          }
+
+          return [
+            {
               id: `${value}-${index}`,
               label: displayValue?.toString() || '',
               value: value,
               metadata: result.__metadata,
-            };
-          })
-          .filter((item) => item.label && item.label.trim() !== '')
-          .filter(
-            (item, index, self) =>
-              index === self.findIndex((t) => t.label === item.label),
-          ) || [];
+            },
+          ];
+        })
+        .flat() // Flatten the array of arrays
+        .filter((item) => item.label && item.label.trim() !== '')
+        .filter(
+          (item, index, self) =>
+            index === self.findIndex((t) => t.label === item.label),
+        );
 
       // If there's only one value, automatically select it
       if (values.length === 1) {
         setSelectedValue(values[0]);
-        handleConfirm();
+        onPropertySelected(property, values[0]);
+        onClose();
       } else {
         setShowValueSelection(true);
       }
     },
-    [data, handleConfirm],
+    [data, onPropertySelected, onClose, selectedNode, dataPickerConfigEntries],
   );
 
   // Auto-select property if there's only one
@@ -153,24 +256,82 @@ export default function PropertySelectionModal({
   };
 
   // Get all unique values for the selected property from all results
-  const values =
-    (selectedProperty &&
-      data?.[0]?.d?.results
-        ?.map((result, index) => {
-          const value = getNestedValue(result, selectedProperty);
-          return {
+  const values = useMemo(() => {
+    if (!selectedProperty) {
+      return [];
+    }
+
+    // Find the correct data based on selectedNode
+    let targetData = null;
+    if (selectedNode && data && data.length > 0) {
+      if (dataPickerConfigEntries && dataPickerConfigEntries.length > 0) {
+        // Find the index of the selectedNode in the config entries
+        const selectedConfigIndex = dataPickerConfigEntries.findIndex(
+          ([nodeId]) => nodeId === selectedNode,
+        );
+
+        if (selectedConfigIndex >= 0 && data[selectedConfigIndex]) {
+          targetData = data[selectedConfigIndex];
+        } else {
+          targetData = data[0];
+        }
+      } else {
+        targetData = data[0];
+      }
+    } else {
+      targetData = data?.[0];
+    }
+
+    // Try different data structures
+    let results = null;
+
+    if (targetData?.d?.results) {
+      // Original structure
+      results = targetData.d.results;
+    } else if (Array.isArray(targetData)) {
+      // Alternative structure - targetData is an array of objects
+      results = targetData;
+    }
+
+    if (!results) {
+      return [];
+    }
+
+    const resultValues = results
+      .map((result, index) => {
+        const value = getNestedValue(result, selectedProperty);
+
+        // If the value is an array, extract values from each element
+        if (Array.isArray(value)) {
+          const arrayValues = value.map((item, itemIndex) => {
+            return {
+              id: `${item}-${index}-${itemIndex}`,
+              label: item?.toString() || '',
+              value: item,
+              metadata: result.__metadata,
+            };
+          });
+          return arrayValues;
+        }
+
+        return [
+          {
             id: `${value}-${index}`,
             label: value?.toString() || '',
             value: value,
             metadata: result.__metadata,
-          };
-        })
-        .filter((item) => item.label && item.label.trim() !== '')
-        .filter(
-          (item, index, self) =>
-            index === self.findIndex((t) => t.label === item.label),
-        )) ||
-    [];
+          },
+        ];
+      })
+      .flat() // Flatten the array of arrays
+      .filter((item) => item.label && item.label.trim() !== '')
+      .filter(
+        (item, index, self) =>
+          index === self.findIndex((t) => t.label === item.label),
+      );
+
+    return resultValues;
+  }, [selectedProperty, data, selectedNode, dataPickerConfigEntries]);
 
   return (
     <Modal open={open} onClose={handleClose}>
