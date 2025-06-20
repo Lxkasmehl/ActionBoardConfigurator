@@ -1,8 +1,15 @@
-import { Modal, ModalDialog, ModalClose, Typography, Button } from '@mui/joy';
+import {
+  Modal,
+  ModalDialog,
+  ModalClose,
+  Typography,
+  Button,
+  Alert,
+} from '@mui/joy';
 import PropTypes from 'prop-types';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import DataPickerIframe from '../common/DataPickerIframe';
+import DataPickerContainer from '../common/DataPickerContainer';
 import {
   setDataPickerLoading,
   triggerDataFetch,
@@ -10,11 +17,23 @@ import {
 
 export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   const [warningMessage, setWarningMessage] = useState(null);
+  const [showNodeWarning, setShowNodeWarning] = useState(false);
   const dispatch = useDispatch();
 
   const isDataPickerLoading = useSelector(
     (state) => state.dataPicker.isDataPickerLoading,
   );
+
+  const selectedNode = useSelector((state) => state.dataPicker.selectedNode);
+
+  // Check if a node is selected when modal opens or when selectedNode changes
+  useEffect(() => {
+    if (open && !selectedNode) {
+      setShowNodeWarning(true);
+    } else if (open && selectedNode) {
+      setShowNodeWarning(false);
+    }
+  }, [open, selectedNode]);
 
   const handleWarning = useCallback((message) => {
     setWarningMessage(message);
@@ -31,13 +50,17 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
 
   const handleEntitySelected = useCallback(() => {
     // For text components, we don't need to track entity selection
-    // This is just to satisfy the DataPickerIframe prop requirements
+    // This is just to satisfy the DataPickerContainer prop requirements
   }, []);
 
   const handleConfirm = useCallback(() => {
+    if (!selectedNode) {
+      setShowNodeWarning(true);
+      return;
+    }
     dispatch(setDataPickerLoading(true));
     dispatch(triggerDataFetch());
-  }, [dispatch]);
+  }, [dispatch, selectedNode]);
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -45,12 +68,20 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
         <ModalClose onClick={onClose} />
         <Typography level='h4'>Select Data</Typography>
         <div className='flex flex-col gap-4 mt-3'>
-          <DataPickerIframe
+          <DataPickerContainer
             onWarning={handleWarning}
             onDataFetch={handleDataFetch}
             onEntitySelected={handleEntitySelected}
             titleText='text area'
           />
+          {showNodeWarning && (
+            <Alert color='warning' variant='soft'>
+              <Typography level='body-sm'>
+                Please select a node in the DataPicker flow first before you can
+                fetch data.
+              </Typography>
+            </Alert>
+          )}
           {warningMessage && (
             <Typography color='warning' level='body-sm'>
               {warningMessage}
@@ -65,6 +96,7 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
               color='primary'
               onClick={handleConfirm}
               loading={isDataPickerLoading}
+              disabled={showNodeWarning}
               data-testid='confirm-selection-button'
             >
               Confirm Selection
