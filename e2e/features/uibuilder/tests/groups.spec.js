@@ -420,7 +420,7 @@ test.describe('Group Tests', () => {
         'Landsberger Str. 110',
         /^(M|F)$/,
         /^(ttttqui|pppprec1|ttttrec1|ttttUSA|ttttrec2)$/,
-        /^(645 Dolcetto Drive|Landsberger Str. 110)$/,
+        /^(645 Dolcetto Drive|Landsberger Str. 110|Zürichbergstr. 7)$/,
         'F',
         /^(ttttrec1|pppprec2|ttttrec2|tttt_TAL)$/,
         /^(Zürichbergstr. 7|Landsberger Str. 110)$/,
