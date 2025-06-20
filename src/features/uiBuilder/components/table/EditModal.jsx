@@ -16,6 +16,12 @@ import {
   setCombinedPropertiesMode,
   setTableConfigEntries,
 } from '../../../../redux/uiBuilderSlice';
+import {
+  setDataPickerLoading,
+  triggerDataFetch,
+  clearDataPickerState,
+} from '../../../../redux/dataPickerSlice';
+import WarningModal from './WarningModal';
 
 export default function EditModal({
   open,
@@ -36,6 +42,9 @@ export default function EditModal({
   const [isIframeValidationError, setIsIframeValidationError] = useState(false);
   const [columnData, setColumnData] = useState(null);
   const [combinedProperties, setCombinedProperties] = useState([]);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warningMessage, setWarningMessage] = useState('');
+  const [confirmedWarning, setConfirmedWarning] = useState(false);
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
@@ -44,7 +53,15 @@ export default function EditModal({
       state.uiBuilder.combinedPropertiesMode[component.id]?.[item.id] || false,
   );
   const stringifiedPath = JSON.stringify(editedItem.nestedNavigationPath);
-  const messageQueueRef = useRef([]);
+
+  // Redux state for DataPicker communication
+  const {
+    dataPickerResults,
+    dataPickerConfigEntries,
+    dataPickerWarning,
+    isDataPickerLoading,
+    selectedNode,
+  } = useSelector((state) => state.dataPicker);
 
   useEffect(() => {
     // Only proceed if combined properties mode is enabled
@@ -144,119 +161,183 @@ export default function EditModal({
     setIsIframeValidationError(false);
   }, [editedItem]);
 
-  // Add message queue processor
+  // Handle DataPicker results from Redux
   useEffect(() => {
-    const processMessageQueue = () => {
-      if (messageQueueRef.current.length > 0) {
-        const message = messageQueueRef.current.shift();
-        if (message.type === 'IFRAME_DATA_RESPONSE' && isWaitingForIframeData) {
-          const dataItems = Array.isArray(message.payload)
-            ? message.payload
-            : [message.payload];
+    if (dataPickerWarning) {
+      setWarningMessage(dataPickerWarning);
+      setShowWarningModal(true);
+      setValidationError(dataPickerWarning);
+      setIsWaitingForIframeData(false);
+      dispatch(setDataPickerLoading(false));
+    }
+  }, [dataPickerWarning, dispatch]);
 
-          let hasValidationError = false;
+  // Separate useEffect to handle confirmedWarning state changes
+  useEffect(() => {
+    if (confirmedWarning && dataPickerResults && dataPickerConfigEntries) {
+      // Process all flows
+      const dataItems = Array.isArray(dataPickerResults)
+        ? dataPickerResults
+        : [dataPickerResults];
+      const configItems = dataPickerConfigEntries;
 
-          dataItems.forEach((dataItem, index) => {
-            const entityName =
-              dataItem.results[0].d.results[0].__metadata.type.split('.')[1];
-
-            const propertyNames = Object.keys(
-              dataItem.results[0].d.results[0],
-            ).filter((key) => key !== '__metadata');
-
-            propertyNames.forEach((propertyName, propertyIndex) => {
-              const extractedData = dataItem.results[0].d.results.map(
-                (result) => result[propertyName],
-              );
-
-              const completeEntity = filteredEntities.find(
-                (entity) => entity.name === entityName,
-              );
-
-              const completeProperty = [
-                ...(completeEntity.properties.properties || []),
-                ...(completeEntity.properties.navigationProperties || []),
-              ].find((property) => property.Name === propertyName);
-
-              const baseColumnData = {
-                data: extractedData,
-                label: editedItem.label
-                  ? index > 0 || propertyIndex > 0
-                    ? `${editedItem.label} - ${propertyName}`
-                    : editedItem.label
-                  : `${entityName} -> ${propertyName}`,
-                isNewColumn: index > 0 || propertyIndex > 0,
-                entity: completeEntity,
-                property: completeProperty,
-              };
-
-              const newColumnData = isIframeValidationError
-                ? {
-                    ...columnData,
-                    ...baseColumnData,
-                    configEntries: columnData?.configEntries,
-                  }
-                : {
-                    ...editedItem,
-                    ...baseColumnData,
-                    configEntries: editedItem?.configEntries,
-                  };
-              setColumnData(newColumnData);
-
-              if (validateColumnData(newColumnData)) {
-                hasValidationError = true;
-                return;
-              }
-
-              onSave(newColumnData);
-            });
-
-            setIsWaitingForIframeData(false);
-
-            if (!hasValidationError) {
-              onClose();
-            }
-          });
-        }
+      if (!dataItems || !configItems) {
+        console.error('No valid data or config found for processing');
+        setValidationError(
+          'No valid data found for the selected flow. Please select a node in the DataPicker and try again.',
+        );
+        setIsWaitingForIframeData(false);
+        dispatch(setDataPickerLoading(false));
+        return;
       }
-    };
 
-    const interval = setInterval(processMessageQueue, 100);
-    return () => clearInterval(interval);
+      let hasValidationError = false;
+
+      dataItems.forEach((dataItem, index) => {
+        // Handle the formatted data structure from formatODataResult
+        // The data is already cleaned up and doesn't have the original OData structure
+        if (!dataItem || !Array.isArray(dataItem) || dataItem.length === 0) {
+          console.error('Invalid dataItem structure:', dataItem);
+          setValidationError('Invalid data structure received from DataPicker');
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        // Get the first result to determine entity and properties
+        const firstResult = dataItem[0];
+        if (!firstResult || typeof firstResult !== 'object') {
+          console.error('Invalid firstResult structure:', firstResult);
+          setValidationError(
+            'Invalid result structure received from DataPicker',
+          );
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        // Get config entry for this data item
+        const configEntry = configItems[index];
+        if (
+          !configEntry ||
+          !Array.isArray(configEntry) ||
+          configEntry.length < 2
+        ) {
+          console.error('Invalid configEntry structure:', configEntry);
+          setValidationError(
+            'Invalid configuration structure received from DataPicker',
+          );
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        const entityName = Object.keys(configEntry[1])[0];
+        if (!entityName) {
+          console.error('No entity name found in configEntry');
+          setValidationError(
+            'No entity information found in DataPicker configuration',
+          );
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        const completeEntity = filteredEntities.find(
+          (entity) => entity.name === entityName,
+        );
+
+        if (!completeEntity) {
+          console.error('Entity not found:', entityName);
+          setValidationError(
+            `Entity ${entityName} not found in available entities`,
+          );
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        // Get property names from the first result
+        const propertyNames = Object.keys(firstResult);
+
+        propertyNames.forEach((propertyName, propertyIndex) => {
+          const extractedData = dataItem.map((result) => result[propertyName]);
+
+          const completeProperty = [
+            ...(completeEntity.properties.properties || []),
+            ...(completeEntity.properties.navigationProperties || []),
+          ].find((property) => property.Name === propertyName);
+
+          const baseColumnData = {
+            data: extractedData,
+            label: editedItem.label
+              ? index > 0 || propertyIndex > 0
+                ? `${editedItem.label} - ${propertyName}`
+                : editedItem.label
+              : `${entityName} -> ${propertyName}`,
+            isNewColumn: index > 0 || propertyIndex > 0,
+            entity: completeEntity,
+            property: completeProperty,
+          };
+
+          const newColumnData = isIframeValidationError
+            ? {
+                ...columnData,
+                ...baseColumnData,
+                configEntries: [configEntry],
+              }
+            : {
+                ...editedItem,
+                ...baseColumnData,
+                configEntries: [configEntry],
+              };
+          setColumnData(newColumnData);
+
+          if (validateColumnData(newColumnData)) {
+            hasValidationError = true;
+            return;
+          }
+
+          onSave(newColumnData);
+        });
+      });
+
+      // After processing all data items, close the modal and reset states
+      setIsWaitingForIframeData(false);
+      dispatch(setDataPickerLoading(false));
+
+      if (!hasValidationError) {
+        onClose();
+        dispatch(clearDataPickerState());
+      }
+    }
   }, [
-    isWaitingForIframeData,
-    onSave,
-    onClose,
+    confirmedWarning,
+    dataPickerResults,
+    dataPickerConfigEntries,
     filteredEntities,
-    mainEntity,
+    editedItem,
     columnData,
     isIframeValidationError,
     validateColumnData,
-    editedItem,
+    onSave,
+    onClose,
+    dispatch,
   ]);
 
-  useEffect(() => {
-    const handleMessage = (event) => {
-      if (event.origin !== window.location.origin) return;
+  const handleWarningConfirm = () => {
+    setShowWarningModal(false);
+    setConfirmedWarning(true);
+    setIsWaitingForIframeData(true);
+    dispatch(setDataPickerLoading(true));
+  };
 
-      // Filter out React DevTools messages
-      if (event.data?.source === 'react-devtools-bridge') {
-        return;
-      }
-
-      // Ensure we have a valid message structure
-      if (!event.data || typeof event.data !== 'object') {
-        return;
-      }
-
-      if (event.data.type === 'IFRAME_DATA_RESPONSE') {
-        messageQueueRef.current.push(event.data);
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [isWaitingForIframeData]);
+  const handleWarningCancel = () => {
+    setIsWaitingForIframeData(false);
+    setShowWarningModal(false);
+    setConfirmedWarning(false);
+    dispatch(setDataPickerLoading(false));
+  };
 
   const handleSave = useCallback(() => {
     if (
@@ -297,9 +378,11 @@ export default function EditModal({
 
     setValidationError('');
 
-    if (columnFormRef.current && isIFrame) {
+    if (isIFrame) {
       setIsWaitingForIframeData(true);
-      columnFormRef.current.triggerIframeDataFetch();
+      setConfirmedWarning(false); // Reset warning confirmation
+      dispatch(setDataPickerLoading(true));
+      dispatch(triggerDataFetch());
     } else {
       const itemToSave = isCombinedProperties
         ? { ...editedItem, combinedProperties }
@@ -370,92 +453,298 @@ export default function EditModal({
     onClose();
   }, [item, onDelete, onClose]);
 
+  // Original useEffect for normal processing (with selectedNode)
+  useEffect(() => {
+    if (
+      dataPickerResults &&
+      dataPickerConfigEntries &&
+      isWaitingForIframeData &&
+      !confirmedWarning
+    ) {
+      let dataItems;
+      let configItems;
+
+      // Only process the selected flow
+      if (selectedNode && dataPickerConfigEntries) {
+        const selectedConfig = dataPickerConfigEntries.find(
+          ([nodeId]) => nodeId === selectedNode,
+        );
+        if (selectedConfig) {
+          // Find the corresponding data for the selected node
+          const selectedDataIndex = dataPickerConfigEntries.findIndex(
+            ([nodeId]) => nodeId === selectedNode,
+          );
+          if (selectedDataIndex >= 0 && dataPickerResults[selectedDataIndex]) {
+            dataItems = [dataPickerResults[selectedDataIndex]];
+            configItems = [selectedConfig];
+          } else {
+            console.error('Selected data not found:', {
+              selectedDataIndex,
+              dataPickerResultsLength: dataPickerResults.length,
+              selectedNode,
+            });
+          }
+        } else {
+          console.error('Selected config not found for node:', selectedNode);
+        }
+      } else {
+        // If no node is selected, show warning modal to let user choose
+        setWarningMessage(
+          'No specific node is selected in the DataPicker flow. Would you like to process all flows and create separate columns for each?',
+        );
+        setShowWarningModal(true);
+        setIsWaitingForIframeData(false);
+        dispatch(setDataPickerLoading(false));
+        return;
+      }
+
+      if (!dataItems || !configItems) {
+        console.error('No valid data or config found for processing');
+        setValidationError(
+          'No valid data found for the selected flow. Please select a node in the DataPicker and try again.',
+        );
+        setIsWaitingForIframeData(false);
+        dispatch(setDataPickerLoading(false));
+        return;
+      }
+
+      let hasValidationError = false;
+
+      dataItems.forEach((dataItem, index) => {
+        // Handle the formatted data structure from formatODataResult
+        // The data is already cleaned up and doesn't have the original OData structure
+        if (!dataItem || !Array.isArray(dataItem) || dataItem.length === 0) {
+          console.error('Invalid dataItem structure:', dataItem);
+          setValidationError('Invalid data structure received from DataPicker');
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        // Get the first result to determine entity and properties
+        const firstResult = dataItem[0];
+        if (!firstResult || typeof firstResult !== 'object') {
+          console.error('Invalid firstResult structure:', firstResult);
+          setValidationError(
+            'Invalid result structure received from DataPicker',
+          );
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        // Get config entry for this data item
+        const configEntry = configItems[index];
+        if (
+          !configEntry ||
+          !Array.isArray(configEntry) ||
+          configEntry.length < 2
+        ) {
+          console.error('Invalid configEntry structure:', configEntry);
+          setValidationError(
+            'Invalid configuration structure received from DataPicker',
+          );
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        const entityName = Object.keys(configEntry[1])[0];
+        if (!entityName) {
+          console.error('No entity name found in configEntry');
+          setValidationError(
+            'No entity information found in DataPicker configuration',
+          );
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        const completeEntity = filteredEntities.find(
+          (entity) => entity.name === entityName,
+        );
+
+        if (!completeEntity) {
+          console.error('Entity not found:', entityName);
+          setValidationError(
+            `Entity ${entityName} not found in available entities`,
+          );
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+
+        // Get property names from the first result
+        const propertyNames = Object.keys(firstResult);
+
+        propertyNames.forEach((propertyName, propertyIndex) => {
+          const extractedData = dataItem.map((result) => result[propertyName]);
+
+          const completeProperty = [
+            ...(completeEntity.properties.properties || []),
+            ...(completeEntity.properties.navigationProperties || []),
+          ].find((property) => property.Name === propertyName);
+
+          const baseColumnData = {
+            data: extractedData,
+            label: editedItem.label
+              ? index > 0 || propertyIndex > 0
+                ? `${editedItem.label} - ${propertyName}`
+                : editedItem.label
+              : `${entityName} -> ${propertyName}`,
+            isNewColumn: index > 0 || propertyIndex > 0,
+            entity: completeEntity,
+            property: completeProperty,
+          };
+
+          const newColumnData = isIframeValidationError
+            ? {
+                ...columnData,
+                ...baseColumnData,
+                configEntries: [configEntry],
+              }
+            : {
+                ...editedItem,
+                ...baseColumnData,
+                configEntries: [configEntry],
+              };
+          setColumnData(newColumnData);
+
+          if (validateColumnData(newColumnData)) {
+            hasValidationError = true;
+            return;
+          }
+
+          onSave(newColumnData);
+        });
+      });
+
+      // After processing all data items, close the modal and reset states
+      setIsWaitingForIframeData(false);
+      dispatch(setDataPickerLoading(false));
+
+      if (!hasValidationError) {
+        onClose();
+        dispatch(clearDataPickerState());
+      }
+    }
+  }, [
+    dataPickerResults,
+    dataPickerConfigEntries,
+    isWaitingForIframeData,
+    selectedNode,
+    confirmedWarning,
+    onSave,
+    onClose,
+    filteredEntities,
+    mainEntity,
+    columnData,
+    isIframeValidationError,
+    validateColumnData,
+    editedItem,
+    dispatch,
+  ]);
+
   return (
-    <Modal open={open} onClose={onClose} data-testid='edit-modal'>
-      <ModalDialog>
-        <ModalClose onClick={onClose} />
-        <Typography level='h4'>{title}</Typography>
-        <div className='flex justify-center items-center flex-col'>
-          <ColumnFormFields
-            ref={columnFormRef}
-            editedItem={editedItem}
-            setEditedItem={setEditedItem}
-            isIFrame={isIFrame}
-            setIsIFrame={setIsIFrame}
-            setIsWaitingForIframeData={setIsWaitingForIframeData}
-            mainEntity={mainEntity}
-            isIframeValidationError={isIframeValidationError}
-            columnData={columnData}
-            setColumnData={setColumnData}
-            onSave={handleSave}
-            componentId={component.id}
-            columnId={item.id}
-          />
+    <>
+      <Modal open={open} onClose={onClose} data-testid='edit-modal'>
+        <ModalDialog>
+          <ModalClose onClick={onClose} />
+          <Typography level='h4'>{title}</Typography>
+          <div className='flex justify-center items-center flex-col'>
+            <ColumnFormFields
+              ref={columnFormRef}
+              editedItem={editedItem}
+              setEditedItem={setEditedItem}
+              isIFrame={isIFrame}
+              setIsIFrame={setIsIFrame}
+              setIsWaitingForIframeData={setIsWaitingForIframeData}
+              mainEntity={mainEntity}
+              isIframeValidationError={isIframeValidationError}
+              columnData={columnData}
+              setColumnData={setColumnData}
+              onSave={handleSave}
+              componentId={component.id}
+              columnId={item.id}
+            />
 
-          {!isIFrame && editedItem.entity && (
-            <div className='w-full max-w-[500px] mt-4'>
-              <div className='flex items-center justify-between mb-2'>
-                <Typography level='body-md'>
-                  Combine Multiple Properties
-                </Typography>
-                <Switch
-                  checked={isCombinedProperties}
-                  onChange={(e) =>
-                    handleCombinedPropertiesChange(e.target.checked)
-                  }
-                />
-              </div>
-
-              {isCombinedProperties && (
-                <>
-                  <CombinedPropertiesSection
-                    entity={editedItem.entity}
-                    combinedProperties={combinedProperties}
-                    setCombinedProperties={handleCombinedPropertiesUpdate}
-                    componentId={component.id}
-                    columnId={item.id}
-                    setEditedItem={setEditedItem}
+            {!isIFrame && editedItem.entity && (
+              <div className='w-full max-w-[500px] mt-4'>
+                <div className='flex items-center justify-between mb-2'>
+                  <Typography level='body-md'>
+                    Combine Multiple Properties
+                  </Typography>
+                  <Switch
+                    checked={isCombinedProperties}
+                    onChange={(e) =>
+                      handleCombinedPropertiesChange(e.target.checked)
+                    }
                   />
-                </>
+                </div>
+
+                {isCombinedProperties && (
+                  <>
+                    <CombinedPropertiesSection
+                      entity={editedItem.entity}
+                      combinedProperties={combinedProperties}
+                      setCombinedProperties={handleCombinedPropertiesUpdate}
+                      componentId={component.id}
+                      columnId={item.id}
+                      setEditedItem={setEditedItem}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+
+            <div className='flex flex-col gap-4 mt-3 max-w-[500px] w-[100%]'>
+              <Button
+                variant='outlined'
+                color='danger'
+                onClick={handleDelete}
+                className='w-full'
+              >
+                Delete Column
+              </Button>
+              <div className='flex justify-end gap-2'>
+                <Button variant='plain' color='neutral' onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  loading={isWaitingForIframeData || isDataPickerLoading}
+                  disabled={!!validationError && !isIframeValidationError}
+                  data-testid='save-button'
+                >
+                  Save
+                </Button>
+              </div>
+              {validationError && (
+                <Typography
+                  color='danger'
+                  level='body-sm'
+                  sx={{ mt: 1, maxWidth: '400px' }}
+                >
+                  {validationError}
+                </Typography>
               )}
             </div>
-          )}
-
-          <div className='flex flex-col gap-4 mt-3 max-w-[500px] w-[100%]'>
-            <Button
-              variant='outlined'
-              color='danger'
-              onClick={handleDelete}
-              className='w-full'
-            >
-              Delete Column
-            </Button>
-            <div className='flex justify-end gap-2'>
-              <Button variant='plain' color='neutral' onClick={onClose}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSave}
-                loading={isWaitingForIframeData}
-                disabled={!!validationError && !isIframeValidationError}
-                data-testid='save-button'
-              >
-                Save
-              </Button>
-            </div>
-            {validationError && (
-              <Typography
-                color='danger'
-                level='body-sm'
-                sx={{ mt: 1, maxWidth: '400px' }}
-              >
-                {validationError}
-              </Typography>
-            )}
           </div>
-        </div>
-      </ModalDialog>
-    </Modal>
+        </ModalDialog>
+      </Modal>
+
+      {showWarningModal && (
+        <WarningModal
+          open={showWarningModal}
+          onClose={() => setShowWarningModal(false)}
+          message={
+            warningMessage || 'An error occurred while processing the data.'
+          }
+          onConfirm={handleWarningConfirm}
+          onCancel={handleWarningCancel}
+        />
+      )}
+    </>
   );
 }
 
