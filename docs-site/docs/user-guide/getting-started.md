@@ -21,9 +21,9 @@ Welcome to the WebAppConfigurator! This guide will help you get started with the
 
 ## Next Steps
 
-- Learn about [Basic Features](../user-guide/basic-features)
-- Explore the [Data Picker](../user-guide/data-picker)
-- Try the [UI Builder](../user-guide/ui-builder)
+- Learn about [Basic Features](/docs/user-guide/basic-features)
+- Explore the [Data Picker](/docs/user-guide/data-picker)
+- Try the [UI Builder](/docs/user-guide/ui-builder)
 
 ## Prerequisites
 

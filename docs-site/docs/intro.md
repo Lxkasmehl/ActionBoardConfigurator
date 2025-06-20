@@ -12,21 +12,21 @@ This documentation is divided into two main sections:
 
 ### User Guide
 
-- [Getting Started](user-guide/getting-started) - Quick start and basic concepts
-- [Basic Features](user-guide/basic-features) - Overview of main features
-- [Data Picker](user-guide/data-picker) - Detailed guide for data selection
-- [UI Builder](user-guide/ui-builder) - Step-by-step guide for creating user interfaces
-- [FAQ](user-guide/faq) - Frequently asked questions
-- [Best Practices](user-guide/best-practices) - Recommendations for optimal usage
+- [Getting Started](/docs/user-guide/getting-started) - Quick start and basic concepts
+- [Basic Features](/docs/user-guide/basic-features) - Overview of main features
+- [Data Picker](/docs/user-guide/data-picker) - Detailed guide for data selection
+- [UI Builder](/docs/user-guide/ui-builder) - Step-by-step guide for creating user interfaces
+- [FAQ](/docs/user-guide/faq) - Frequently asked questions
+- [Best Practices](/docs/user-guide/best-practices) - Recommendations for optimal usage
 
 ### Developer Guide
 
-- [Architecture](developer-guide/architecture) - Technical overview and system design
-- [Setup](developer-guide/setup) - Development environment setup
-- [API Documentation](developer-guide/api-documentation) - Technical API reference
-- [Contributing](developer-guide/contributing) - Contribution guidelines
-- [Deployment](developer-guide/deployment) - Deployment process
-- [Troubleshooting](developer-guide/troubleshooting) - Solutions for common issues
+- [Architecture](/docs/developer-guide/architecture) - Technical overview and system design
+- [Setup](/docs/developer-guide/setup) - Development environment setup
+- [API Documentation](/docs/developer-guide/api-documentation) - Technical API reference
+- [Contributing](/docs/developer-guide/contributing) - Contribution guidelines
+- [Deployment](/docs/developer-guide/deployment) - Deployment process
+- [Troubleshooting](/docs/developer-guide/troubleshooting) - Solutions for common issues
 
 ## About WebAppConfigurator
 
