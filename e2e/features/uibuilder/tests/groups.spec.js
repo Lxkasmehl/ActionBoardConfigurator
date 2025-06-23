@@ -440,7 +440,7 @@ test.describe('Group Tests', () => {
       '',
       /^(162|kkkkCHE)$/,
       'M',
-      'kkkkCHE',
+      /^(llllCHE|kkkkCHE)$/,
       'M',
       'llllCHE',
       'F',
