@@ -379,7 +379,7 @@ test.describe('Group Tests', () => {
         /^(10033376|kkkkCHE)$/,
         /^(Zürichbergstr. 7|Landsberger Str. 110)$/,
         'M',
-        /^(10033376|ttttLMS2|ttttrec1|wwwwCHE)$/,
+        /^(10033376|ttttLMS2|ttttrec1|wwwwCHE|tttt_TAL)$/,
         /^(Zürichbergstr. 7|Landsberger Str. 110)$/,
         'M',
         /^(wwwwCHE|qqqq|tttt_TAL|wwwwDEU)$/,
