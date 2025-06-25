@@ -263,10 +263,21 @@ export async function configureTableColumn(
   }
   await page.getByTestId('save-button').click();
 
-  // Wait for modal to close first
-  await expect(page.locator('.MuiModalDialog-root')).not.toBeVisible({
-    timeout: 10000,
-  });
+  // When using data picker, wait for the loading state to complete first
+  if (useDataPicker) {
+    // Wait for the save button to show loading state (becomes disabled)
+    await expect(page.getByTestId('save-button')).toBeDisabled();
+
+    // Wait for the modal to close instead of waiting for button to be enabled
+    await expect(page.locator('.MuiModalDialog-root')).not.toBeVisible({
+      timeout: 30000,
+    });
+  } else {
+    // Wait for modal to close for non-data-picker cases
+    await expect(page.locator('.MuiModalDialog-root')).not.toBeVisible({
+      timeout: 10000,
+    });
+  }
 
   if (testInfo) {
     await page.waitForTimeout(10000);
