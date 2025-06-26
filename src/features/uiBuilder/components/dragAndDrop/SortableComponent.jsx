@@ -9,34 +9,47 @@ import TableComponent from '../table/TableComponent';
 import HeadingComponent from '../text/HeadingComponent';
 import ParagraphComponent from '../text/ParagraphComponent';
 import ChartComponent from '../chart/ChartComponent';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setWorkingSelectedComponents } from '@/redux/uiBuilderSlice';
+import { shallowEqual } from 'react-redux';
 import ImageComponent from '../ImageComponent';
-export default function SortableComponent({ component, isOver, isLast }) {
+
+function SortableComponent({ component, isOver, isLast }) {
   const [isNearEdge, setIsNearEdge] = useState(false);
   const dispatch = useDispatch();
   const workingSelectedComponents = useSelector(
     (state) => state.uiBuilder.workingSelectedComponents,
+    shallowEqual,
   );
   const componentGroups = useSelector(
     (state) => state.uiBuilder.componentGroups,
+    shallowEqual,
   );
   const isWorkingSelected = workingSelectedComponents.includes(component.id);
   const isInCreateGroupMode = useSelector(
     (state) => state.uiBuilder.isInCreateGroupMode,
   );
   const groupToEdit = useSelector((state) => state.uiBuilder.groupToEdit);
-  // Find which group this component belongs to
-  const componentGroup = Object.values(componentGroups).find((group) =>
-    group.components.includes(component.id),
+
+  // Memoize componentGroup calculation
+  const componentGroup = useMemo(
+    () =>
+      Object.values(componentGroups).find((group) =>
+        group.components.includes(component.id),
+      ),
+    [componentGroups, component.id],
   );
+
   const groupColor = componentGroup ? componentGroup.color : undefined;
-  const groupIsEditing =
-    groupToEdit ===
-    Object.keys(componentGroups).find(
-      (key) => componentGroups[key] === componentGroup,
-    );
+  const groupIsEditing = useMemo(
+    () =>
+      groupToEdit ===
+      Object.keys(componentGroups).find(
+        (key) => componentGroups[key] === componentGroup,
+      ),
+    [groupToEdit, componentGroups, componentGroup],
+  );
 
   const { attributes, listeners, setNodeRef, transition, isDragging } =
     useSortable({
@@ -63,7 +76,7 @@ export default function SortableComponent({ component, isOver, isLast }) {
   };
 
   useEffect(() => {
-    if (groupIsEditing) {
+    if (groupIsEditing && componentGroup) {
       dispatch(setWorkingSelectedComponents(componentGroup.components));
     }
   }, [dispatch, groupIsEditing, componentGroup]);
@@ -252,3 +265,8 @@ SortableComponent.propTypes = {
   isOver: PropTypes.bool,
   isLast: PropTypes.bool,
 };
+
+const MemoizedSortableComponent = memo(SortableComponent);
+MemoizedSortableComponent.displayName = 'SortableComponent';
+
+export default MemoizedSortableComponent;
