@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { LineChart, BarChart, PieChart, ScatterChart } from '@mui/x-charts';
 import { IconButton } from '@mui/joy';
@@ -53,6 +53,14 @@ export default function ChartComponent({ component, disabled = false }) {
   const [chartType, setChartType] = useState(component.props.type);
   const dispatch = useDispatch();
 
+  // Memoize the component prop to prevent unnecessary re-renders
+  const memoizedComponent = useMemo(() => {
+    return {
+      ...component,
+      props: { ...component.props, data: chartData, type: chartType },
+    };
+  }, [component, chartData, chartType]);
+
   const handleEditClick = () => {
     if (disabled) return;
     setIsEditModalOpen(true);
@@ -104,10 +112,7 @@ export default function ChartComponent({ component, disabled = false }) {
         <ChartEditModal
           open={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
-          component={{
-            ...component,
-            props: { ...component.props, data: chartData, type: chartType },
-          }}
+          component={memoizedComponent}
           onSave={handleSave}
           componentId={component.id}
         />

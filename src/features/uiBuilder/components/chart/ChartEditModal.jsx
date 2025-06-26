@@ -29,12 +29,18 @@ export default function ChartEditModal({
   const tableData = useSelector(
     (state) => state.uiBuilder.tableData[tableComponentId] || [],
   );
+
+  // Get column options - now stable due to memoization in useTableColumns
   const columnOptions = getColumnOptions();
   const hasTableConnection = !!tableComponentId;
 
+  // Only reset when modal opens and component actually changes
   useEffect(() => {
-    // Remove the automatic selection of first column
-  }, [columnOptions, selectedColumn]);
+    if (open && editedComponent.id !== component.id) {
+      setEditedComponent(component);
+      setSelectedColumn(null);
+    }
+  }, [open, component.id, editedComponent.id, component]);
 
   const handleSave = () => {
     if (!hasTableConnection) {
@@ -61,9 +67,7 @@ export default function ChartEditModal({
       return;
     }
 
-    const columnLabel = columnOptions.find(
-      (opt) => opt.value === selectedColumn,
-    )?.label;
+    const columnLabel = selectedColumn.label;
     const columnData = tableData.map((row) => row[columnLabel]);
 
     // Count occurrences for categorical data (like cities)
@@ -159,10 +163,7 @@ export default function ChartEditModal({
             {hasTableConnection ? (
               <>
                 <Autocomplete
-                  value={
-                    columnOptions.find((opt) => opt.value === selectedColumn) ||
-                    null
-                  }
+                  value={selectedColumn}
                   options={columnOptions}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') {
@@ -176,7 +177,7 @@ export default function ChartEditModal({
                     }
                     return option.value === value?.value;
                   }}
-                  onChange={(_, value) => setSelectedColumn(value?.value || '')}
+                  onChange={(_, value) => setSelectedColumn(value)}
                   placeholder='Select data column'
                   sx={{ minWidth: 200 }}
                   data-testid='chart-data-source-select'
