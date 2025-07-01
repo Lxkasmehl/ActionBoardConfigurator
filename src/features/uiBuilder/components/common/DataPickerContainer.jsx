@@ -62,6 +62,7 @@ const DataPickerContainer = ({
         backend result in the {titleText}
       </Typography>
       <Card
+        data-testid='data-picker-container'
         ref={cardRef}
         sx={{
           width: '80vw',

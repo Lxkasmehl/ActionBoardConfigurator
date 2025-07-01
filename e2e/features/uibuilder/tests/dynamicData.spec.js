@@ -34,25 +34,25 @@ test.describe('Dynamic Data Tests', () => {
       'heading',
     );
 
-    const { frameLocator, sortableComponent } = await setupDynamicDataEditing(
+    const { sortableComponent } = await setupDynamicDataEditing(
       page,
       sortableHeadingComponent,
       8,
     );
 
     await selectFromAutocomplete(
-      frameLocator,
+      page,
       'entity-autocomplete',
       'InterviewOverallAssessment',
     );
     await setupFilterCondition(
-      frameLocator,
+      page,
       'interviewOverallAssessmentId',
       '=',
       '21',
     );
     await selectFromAutocomplete(
-      frameLocator,
+      page,
       'property-selector',
       'averageRating',
     );
@@ -79,7 +79,7 @@ test.describe('Dynamic Data Tests', () => {
       'paragraph',
     );
 
-    const { frameLocator, sortableComponent } = await setupDynamicDataEditing(
+    const { sortableComponent } = await setupDynamicDataEditing(
       page,
       sortableParagraphComponent,
       9,
@@ -87,12 +87,12 @@ test.describe('Dynamic Data Tests', () => {
     );
 
     await selectFromAutocomplete(
-      frameLocator,
+      page,
       'entity-autocomplete',
       'Candidate',
     );
-    await setupFilterCondition(frameLocator, 'candidateId', '=', '81');
-    await selectFromAutocomplete(frameLocator, 'property-selector', 'address');
+    await setupFilterCondition(page, 'candidateId', '=', '81');
+    await selectFromAutocomplete(page, 'property-selector', 'address');
 
     await page.getByTestId('confirm-selection-button').click();
 

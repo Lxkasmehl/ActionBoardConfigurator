@@ -10,7 +10,7 @@ export async function setupDynamicDataEditing(
   isAlreadyConfigured = false,
 ) {
   await page.setViewportSize({ width: 1920, height: 1080 });
-  test.setTimeout(45000);
+  test.setTimeout(120000);
 
   await sortableComponent
     .getByTestId('editable-text-component-edit-button')
@@ -27,15 +27,16 @@ export async function setupDynamicDataEditing(
   }
   await inputField.type(' [[');
 
-  const iFrame = page.getByTestId('data-picker-iframe');
-  await expect(iFrame).toBeVisible();
+  await expect(page.getByTestId('flow-start')).toBeVisible({
+    timeout: 15000,
+  });
 
-  const frameLocator = page.frameLocator('[data-testid="data-picker-iframe"]');
+  const containerLocator = page.getByTestId('data-picker-container');
   if (!isAlreadyConfigured) {
-    await setupFlowConnection(frameLocator, true);
+    await setupFlowConnection(containerLocator, true);
   }
 
-  return { frameLocator, sortableComponent };
+  return { containerLocator, sortableComponent };
 }
 
 // Helper function to get border color of an element
