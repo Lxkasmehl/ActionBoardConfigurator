@@ -235,15 +235,13 @@ export async function configureTableColumn(
 
   if (useDataPicker) {
     await page.getByTestId('data-picker-switch').click();
-    const iFrame = page.getByTestId('data-picker-iframe');
-    await expect(iFrame).toBeVisible();
+    await expect(page.getByTestId('flow-start')).toBeVisible({
+      timeout: 15000,
+    });
 
-    const frameLocator = page.frameLocator(
-      '[data-testid="data-picker-iframe"]',
-    );
-    await setupFlowConnection(frameLocator, true);
-    await selectFromAutocomplete(frameLocator, 'entity-autocomplete', entity);
-    await selectFromAutocomplete(frameLocator, 'property-selector', property);
+    await setupFlowConnection(page, true);
+    await selectFromAutocomplete(page, 'entity-autocomplete', entity);
+    await selectFromAutocomplete(page, 'property-selector', property);
   } else {
     await selectFromAutocomplete(page, 'entity-select', entity, 0, {
       useSection: false,

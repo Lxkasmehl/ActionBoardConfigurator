@@ -32,6 +32,9 @@ export async function setupTestData(page, isAlreadyConfigured = false) {
   await setupFilterCondition(page, 'externalCode', '=', 'BU_003', 0);
   await selectFromAutocomplete(page, 'property-selector', 'createdDateTime', 0);
 
+  // Blur autocomplete by pressing Escape key
+  await page.keyboard.press('Escape');
+
   // Setup second section
   await selectFromAutocomplete(page, 'entity-autocomplete', 'Candidate', 1);
   await setupFilterCondition(page, 'lastModifiedDateTime', '<', null, 1, true);
