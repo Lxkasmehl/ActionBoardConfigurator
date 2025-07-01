@@ -91,6 +91,20 @@ export default function PropertySelectionModal({
     }
   }, [open, selectedNode]);
 
+  // Close modal if no data is available when it opens
+  useEffect(() => {
+    if (open && (!data || data.length === 0)) {
+      onClose();
+    }
+  }, [open, data, onClose]);
+
+  // Close modal if no selectedNode when it opens
+  useEffect(() => {
+    if (open && !selectedNode) {
+      onClose();
+    }
+  }, [open, selectedNode, onClose]);
+
   // Get all properties from the first result, including nested ones
   const properties = useMemo(() => {
     // If no node is selected, return empty array

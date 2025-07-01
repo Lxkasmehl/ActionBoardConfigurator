@@ -13,6 +13,7 @@ import DataPickerContainer from '../common/DataPickerContainer';
 import {
   setDataPickerLoading,
   triggerDataFetch,
+  clearDataPickerState,
 } from '@/redux/dataPickerSlice';
 
 export default function DataSelectionModal({ open, onClose, onDataSelected }) {
@@ -25,6 +26,23 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   );
 
   const selectedNode = useSelector((state) => state.dataPicker.selectedNode);
+
+  // Clear dataPicker state when modal opens to ensure clean state
+  useEffect(() => {
+    if (open) {
+      dispatch(clearDataPickerState());
+      setWarningMessage(null);
+      setShowNodeWarning(false);
+    }
+  }, [open, dispatch]);
+
+  // Cleanup when modal closes
+  useEffect(() => {
+    if (!open) {
+      setWarningMessage(null);
+      setShowNodeWarning(false);
+    }
+  }, [open]);
 
   // Check if a node is selected when modal opens or when selectedNode changes
   useEffect(() => {
@@ -42,10 +60,10 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   const handleDataFetch = useCallback(
     (data) => {
       onDataSelected(data);
-      onClose();
+      // onClose();
       dispatch(setDataPickerLoading(false));
     },
-    [onDataSelected, onClose, dispatch],
+    [onDataSelected, dispatch],
   );
 
   const handleEntitySelected = useCallback(() => {
