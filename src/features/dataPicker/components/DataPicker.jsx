@@ -1,6 +1,7 @@
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconButton, CircularProgress, Button } from '@mui/joy';
+import PropTypes from 'prop-types';
 import useFetchEntities from '../../../shared/hooks/useFetchEntities.js';
 import { useSendRequest } from '../hooks/useSendRequest.js';
 import { formatUtils } from '../utils/odata/oDataQueries.js';
@@ -15,13 +16,20 @@ import {
   setPropertySelection,
   setEntityFilter,
   removeEntityConfig,
-} from '../../../redux/configSlice.js';
+} from '@/redux/configSlice.js';
 import {
   removeFormData,
   setSelectedProperties,
   setFilterStorageForNodesNotConnectedToEdges,
   setEdgesForFlow,
-} from '../../../redux/dataPickerSlice';
+  setDataPickerSelectedEntity,
+  setDataPickerResults,
+  setDataPickerConfigEntries,
+  setDataPickerWarning,
+  setDataPickerLoading,
+  clearDataFetchTrigger,
+  setSelectedNode,
+} from '@/redux/dataPickerSlice';
 
 import AddIcon from '@mui/icons-material/Add';
 import {
@@ -35,7 +43,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import ResultsModal from './ResultsModal.jsx';
 
-export default function DataPicker() {
+export default function DataPicker({ containerRef }) {
   const loading = useFetchEntities();
   const dispatch = useDispatch();
   const allEntities = useSelector((state) => state.fetchedData.allEntities);
@@ -55,55 +63,12 @@ export default function DataPicker() {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedNode, setSelectedNode] = useState(null);
-  const messageQueueRef = useRef([]);
 
-  // Handle initial state from parent
-  useEffect(() => {
-    const handleInitialState = (event) => {
-      // Allow messages from the same origin or from the configured allowed origins
-      const allowedOrigins = [
-        window.location.origin,
-        import.meta.env.VITE_ALLOWED_ORIGIN,
-        import.meta.env.VITE_APP_URL,
-      ].filter(Boolean);
+  const shouldTriggerDataFetch = useSelector(
+    (state) => state.dataPicker.shouldTriggerDataFetch,
+  );
 
-      if (!allowedOrigins.includes(event.origin)) return;
-
-      if (event.data.type === 'INIT_IFRAME_STATE') {
-        const { config, dataPicker, fetchedData } = event.data.payload;
-
-        // Initialize the store with parent data
-        Object.entries(config).forEach(([key, value]) => {
-          dispatch({ type: `config/${key}`, payload: value });
-        });
-
-        Object.entries(dataPicker).forEach(([key, value]) => {
-          dispatch({ type: `dataPicker/${key}`, payload: value });
-        });
-
-        Object.entries(fetchedData).forEach(([key, value]) => {
-          dispatch({ type: `fetchedData/${key}`, payload: value });
-        });
-      }
-    };
-
-    window.addEventListener('message', handleInitialState);
-    return () => window.removeEventListener('message', handleInitialState);
-  }, [dispatch]);
-
-  useEffect(() => {
-    window.parent.postMessage(
-      {
-        type: 'SELECTED_NODE_CHANGED',
-        payload: {
-          nodeId: selectedNode,
-          selectedEntity: selectedNode ? selectedEntities[selectedNode] : null,
-        },
-      },
-      window.location.origin,
-    );
-  }, [selectedNode, selectedEntities]);
+  const selectedNode = useSelector((state) => state.dataPicker.selectedNode);
 
   const createNodeId = useCallback(() => crypto.randomUUID(), []);
 
@@ -111,25 +76,104 @@ export default function DataPicker() {
     setRenderKey((prevKey) => prevKey + 1);
   }, []);
 
-  const onNodeClick = useCallback((event, node) => {
-    setSelectedNode(node.id);
-  }, []);
+  const transformConfigEntries = useCallback(
+    (nodeConfig) => {
+      const [entityName, entityConfig] = Object.entries(nodeConfig)[0];
+      const currentEntity = allEntities.find((e) => e.name === entityName);
+
+      // First, filter out base properties that have extended versions
+      const filteredProperties = entityConfig.selectedProperties.filter(
+        (prop) => {
+          const parts = prop.split('/');
+          const baseProperty = parts[0];
+
+          // Check if there's any other property that starts with this base property
+          return !entityConfig.selectedProperties.some(
+            (otherProp) =>
+              otherProp !== prop && otherProp.startsWith(`${baseProperty}/`),
+          );
+        },
+      );
+
+      // Group properties by their final property name (after the last slash)
+      const groupedProperties = filteredProperties.reduce((acc, prop) => {
+        const parts = prop.split('/');
+        const finalProperty = parts[parts.length - 1];
+        const navigationPath = parts.slice(0, -1);
+
+        if (!acc[finalProperty]) {
+          acc[finalProperty] = {
+            name: finalProperty,
+            navigationProperties: [],
+          };
+        }
+
+        if (navigationPath.length > 0) {
+          // Build up the navigation properties array from left to right
+          let currentPath = '';
+
+          navigationPath.forEach((navProp) => {
+            currentPath = currentPath ? `${currentPath}/${navProp}` : navProp;
+
+            // Find the actual navigation property metadata
+            const navProperty =
+              currentEntity?.properties?.navigationProperties?.find(
+                (np) => np.Name === navProp,
+              );
+
+            if (navProperty) {
+              acc[finalProperty].navigationProperties.push(navProperty);
+            }
+          });
+        }
+
+        return acc;
+      }, {});
+
+      return {
+        [entityName]: {
+          ...entityConfig,
+          selectedProperties: Object.values(groupedProperties),
+        },
+      };
+    },
+    [allEntities],
+  );
+
+  const onNodeClick = useCallback(
+    (event, node) => {
+      dispatch(setSelectedNode(node.id));
+
+      const selectedEntity = selectedEntities[node.id];
+      if (selectedEntity) {
+        const completeEntity = allEntities.find(
+          (e) => e.name === selectedEntity,
+        );
+        if (completeEntity) {
+          dispatch(setDataPickerSelectedEntity(completeEntity));
+        }
+      }
+    },
+    [dispatch, selectedEntities, allEntities],
+  );
 
   const onPaneClick = useCallback(() => {
-    setSelectedNode(null);
-  }, []);
+    dispatch(setSelectedNode(null));
+  }, [dispatch]);
 
   useEffect(() => {
     if (config && Object.keys(config).length > 0) {
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
+      const containerWidth =
+        containerRef?.current?.clientWidth || window.innerWidth;
+      const containerHeight =
+        containerRef?.current?.clientHeight || window.innerHeight;
 
       setNodes(() => {
         const configKeys = Object.keys(config);
 
         const entityNodes = configKeys.map((id, index) => {
-          let nodeX = windowWidth / 2 - 320 + index * 120;
-          let nodeY = windowHeight / 2 - 55 + index * 120;
+          let nodeX = containerWidth / 2 - 320 + index * 120;
+          let nodeY = containerHeight / 2 - 55 + index * 120;
 
           return {
             id: id,
@@ -145,7 +189,7 @@ export default function DataPicker() {
           {
             id: '0',
             position: {
-              x: window.innerWidth / 2 - 100,
+              x: containerWidth / 2 - 100,
               y: 50,
             },
             type: 'FlowStart',
@@ -271,11 +315,13 @@ export default function DataPicker() {
   );
 
   const addSection = useCallback(() => {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+    const containerWidth =
+      containerRef?.current?.clientWidth || window.innerWidth;
+    const containerHeight =
+      containerRef?.current?.clientHeight || window.innerHeight;
 
-    let newX = windowWidth / 2 - 320;
-    let newY = windowHeight / 2 - 55;
+    let newX = containerWidth / 2 - 320;
+    let newY = containerHeight / 2 - 55;
 
     const occupiedPositions = nodes.map((s) => s.position);
     while (
@@ -293,200 +339,62 @@ export default function DataPicker() {
       type: 'EntitySection',
     };
     setNodes((prev) => [...prev, newNode]);
-  }, [createNodeId, nodes, setNodes]);
+  }, [createNodeId, nodes, setNodes, containerRef]);
 
   const handleSendRequest = useSendRequest(config);
 
-  const handleRequest = async () => {
-    setIsLoading(true);
-    setModalOpen(true);
-    try {
-      const results = await handleSendRequest();
-      setResults(formatUtils.formatODataResult(results));
-    } catch (error) {
-      console.error('Error handling request:', error);
-      setResults({ error: 'An error occurred' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const handleRequest = useCallback(
+    async (isDirectTrigger = false) => {
+      setIsLoading(true);
+      dispatch(setDataPickerLoading(true));
+      if (isDirectTrigger) {
+        setModalOpen(true);
+      }
+      try {
+        const results = await handleSendRequest();
+        const formattedResults = formatUtils.formatODataResult(results);
+        setResults(formattedResults);
+        dispatch(setDataPickerResults(formattedResults));
 
-  const transformConfigEntries = useCallback(
-    (nodeConfig) => {
-      const [entityName, entityConfig] = Object.entries(nodeConfig)[0];
-      const currentEntity = allEntities.find((e) => e.name === entityName);
-
-      // First, filter out base properties that have extended versions
-      const filteredProperties = entityConfig.selectedProperties.filter(
-        (prop) => {
-          const parts = prop.split('/');
-          const baseProperty = parts[0];
-
-          // Check if there's any other property that starts with this base property
-          return !entityConfig.selectedProperties.some(
-            (otherProp) =>
-              otherProp !== prop && otherProp.startsWith(`${baseProperty}/`),
-          );
-        },
-      );
-
-      // Group properties by their final property name (after the last slash)
-      const groupedProperties = filteredProperties.reduce((acc, prop) => {
-        const parts = prop.split('/');
-        const finalProperty = parts[parts.length - 1];
-        const navigationPath = parts.slice(0, -1);
-
-        if (!acc[finalProperty]) {
-          acc[finalProperty] = {
-            name: finalProperty,
-            navigationProperties: [],
-          };
-        }
-
-        if (navigationPath.length > 0) {
-          // Build up the navigation properties array from left to right
-          let currentPath = '';
-
-          navigationPath.forEach((navProp) => {
-            currentPath = currentPath ? `${currentPath}/${navProp}` : navProp;
-
-            // Find the actual navigation property metadata
-            const navProperty =
-              currentEntity?.properties?.navigationProperties?.find(
-                (np) => np.Name === navProp,
-              );
-
-            if (navProperty) {
-              acc[finalProperty].navigationProperties.push(navProperty);
-            }
-          });
-        }
-
-        return acc;
-      }, {});
-
-      return {
-        [entityName]: {
-          ...entityConfig,
-          selectedProperties: Object.values(groupedProperties),
-        },
-      };
+        const configEntries = Object.entries(config).map(
+          ([nodeId, nodeConfig]) => [
+            nodeId,
+            transformConfigEntries(nodeConfig),
+          ],
+        );
+        dispatch(setDataPickerConfigEntries(configEntries));
+      } catch (error) {
+        console.error('Error handling request:', error);
+        setResults({ error: 'An error occurred' });
+        dispatch(setDataPickerWarning('An error occurred'));
+      } finally {
+        setIsLoading(false);
+        dispatch(setDataPickerLoading(false));
+      }
     },
-    [allEntities],
+    [handleSendRequest, config, dispatch, transformConfigEntries],
   );
 
   useEffect(() => {
-    const handleMessage = async (event) => {
-      if (event.origin !== window.location.origin) return;
-
-      if (event.data.type === 'FETCH_DATA_REQUEST') {
-        try {
-          if (!selectedNode) {
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_WARNING',
-                payload: {
-                  message:
-                    'No node selected. Please select a node before fetching data.',
-                  requestId: crypto.randomUUID(),
-                },
-              },
-              window.location.origin,
-            );
-            return;
-          }
-
-          const results = await handleSendRequest(selectedNode);
-
-          const configEntries = selectedNode
-            ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
-            : Object.entries(config).map(([nodeId, nodeConfig]) => [
-                nodeId,
-                transformConfigEntries(nodeConfig),
-              ]);
-
-          const message = {
-            type: 'IFRAME_DATA_RESPONSE',
-            payload: {
-              results,
-              configEntries,
-            },
-          };
-
-          try {
-            const serializedMessage = JSON.parse(JSON.stringify(message));
-            messageQueueRef.current.push(serializedMessage);
-          } catch (error) {
-            console.error('Error queueing message:', error);
-          }
-        } catch (error) {
-          window.parent.postMessage(
-            {
-              type: 'IFRAME_ERROR',
-              payload: error.message,
-            },
-            window.location.origin,
-          );
-        }
-      } else if (event.data.type === 'IFRAME_WARNING_RESPONSE') {
-        if (event.data.payload.confirmed) {
-          try {
-            const results = await handleSendRequest();
-
-            const configEntries = selectedNode
-              ? [[selectedNode, transformConfigEntries(config[selectedNode])]]
-              : Object.entries(config).map(([nodeId, nodeConfig]) => [
-                  nodeId,
-                  transformConfigEntries(nodeConfig),
-                ]);
-
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_DATA_RESPONSE',
-                payload: { results, configEntries },
-              },
-              window.location.origin,
-            );
-          } catch (error) {
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_ERROR',
-                payload: error.message,
-              },
-              window.location.origin,
-            );
-          }
-        }
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [handleSendRequest, selectedNode, config, transformConfigEntries]);
-
-  // Add message queue processor
-  useEffect(() => {
-    const processMessageQueue = () => {
-      if (messageQueueRef.current.length > 0) {
-        const message = messageQueueRef.current.shift();
-        window.parent.postMessage(message, window.location.origin);
-      }
-    };
-
-    const interval = setInterval(processMessageQueue, 100);
-    return () => clearInterval(interval);
-  }, []);
+    if (shouldTriggerDataFetch) {
+      handleRequest(false).catch((error) => {
+        console.error('Error in handleRequest:', error);
+        dispatch(setDataPickerWarning('An error occurred while fetching data'));
+      });
+      dispatch(clearDataFetchTrigger());
+    }
+  }, [shouldTriggerDataFetch, dispatch, handleRequest]);
 
   if (loading) {
     return (
-      <div className='flex justify-center items-center w-screen h-screen'>
+      <div className='flex justify-center items-center w-full h-screen'>
         <CircularProgress size='lg' />
       </div>
     );
   }
 
   return (
-    <div className='w-full h-screen'>
+    <div className='w-full h-screen' ref={containerRef}>
       <ReactFlow
         nodes={nodes.map((node) => ({
           ...node,
@@ -522,12 +430,12 @@ export default function DataPicker() {
 
       <Button
         data-testid='send-request-button'
-        onClick={handleRequest}
+        onClick={() => handleRequest(true)}
         variant='solid'
         color='neutral'
         size='lg'
         sx={{
-          position: 'fixed',
+          position: 'absolute',
           bottom: '40px',
           left: '50%',
           transform: 'translateX(-50%)',
@@ -542,7 +450,7 @@ export default function DataPicker() {
         aria-label='Add new entity section'
         size='lg'
         sx={{
-          position: 'fixed',
+          position: 'absolute',
           bottom: '40px',
           right: '40px',
           borderRadius: '50%',
@@ -553,3 +461,12 @@ export default function DataPicker() {
     </div>
   );
 }
+
+DataPicker.propTypes = {
+  containerRef: PropTypes.shape({
+    current: PropTypes.shape({
+      clientWidth: PropTypes.number,
+      clientHeight: PropTypes.number,
+    }),
+  }),
+};

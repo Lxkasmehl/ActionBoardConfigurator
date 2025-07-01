@@ -1,7 +1,7 @@
 import { Typography, IconButton, Box } from '@mui/joy';
 import { Edit, Check, Close } from '@mui/icons-material';
 import PropTypes from 'prop-types';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import DataSelectionModal from './DataSelectionModal';
 import PropertySelectionModal from './PropertySelectionModal';
 import { useDispatch, useSelector } from 'react-redux';
@@ -132,6 +132,18 @@ export default function EditableTextComponent({
 
   const handleDataSelected = (data) => {
     if (disabled) return;
+
+    // Validate that we have the required data before proceeding
+    if (
+      !data ||
+      !data.results ||
+      !data.configEntries ||
+      data.configEntries.length === 0
+    ) {
+      console.warn('Invalid data received in handleDataSelected:', data);
+      return;
+    }
+
     setSelectedData(data);
     setIsDataSelectionOpen(false);
     setIsPropertySelectionOpen(true);
@@ -162,7 +174,15 @@ export default function EditableTextComponent({
     setEditedText(newText);
     setCursorPosition(lastOpenBraces + value.value.length + 4);
     setIsPropertySelectionOpen(false);
+    setSelectedData(null); // Reset selectedData after property selection
   };
+
+  // Reset selectedData when DataSelectionModal closes
+  useEffect(() => {
+    if (!isDataSelectionOpen) {
+      setSelectedData(null);
+    }
+  }, [isDataSelectionOpen]);
 
   return (
     <>

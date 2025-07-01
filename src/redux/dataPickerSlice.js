@@ -14,6 +14,13 @@ const initialState = {
   selectedPropertiesInAccordions: {},
   conditionsForFilterModal: {},
   edgesForFlow: [],
+  selectedNode: null,
+  selectedEntity: null,
+  dataPickerResults: null,
+  dataPickerConfigEntries: null,
+  dataPickerWarning: null,
+  isDataPickerLoading: false,
+  shouldTriggerDataFetch: false,
 };
 
 const dataPickerSlice = createSlice({
@@ -98,6 +105,47 @@ const dataPickerSlice = createSlice({
     setEdgesForFlow(state, action) {
       state.edgesForFlow = action.payload;
     },
+
+    setSelectedNode: (state, action) => {
+      state.selectedNode = action.payload;
+    },
+
+    setDataPickerSelectedEntity: (state, action) => {
+      state.selectedEntity = action.payload;
+    },
+
+    setDataPickerResults: (state, action) => {
+      state.dataPickerResults = action.payload;
+    },
+
+    setDataPickerConfigEntries: (state, action) => {
+      state.dataPickerConfigEntries = action.payload;
+    },
+
+    setDataPickerWarning: (state, action) => {
+      state.dataPickerWarning = action.payload;
+    },
+
+    setDataPickerLoading: (state, action) => {
+      state.isDataPickerLoading = action.payload;
+    },
+
+    clearDataPickerState: (state) => {
+      state.selectedNode = null;
+      state.selectedEntity = null;
+      state.dataPickerResults = null;
+      state.dataPickerConfigEntries = null;
+      state.dataPickerWarning = null;
+      state.isDataPickerLoading = false;
+    },
+
+    triggerDataFetch: (state) => {
+      state.shouldTriggerDataFetch = true;
+    },
+
+    clearDataFetchTrigger: (state) => {
+      state.shouldTriggerDataFetch = false;
+    },
   },
 });
 
@@ -117,6 +165,15 @@ export const {
   setSelectedPropertiesInAccordions,
   setConditionsForFilterModal,
   setEdgesForFlow,
+  setSelectedNode,
+  setDataPickerSelectedEntity,
+  setDataPickerResults,
+  setDataPickerConfigEntries,
+  setDataPickerWarning,
+  setDataPickerLoading,
+  clearDataPickerState,
+  triggerDataFetch,
+  clearDataFetchTrigger,
 } = dataPickerSlice.actions;
 
 export default dataPickerSlice.reducer;
