@@ -34,7 +34,14 @@ function SortablePropertyItem({ property, index, onRemove }) {
     <Box
       ref={setNodeRef}
       style={style}
-      className='flex items-center gap-2 p-2 bg-neutral-100 rounded'
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '8px',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '4px',
+      }}
     >
       <div {...attributes} {...listeners}>
         <DragIndicator />

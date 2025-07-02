@@ -40,7 +40,14 @@ export default function ResultsModal({ open, onClose, isLoading, results }) {
         </Typography>
 
         {isLoading ? (
-          <div className='flex justify-center items-center p-4'>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '16px',
+            }}
+          >
             <CircularProgress size='lg' />
           </div>
         ) : (

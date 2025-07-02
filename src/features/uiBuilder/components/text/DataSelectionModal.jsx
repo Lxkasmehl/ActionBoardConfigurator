@@ -85,7 +85,14 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
       <ModalDialog>
         <ModalClose onClick={onClose} />
         <Typography level='h4'>Select Data</Typography>
-        <div className='flex flex-col gap-4 mt-3'>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            marginTop: '12px',
+          }}
+        >
           <DataPickerContainer
             onWarning={handleWarning}
             onDataFetch={handleDataFetch}
@@ -105,7 +112,14 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
               {warningMessage}
             </Typography>
           )}
-          <div className='flex justify-end gap-2 mt-4'>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '8px',
+              marginTop: '16px',
+            }}
+          >
             <Button variant='plain' color='neutral' onClick={onClose}>
               Cancel
             </Button>

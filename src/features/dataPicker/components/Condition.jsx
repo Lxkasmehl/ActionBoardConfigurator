@@ -18,7 +18,9 @@ export default function Condition({
   //TODO: Attention: The different name has to be handled when reopening the filter modal
 
   return (
-    <div className='flex flex-row items-center'>
+    <div
+      style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
+    >
       <LogicSelector
         disabled={index > 1}
         name={

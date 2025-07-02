@@ -119,7 +119,13 @@ export default function ComponentLibrary() {
               {error}
             </Typography>
           )}
-          <div className='flex flex-row gap-1'>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '4px',
+            }}
+          >
             <Button
               color='danger'
               onClick={handleCancelCreateGroup}
@@ -139,7 +145,14 @@ export default function ComponentLibrary() {
           </div>
         </Box>
       ) : groupToEdit ? (
-        <div className='flex flex-row gap-1 z-20'>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '4px',
+            zIndex: 20,
+          }}
+        >
           <Button
             color='danger'
             onClick={() => dispatch(setGroupToEdit(null))}

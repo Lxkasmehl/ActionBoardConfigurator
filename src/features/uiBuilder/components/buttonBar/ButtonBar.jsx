@@ -52,7 +52,13 @@ export default function ButtonBar({ component, disabled = false }) {
 
   return (
     <>
-      <div className='flex gap-2 flex-wrap'>
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          flexWrap: 'wrap',
+        }}
+      >
         {component.props.fields.map((field, index) => (
           <ButtonField
             key={index}
