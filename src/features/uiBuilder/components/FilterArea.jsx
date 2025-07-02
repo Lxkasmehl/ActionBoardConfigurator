@@ -217,12 +217,16 @@ export default function FilterArea({ component, disabled = false }) {
             options={Array.from(
               new Set(
                 (columnData[tableComponentId]?.[filter.label] || []).filter(
-                  (option) => option !== undefined,
+                  (option) =>
+                    option !== undefined &&
+                    option !== null &&
+                    option !== '' &&
+                    option.toString().trim() !== '',
                 ),
               ),
             )}
             disabled={disabled}
-            getOptionLabel={(option) => option.toString() || ''}
+            getOptionLabel={(option) => option?.toString() || ''}
             multiple
             value={currentSelectedOptions[filter.id] || []}
             data-testid={`filter-option-select-${filter.label}`}

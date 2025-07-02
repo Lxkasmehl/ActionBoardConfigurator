@@ -70,9 +70,14 @@ export default function FilterArea({ componentId, fields, columnData, tableColum
               placeholder='Select an option'
               options={Array.from(new Set(
                 (columnData[tableComponentId]?.[filter.label] || [])
-                  .filter((option) => option !== undefined)
+                  .filter((option) => 
+                    option !== undefined && 
+                    option !== null && 
+                    option !== '' && 
+                    option.toString().trim() !== ''
+                  )
               ))}
-              getOptionLabel={(option) => option.toString() || ''}
+              getOptionLabel={(option) => option?.toString() || ''}
               multiple
               value={selectedFilters[tableComponentId]?.[filter.label] || []}
               onChange={(event, newValue) => handleFilterChange(filter, newValue)}
