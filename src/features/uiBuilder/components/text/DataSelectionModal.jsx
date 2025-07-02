@@ -13,7 +13,6 @@ import DataPickerContainer from '../common/DataPickerContainer';
 import {
   setDataPickerLoading,
   triggerDataFetch,
-  clearDataPickerState,
 } from '@/redux/dataPickerSlice';
 
 export default function DataSelectionModal({ open, onClose, onDataSelected }) {
@@ -30,7 +29,8 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   // Clear dataPicker state when modal opens to ensure clean state
   useEffect(() => {
     if (open) {
-      dispatch(clearDataPickerState());
+      // Don't clear the state here as we need the data for PropertySelectionModal
+      // dispatch(clearDataPickerState());
       setWarningMessage(null);
       setShowNodeWarning(false);
     }

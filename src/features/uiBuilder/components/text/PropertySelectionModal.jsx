@@ -59,7 +59,6 @@ export default function PropertySelectionModal({
   open,
   onClose,
   onPropertySelected,
-  data,
 }) {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [selectedValue, setSelectedValue] = useState(null);
@@ -70,6 +69,9 @@ export default function PropertySelectionModal({
   const selectedNode = useSelector((state) => state.dataPicker.selectedNode);
   const dataPickerConfigEntries = useSelector(
     (state) => state.dataPicker.dataPickerConfigEntries,
+  );
+  const dataPickerResults = useSelector(
+    (state) => state.dataPicker.dataPickerResults,
   );
 
   // Reset all states when modal is closed
@@ -93,17 +95,10 @@ export default function PropertySelectionModal({
 
   // Close modal if no data is available when it opens
   useEffect(() => {
-    if (open && (!data || data.length === 0)) {
+    if (open && (!dataPickerResults || dataPickerResults.length === 0)) {
       onClose();
     }
-  }, [open, data, onClose]);
-
-  // Close modal if no selectedNode when it opens
-  useEffect(() => {
-    if (open && !selectedNode) {
-      onClose();
-    }
-  }, [open, selectedNode, onClose]);
+  }, [open, dataPickerResults, onClose]);
 
   // Get all properties from the first result, including nested ones
   const properties = useMemo(() => {
@@ -114,7 +109,7 @@ export default function PropertySelectionModal({
 
     // Find the correct data based on selectedNode
     let targetData = null;
-    if (selectedNode && data && data.length > 0) {
+    if (selectedNode && dataPickerResults && dataPickerResults.length > 0) {
       // The data array should correspond to the dataPickerConfigEntries array
       // We need to find the index of the selectedNode in the config entries
       // and use that same index for the data array
@@ -125,8 +120,11 @@ export default function PropertySelectionModal({
           ([nodeId]) => nodeId === selectedNode,
         );
 
-        if (selectedConfigIndex >= 0 && data[selectedConfigIndex]) {
-          targetData = data[selectedConfigIndex];
+        if (
+          selectedConfigIndex >= 0 &&
+          dataPickerResults[selectedConfigIndex]
+        ) {
+          targetData = dataPickerResults[selectedConfigIndex];
         } else {
           // If selected node not found in config, don't fallback to first data
           return [];
@@ -162,7 +160,7 @@ export default function PropertySelectionModal({
     const firstResult = targetData.d.results[0];
     const extractedProps = extractProperties(firstResult);
     return extractedProps;
-  }, [data, selectedNode, dataPickerConfigEntries]);
+  }, [dataPickerResults, selectedNode, dataPickerConfigEntries]);
 
   const handleConfirm = useCallback(() => {
     if (selectedProperty && selectedValue) {
@@ -177,15 +175,18 @@ export default function PropertySelectionModal({
 
       // Find the correct data based on selectedNode
       let targetData = null;
-      if (selectedNode && data && data.length > 0) {
+      if (selectedNode && dataPickerResults && dataPickerResults.length > 0) {
         if (dataPickerConfigEntries && dataPickerConfigEntries.length > 0) {
           // Find the index of the selectedNode in the config entries
           const selectedConfigIndex = dataPickerConfigEntries.findIndex(
             ([nodeId]) => nodeId === selectedNode,
           );
 
-          if (selectedConfigIndex >= 0 && data[selectedConfigIndex]) {
-            targetData = data[selectedConfigIndex];
+          if (
+            selectedConfigIndex >= 0 &&
+            dataPickerResults[selectedConfigIndex]
+          ) {
+            targetData = dataPickerResults[selectedConfigIndex];
           } else {
             // If selected node not found in config, don't fallback to first data
             return;
@@ -275,7 +276,13 @@ export default function PropertySelectionModal({
         setShowValueSelection(true);
       }
     },
-    [data, onPropertySelected, onClose, selectedNode, dataPickerConfigEntries],
+    [
+      dataPickerResults,
+      onPropertySelected,
+      onClose,
+      selectedNode,
+      dataPickerConfigEntries,
+    ],
   );
 
   // Auto-select property if there's only one and a node is selected
@@ -301,15 +308,18 @@ export default function PropertySelectionModal({
 
     // Find the correct data based on selectedNode
     let targetData = null;
-    if (selectedNode && data && data.length > 0) {
+    if (selectedNode && dataPickerResults && dataPickerResults.length > 0) {
       if (dataPickerConfigEntries && dataPickerConfigEntries.length > 0) {
         // Find the index of the selectedNode in the config entries
         const selectedConfigIndex = dataPickerConfigEntries.findIndex(
           ([nodeId]) => nodeId === selectedNode,
         );
 
-        if (selectedConfigIndex >= 0 && data[selectedConfigIndex]) {
-          targetData = data[selectedConfigIndex];
+        if (
+          selectedConfigIndex >= 0 &&
+          dataPickerResults[selectedConfigIndex]
+        ) {
+          targetData = dataPickerResults[selectedConfigIndex];
         } else {
           // If selected node not found in config, don't fallback to first data
           return [];
@@ -372,7 +382,12 @@ export default function PropertySelectionModal({
       );
 
     return resultValues;
-  }, [selectedProperty, data, selectedNode, dataPickerConfigEntries]);
+  }, [
+    selectedProperty,
+    dataPickerResults,
+    selectedNode,
+    dataPickerConfigEntries,
+  ]);
 
   return (
     <Modal open={open} onClose={handleClose}>
@@ -464,5 +479,4 @@ PropertySelectionModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onPropertySelected: PropTypes.func.isRequired,
-  data: PropTypes.array,
 };

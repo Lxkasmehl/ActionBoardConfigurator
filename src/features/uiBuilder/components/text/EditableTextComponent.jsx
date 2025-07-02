@@ -1,7 +1,7 @@
 import { Typography, IconButton, Box } from '@mui/joy';
 import { Edit, Check, Close } from '@mui/icons-material';
 import PropTypes from 'prop-types';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import DataSelectionModal from './DataSelectionModal';
 import PropertySelectionModal from './PropertySelectionModal';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,20 +19,24 @@ export default function EditableTextComponent({
   disabled = false,
 }) {
   const dispatch = useDispatch();
+  // Get stored config entries from Redux
+  const textConfigEntries = useSelector(
+    (state) => state.uiBuilder.textConfigEntries[component.id] || {},
+  );
+
+  // Get dataPicker config entries from Redux
+  const dataPickerConfigEntries = useSelector(
+    (state) => state.dataPicker.dataPickerConfigEntries,
+  );
+
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(component.props.text);
   const [previousText, setPreviousText] = useState(component.props.text);
   const [isDataSelectionOpen, setIsDataSelectionOpen] = useState(false);
   const [isPropertySelectionOpen, setIsPropertySelectionOpen] = useState(false);
-  const [selectedData, setSelectedData] = useState(null);
   const [cursorPosition, setCursorPosition] = useState(0);
   const lastKeyRef = useRef(null);
   const modalRef = useRef(null);
-
-  // Get stored config entries from Redux
-  const textConfigEntries = useSelector(
-    (state) => state.uiBuilder.textConfigEntries[component.id] || {},
-  );
 
   // Function to update text with fetched values
   const updateTextWithFetchedValues = (text, fetchedValues) => {
@@ -144,7 +148,6 @@ export default function EditableTextComponent({
       return;
     }
 
-    setSelectedData(data);
     setIsDataSelectionOpen(false);
     setIsPropertySelectionOpen(true);
   };
@@ -160,10 +163,10 @@ export default function EditableTextComponent({
       setTextConfigEntries({
         componentId: component.id,
         value: value.value,
-        configEntries: selectedData.configEntries || [],
+        configEntries: dataPickerConfigEntries || [],
         selectedProperty: property,
         selectedValue: value,
-        navigationProperties: selectedData.navigationProperties || [],
+        navigationProperties: [], // We'll get this from the config if needed
       }),
     );
 
@@ -174,15 +177,7 @@ export default function EditableTextComponent({
     setEditedText(newText);
     setCursorPosition(lastOpenBraces + value.value.length + 4);
     setIsPropertySelectionOpen(false);
-    setSelectedData(null); // Reset selectedData after property selection
   };
-
-  // Reset selectedData when DataSelectionModal closes
-  useEffect(() => {
-    if (!isDataSelectionOpen) {
-      setSelectedData(null);
-    }
-  }, [isDataSelectionOpen]);
 
   return (
     <>
@@ -245,14 +240,11 @@ export default function EditableTextComponent({
         onClose={() => setIsDataSelectionOpen(false)}
         onDataSelected={handleDataSelected}
       />
-      {selectedData && (
-        <PropertySelectionModal
-          open={isPropertySelectionOpen}
-          onClose={() => setIsPropertySelectionOpen(false)}
-          onPropertySelected={handlePropertySelected}
-          data={selectedData.results}
-        />
-      )}
+      <PropertySelectionModal
+        open={isPropertySelectionOpen}
+        onClose={() => setIsPropertySelectionOpen(false)}
+        onPropertySelected={handlePropertySelected}
+      />
     </>
   );
 }
