@@ -53,7 +53,15 @@ const DataPickerContainer = ({
   }, [selectedEntity, onEntitySelected, dispatch]);
 
   return (
-    <div className='flex justify-center items-center flex-col mt-3'>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+        marginTop: '12px',
+      }}
+    >
       <Typography
         level='title-md'
         sx={{ textAlign: 'center', marginBottom: 2, maxWidth: '500px' }}

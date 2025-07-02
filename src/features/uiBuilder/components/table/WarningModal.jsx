@@ -22,7 +22,14 @@ const WarningModal = ({ open, onClose, message, onConfirm, onCancel }) => {
           If you continue, the data for all flows in the DataPicker will be
           fetched and displayed in a different column for each flow.
         </Alert>
-        <div className='flex justify-end gap-2 mt-4'>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '8px',
+            marginTop: '16px',
+          }}
+        >
           <Button variant='plain' color='neutral' onClick={onCancel}>
             Cancel
           </Button>

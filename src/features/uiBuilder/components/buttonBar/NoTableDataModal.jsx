@@ -5,10 +5,7 @@ import ReportIcon from '@mui/icons-material/Report';
 const NoTableDataModal = ({ open, onClose }) => {
   return (
     <Modal open={open} onClose={onClose}>
-      <ModalDialog
-        variant='outlined'
-        role='alertdialog'
-      >
+      <ModalDialog variant='outlined' role='alertdialog'>
         <Typography level='h3'>No Table Data Available</Typography>
         <Alert
           variant='soft'
@@ -36,7 +33,14 @@ const NoTableDataModal = ({ open, onClose }) => {
             Both conditions must be met.
           </div>
         </Alert>
-        <div className='flex justify-end gap-2 mt-4'>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '8px',
+            marginTop: '16px',
+          }}
+        >
           <Button variant='solid' color='primary' onClick={onClose}>
             OK
           </Button>

@@ -28,7 +28,7 @@ export default function LogicSelector({
       }
       placement='bottom'
     >
-      <div className='h-fit'>
+      <div style={{ height: 'fit-content' }}>
         <Select
           data-testid={'logic-selector'}
           sx={{ width: 90, mr: 3, height: 'fit-content' }}

@@ -120,7 +120,14 @@ export default function EditButtonBarModal({
               items={currentButtons.map((button) => button['text/icon'])}
               strategy={verticalListSortingStrategy}
             >
-              <div className='flex gap-2 flex-wrap flex-col'>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '8px',
+                  flexWrap: 'wrap',
+                  flexDirection: 'column',
+                }}
+              >
                 {currentButtons.map((button, index) => (
                   <SortableButton
                     key={button['text/icon']}

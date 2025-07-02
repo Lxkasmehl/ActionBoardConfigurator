@@ -123,7 +123,13 @@ export default function FilterModal({ open, onClose, entity, id }) {
         <ModalDialog variant='plain' data-testid='filter-modal'>
           <ModalClose />
           <Typography level='h4'>Build your filter for {entity}</Typography>
-          <div className='flex flex-col gap-4'>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}
+          >
             {conditions.map((condition, index) =>
               condition.conditions ? (
                 <ConditionGroup
@@ -149,8 +155,21 @@ export default function FilterModal({ open, onClose, entity, id }) {
               ),
             )}
           </div>
-          <div className='flex flex-row justify-between'>
-            <div className='flex flex-row gap-2 mt-2'>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '8px',
+                marginTop: '8px',
+              }}
+            >
               <Button
                 variant='plain'
                 color='neutral'

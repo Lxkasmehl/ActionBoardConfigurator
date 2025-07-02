@@ -379,7 +379,14 @@ export default function PropertySelectionModal({
       <ModalDialog>
         <ModalClose onClick={handleClose} />
         <Typography level='h4'>Select Property and Value</Typography>
-        <div className='flex flex-col gap-4 mt-3'>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            marginTop: '12px',
+          }}
+        >
           {showNodeWarning ? (
             <Alert color='warning' variant='soft'>
               <Typography level='body-sm'>
@@ -415,7 +422,14 @@ export default function PropertySelectionModal({
               sx={{ width: '100%' }}
             />
           )}
-          <div className='flex justify-end gap-2 mt-4'>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '8px',
+              marginTop: '16px',
+            }}
+          >
             {showValueSelection && (
               <Button
                 variant='plain'

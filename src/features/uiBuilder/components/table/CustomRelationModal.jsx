@@ -53,7 +53,14 @@ const CustomRelationModal = ({
             }
           />
         </FormControl>
-        <div className='flex justify-end gap-2 mt-4'>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '8px',
+            marginTop: '16px',
+          }}
+        >
           <Button variant='plain' color='neutral' onClick={onClose}>
             Cancel
           </Button>

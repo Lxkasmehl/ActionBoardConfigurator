@@ -16,7 +16,10 @@ export default function ConditionGroup({
   const { selectedLogic, handleLogicChange } = useLogic(id, groupIndex);
 
   return (
-    <div key={conditionGroup.id} className='flex flex-row'>
+    <div
+      key={conditionGroup.id}
+      style={{ display: 'flex', flexDirection: 'row' }}
+    >
       <LogicSelector
         value={selectedLogic}
         onChange={handleLogicChange}
@@ -26,7 +29,14 @@ export default function ConditionGroup({
       />
 
       <Card data-testid='condition-group'>
-        <div className='flex flex-row items-center justify-between'>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <Typography>Any of the following are true...</Typography>
           <IconButton
             variant='plain'

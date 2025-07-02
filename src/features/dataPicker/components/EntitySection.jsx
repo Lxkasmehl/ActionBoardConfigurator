@@ -142,7 +142,14 @@ export default function EntitySection({ id, data }) {
           },
         }}
       >
-        <div className='flex flex-row gap-6 items-center'>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '24px',
+            alignItems: 'center',
+          }}
+        >
           <Autocomplete
             data-testid='entity-autocomplete'
             options={sortedEntities}
@@ -157,7 +164,7 @@ export default function EntitySection({ id, data }) {
             value={selectedEntity}
             sx={{ width: '14rem', height: 'fit-content' }}
           />
-          <div className='flex items-center'>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <Button
               data-testid='add-filter-button'
               color='neutral'
@@ -169,7 +176,14 @@ export default function EntitySection({ id, data }) {
             </Button>
           </div>
 
-          <div className='flex items-center flex-col gap-2'>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              flexDirection: 'column',
+              gap: '8px',
+            }}
+          >
             <PropertySelector
               data-testid='property-selector'
               options={uniqueSortedPropertyOptions}

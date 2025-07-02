@@ -387,14 +387,22 @@ export default function DataPicker({ containerRef }) {
 
   if (loading) {
     return (
-      <div className='flex justify-center items-center w-full h-screen'>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          height: '100vh',
+        }}
+      >
         <CircularProgress size='lg' />
       </div>
     );
   }
 
   return (
-    <div className='w-full h-screen' ref={containerRef}>
+    <div style={{ width: '100%', height: '100vh' }} ref={containerRef}>
       <ReactFlow
         nodes={nodes.map((node) => ({
           ...node,
