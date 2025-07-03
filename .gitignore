@@ -23,6 +23,11 @@ dist-ssr
 *.sw?
 .env
 
+key.pem
+cert.pem
+
+dist.zip
+
 # Playwright
 /test-results/
 /playwright-report/
