@@ -11,7 +11,9 @@
     "format": "prettier --write ./src",
     "test:unit": "jest",
     "test:e2e": "playwright test",
-    "test": "npm run test:unit && npm run test:e2e"
+    "test": "npm run test:unit && npm run test:e2e",
+    "generate-ssl": "node generate-ssl-certs.js",
+    "dev:ssl": "npm run generate-ssl && npm run dev"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
