@@ -13,6 +13,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
+      - name: Restore SSL key.pem and cert.pem
+        run: |
+          echo "${{ secrets.SSL_KEY_PEM }}" > key.pem
+          echo "${{ secrets.SSL_CERT_PEM }}" > cert.pem
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
       - name: Install Playwright Browsers
