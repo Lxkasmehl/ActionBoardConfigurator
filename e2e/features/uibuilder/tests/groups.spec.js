@@ -18,7 +18,7 @@ test.describe('Group Tests', () => {
 
   test.beforeEach(async ({ page }) => {
     // Navigate to the UIBuilder page
-    await page.goto('http://localhost:5173/#/ui-builder');
+    await page.goto('https://localhost:5173/#/ui-builder');
 
     // Get preview area
     previewArea = page.getByTestId('preview-area');

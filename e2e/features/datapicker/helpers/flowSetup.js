@@ -2,7 +2,7 @@ import { expect } from '@playwright/test';
 
 export async function setupBasePage(page, isIframe = false) {
   if (!isIframe) {
-    await page.goto('http://localhost:5173/#/data-picker');
+    await page.goto('https://localhost:5173/#/data-picker');
   }
 
   await expect(page.getByTestId('entity-section')).toBeVisible({
