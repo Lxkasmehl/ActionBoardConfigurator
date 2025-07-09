@@ -161,6 +161,22 @@ export default function EditModal({
     setIsIframeValidationError(false);
   }, [editedItem]);
 
+  // Custom close handler that resets loading states immediately
+  const handleClose = useCallback(() => {
+    // Immediately reset loading states
+    setIsWaitingForIframeData(false);
+    setConfirmedWarning(false);
+    setShowWarningModal(false);
+    setWarningMessage('');
+    setValidationError('');
+    setIsIframeValidationError(false);
+    dispatch(setDataPickerLoading(false));
+    dispatch(clearDataPickerState());
+
+    // Then call the original onClose
+    onClose();
+  }, [onClose, dispatch]);
+
   // Handle DataPicker results from Redux
   useEffect(() => {
     if (dataPickerWarning) {
@@ -307,8 +323,7 @@ export default function EditModal({
       dispatch(setDataPickerLoading(false));
 
       if (!hasValidationError) {
-        onClose();
-        dispatch(clearDataPickerState());
+        handleClose();
       }
     }
   }, [
@@ -321,7 +336,7 @@ export default function EditModal({
     isIframeValidationError,
     validateColumnData,
     onSave,
-    onClose,
+    handleClose,
     dispatch,
   ]);
 
@@ -434,12 +449,12 @@ export default function EditModal({
       );
 
       onSave(itemToSave);
-      onClose();
+      handleClose();
     }
   }, [
     editedItem,
     onSave,
-    onClose,
+    handleClose,
     isIFrame,
     mainEntity,
     isCombinedProperties,
@@ -450,8 +465,8 @@ export default function EditModal({
 
   const handleDelete = useCallback(() => {
     onDelete(item.id);
-    onClose();
-  }, [item, onDelete, onClose]);
+    handleClose();
+  }, [item, onDelete, handleClose]);
 
   // Original useEffect for normal processing (with selectedNode)
   useEffect(() => {
@@ -624,8 +639,7 @@ export default function EditModal({
       dispatch(setDataPickerLoading(false));
 
       if (!hasValidationError) {
-        onClose();
-        dispatch(clearDataPickerState());
+        handleClose();
       }
     }
   }, [
@@ -635,7 +649,7 @@ export default function EditModal({
     selectedNode,
     confirmedWarning,
     onSave,
-    onClose,
+    handleClose,
     filteredEntities,
     mainEntity,
     columnData,
@@ -645,11 +659,26 @@ export default function EditModal({
     dispatch,
   ]);
 
+  // Cleanup when modal closes
+  useEffect(() => {
+    if (!open) {
+      // Reset all loading states when modal closes
+      setIsWaitingForIframeData(false);
+      setConfirmedWarning(false);
+      setShowWarningModal(false);
+      setWarningMessage('');
+      setValidationError('');
+      setIsIframeValidationError(false);
+      dispatch(setDataPickerLoading(false));
+      dispatch(clearDataPickerState());
+    }
+  }, [open, dispatch]);
+
   return (
     <>
-      <Modal open={open} onClose={onClose} data-testid='edit-modal'>
+      <Modal open={open} onClose={handleClose} data-testid='edit-modal'>
         <ModalDialog>
-          <ModalClose onClick={onClose} />
+          <ModalClose onClick={handleClose} />
           <Typography level='h4'>{title}</Typography>
           <div className='flex justify-center items-center flex-col'>
             <ColumnFormFields
@@ -707,7 +736,7 @@ export default function EditModal({
                 Delete Column
               </Button>
               <div className='flex justify-end gap-2'>
-                <Button variant='plain' color='neutral' onClick={onClose}>
+                <Button variant='plain' color='neutral' onClick={handleClose}>
                   Cancel
                 </Button>
                 <Button
