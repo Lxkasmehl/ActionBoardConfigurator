@@ -86,23 +86,62 @@ export default function PropertySelectionModal({
 
   // Check if a node is selected when modal opens
   useEffect(() => {
-    if (open && !selectedNode) {
+    if (
+      open &&
+      !selectedNode &&
+      (!dataPickerResults || dataPickerResults.length === 0)
+    ) {
       setShowNodeWarning(true);
-    } else if (open && selectedNode) {
+    } else if (
+      open &&
+      (selectedNode || (dataPickerResults && dataPickerResults.length > 0))
+    ) {
       setShowNodeWarning(false);
     }
-  }, [open, selectedNode]);
+  }, [open, selectedNode, dataPickerResults]);
 
   // Close modal if no data is available when it opens
   useEffect(() => {
-    if (open && (!dataPickerResults || dataPickerResults.length === 0)) {
+    if (
+      open &&
+      (!dataPickerResults || dataPickerResults.length === 0) &&
+      !selectedNode
+    ) {
       onClose();
     }
-  }, [open, dataPickerResults, onClose]);
+  }, [open, dataPickerResults, selectedNode, onClose]);
 
   // Get all properties from the first result, including nested ones
   const properties = useMemo(() => {
-    // If no node is selected, return empty array
+    // If no node is selected but we have data, use the first available data
+    if (!selectedNode && dataPickerResults && dataPickerResults.length > 0) {
+      const targetData = dataPickerResults[0];
+
+      if (!targetData) {
+        return [];
+      }
+
+      if (!targetData?.d?.results?.[0]) {
+        // Try alternative data structures
+        if (targetData && Array.isArray(targetData) && targetData.length > 0) {
+          const firstResult = targetData[0]; // Take first object from the array
+          const extractedProps = extractProperties(firstResult);
+          return extractedProps;
+        } else if (targetData && typeof targetData === 'object') {
+          const firstResult = targetData;
+          const extractedProps = extractProperties(firstResult);
+          return extractedProps;
+        }
+
+        return [];
+      }
+
+      const firstResult = targetData.d.results[0];
+      const extractedProps = extractProperties(firstResult);
+      return extractedProps;
+    }
+
+    // If no node is selected and no data, return empty array
     if (!selectedNode) {
       return [];
     }
@@ -175,7 +214,15 @@ export default function PropertySelectionModal({
 
       // Find the correct data based on selectedNode
       let targetData = null;
-      if (selectedNode && dataPickerResults && dataPickerResults.length > 0) {
+
+      // If no node is selected but we have data, use the first available data
+      if (!selectedNode && dataPickerResults && dataPickerResults.length > 0) {
+        targetData = dataPickerResults[0];
+      } else if (
+        selectedNode &&
+        dataPickerResults &&
+        dataPickerResults.length > 0
+      ) {
         if (dataPickerConfigEntries && dataPickerConfigEntries.length > 0) {
           // Find the index of the selectedNode in the config entries
           const selectedConfigIndex = dataPickerConfigEntries.findIndex(
@@ -285,12 +332,16 @@ export default function PropertySelectionModal({
     ],
   );
 
-  // Auto-select property if there's only one and a node is selected
+  // Auto-select property if there's only one and a node is selected or data is available
   useEffect(() => {
-    if (open && properties.length === 1 && selectedNode) {
+    if (
+      open &&
+      properties.length === 1 &&
+      (selectedNode || (dataPickerResults && dataPickerResults.length > 0))
+    ) {
       handlePropertySelect(properties[0]);
     }
-  }, [open, properties, handlePropertySelect, selectedNode]);
+  }, [open, properties, handlePropertySelect, selectedNode, dataPickerResults]);
 
   const handleClose = () => {
     setSelectedProperty(null);
@@ -302,13 +353,21 @@ export default function PropertySelectionModal({
 
   // Get all unique values for the selected property from all results
   const values = useMemo(() => {
-    if (!selectedProperty || !selectedNode) {
+    if (!selectedProperty) {
       return [];
     }
 
     // Find the correct data based on selectedNode
     let targetData = null;
-    if (selectedNode && dataPickerResults && dataPickerResults.length > 0) {
+
+    // If no node is selected but we have data, use the first available data
+    if (!selectedNode && dataPickerResults && dataPickerResults.length > 0) {
+      targetData = dataPickerResults[0];
+    } else if (
+      selectedNode &&
+      dataPickerResults &&
+      dataPickerResults.length > 0
+    ) {
       if (dataPickerConfigEntries && dataPickerConfigEntries.length > 0) {
         // Find the index of the selectedNode in the config entries
         const selectedConfigIndex = dataPickerConfigEntries.findIndex(
@@ -402,7 +461,8 @@ export default function PropertySelectionModal({
             marginTop: '12px',
           }}
         >
-          {showNodeWarning ? (
+          {showNodeWarning &&
+          (!dataPickerResults || dataPickerResults.length === 0) ? (
             <Alert color='warning' variant='soft'>
               <Typography level='body-sm'>
                 Please select a node in the DataPicker flow first before you can
@@ -464,7 +524,12 @@ export default function PropertySelectionModal({
               variant='solid'
               color='primary'
               onClick={handleConfirm}
-              disabled={!selectedProperty || !selectedValue || showNodeWarning}
+              disabled={
+                !selectedProperty ||
+                !selectedValue ||
+                (showNodeWarning &&
+                  (!dataPickerResults || dataPickerResults.length === 0))
+              }
             >
               Confirm Selection
             </Button>

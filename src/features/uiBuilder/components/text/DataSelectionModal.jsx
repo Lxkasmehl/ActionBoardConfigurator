@@ -10,14 +10,12 @@ import PropTypes from 'prop-types';
 import { useCallback, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DataPickerContainer from '../common/DataPickerContainer';
-import {
-  setDataPickerLoading,
-  triggerDataFetch,
-} from '@/redux/dataPickerSlice';
+import { setDataPickerLoading } from '@/redux/dataPickerSlice';
 
 export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   const [warningMessage, setWarningMessage] = useState(null);
   const [showNodeWarning, setShowNodeWarning] = useState(false);
+  const [storedData, setStoredData] = useState(null);
   const dispatch = useDispatch();
 
   const isDataPickerLoading = useSelector(
@@ -25,6 +23,12 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   );
 
   const selectedNode = useSelector((state) => state.dataPicker.selectedNode);
+  const dataPickerResults = useSelector(
+    (state) => state.dataPicker.dataPickerResults,
+  );
+  const dataPickerConfigEntries = useSelector(
+    (state) => state.dataPicker.dataPickerConfigEntries,
+  );
 
   // Clear dataPicker state when modal opens to ensure clean state
   useEffect(() => {
@@ -41,6 +45,7 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
     if (!open) {
       setWarningMessage(null);
       setShowNodeWarning(false);
+      setStoredData(null);
     }
   }, [open]);
 
@@ -59,11 +64,11 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
 
   const handleDataFetch = useCallback(
     (data) => {
-      onDataSelected(data);
-      // onClose();
+      // Store the data for later use when Confirm Selection is clicked
+      setStoredData(data);
       dispatch(setDataPickerLoading(false));
     },
-    [onDataSelected, dispatch],
+    [dispatch],
   );
 
   const handleEntitySelected = useCallback(() => {
@@ -76,9 +81,27 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
       setShowNodeWarning(true);
       return;
     }
-    dispatch(setDataPickerLoading(true));
-    dispatch(triggerDataFetch());
-  }, [dispatch, selectedNode]);
+
+    // Use stored data if available, otherwise fall back to Redux store
+    const dataToUse =
+      storedData ||
+      (dataPickerResults && dataPickerConfigEntries
+        ? {
+            results: dataPickerResults,
+            configEntries: dataPickerConfigEntries,
+          }
+        : null);
+
+    if (dataToUse) {
+      onDataSelected(dataToUse);
+    }
+  }, [
+    selectedNode,
+    onDataSelected,
+    storedData,
+    dataPickerResults,
+    dataPickerConfigEntries,
+  ]);
 
   return (
     <Modal open={open} onClose={onClose}>

@@ -148,6 +148,7 @@ export default function EditableTextComponent({
       return;
     }
 
+    // Close the DataSelectionModal and open the PropertySelectionModal
     setIsDataSelectionOpen(false);
     setIsPropertySelectionOpen(true);
   };
