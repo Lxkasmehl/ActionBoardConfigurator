@@ -33,6 +33,7 @@ const DataPickerContainer = ({
 
   useEffect(() => {
     if (dataPickerResults && dataPickerConfigEntries) {
+      // Call onDataFetch to make data available to parent component
       onDataFetch({
         results: dataPickerResults,
         configEntries: dataPickerConfigEntries,

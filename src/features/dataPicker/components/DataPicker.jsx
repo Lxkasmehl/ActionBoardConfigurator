@@ -347,6 +347,7 @@ export default function DataPicker({ containerRef }) {
     async (isDirectTrigger = false) => {
       setIsLoading(true);
       dispatch(setDataPickerLoading(true));
+      // Only show the ResultsModal when the request comes directly from the button
       if (isDirectTrigger) {
         setModalOpen(true);
       }

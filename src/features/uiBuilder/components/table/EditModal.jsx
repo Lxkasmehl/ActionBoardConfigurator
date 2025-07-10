@@ -45,6 +45,7 @@ export default function EditModal({
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
   const [confirmedWarning, setConfirmedWarning] = useState(false);
+  const [isRequestFromSaveButton, setIsRequestFromSaveButton] = useState(false);
   const filteredEntities = useSelector(
     (state) => state.fetchedData.filteredEntities,
   );
@@ -323,7 +324,11 @@ export default function EditModal({
       dispatch(setDataPickerLoading(false));
 
       if (!hasValidationError) {
-        handleClose();
+        // Only close the modal automatically if the request came from the Save button
+        // If it came from the DataPicker button, let the user close the ResultsModal first
+        if (isRequestFromSaveButton) {
+          handleClose();
+        }
       }
     }
   }, [
@@ -338,6 +343,7 @@ export default function EditModal({
     onSave,
     handleClose,
     dispatch,
+    isRequestFromSaveButton,
   ]);
 
   const handleWarningConfirm = () => {
@@ -396,6 +402,7 @@ export default function EditModal({
     if (isIFrame) {
       setIsWaitingForIframeData(true);
       setConfirmedWarning(false); // Reset warning confirmation
+      setIsRequestFromSaveButton(true); // Mark that this request is from Save button
       dispatch(setDataPickerLoading(true));
       dispatch(triggerDataFetch());
     } else {
@@ -503,14 +510,22 @@ export default function EditModal({
           console.error('Selected config not found for node:', selectedNode);
         }
       } else {
-        // If no node is selected, show warning modal to let user choose
-        setWarningMessage(
-          'No specific node is selected in the DataPicker flow. Would you like to process all flows and create separate columns for each?',
-        );
-        setShowWarningModal(true);
-        setIsWaitingForIframeData(false);
-        dispatch(setDataPickerLoading(false));
-        return;
+        // If no node is selected and this is triggered from the Save button, show warning modal
+        // If this is triggered from direct DataPicker request, don't show warning modal
+        if (isWaitingForIframeData && isRequestFromSaveButton) {
+          setWarningMessage(
+            'No specific node is selected in the DataPicker flow. Would you like to process all flows and create separate columns for each?',
+          );
+          setShowWarningModal(true);
+          setIsWaitingForIframeData(false);
+          dispatch(setDataPickerLoading(false));
+          return;
+        }
+        // If not waiting for iframe data or not from Save button, this is a direct request from DataPicker, so process all flows
+        dataItems = Array.isArray(dataPickerResults)
+          ? dataPickerResults
+          : [dataPickerResults];
+        configItems = dataPickerConfigEntries;
       }
 
       if (!dataItems || !configItems) {
@@ -639,7 +654,11 @@ export default function EditModal({
       dispatch(setDataPickerLoading(false));
 
       if (!hasValidationError) {
-        handleClose();
+        // Only close the modal automatically if the request came from the Save button
+        // If it came from the DataPicker button, let the user close the ResultsModal first
+        if (isRequestFromSaveButton) {
+          handleClose();
+        }
       }
     }
   }, [
@@ -657,6 +676,7 @@ export default function EditModal({
     validateColumnData,
     editedItem,
     dispatch,
+    isRequestFromSaveButton,
   ]);
 
   // Cleanup when modal closes
@@ -669,6 +689,7 @@ export default function EditModal({
       setWarningMessage('');
       setValidationError('');
       setIsIframeValidationError(false);
+      setIsRequestFromSaveButton(false);
       dispatch(setDataPickerLoading(false));
       dispatch(clearDataPickerState());
     }
