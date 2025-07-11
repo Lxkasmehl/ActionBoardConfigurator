@@ -353,6 +353,7 @@ export default function DataPicker({ containerRef }) {
       }
       try {
         const results = await handleSendRequest();
+
         const formattedResults = formatUtils.formatODataResult(results);
         setResults(formattedResults);
         dispatch(setDataPickerResults(formattedResults));
