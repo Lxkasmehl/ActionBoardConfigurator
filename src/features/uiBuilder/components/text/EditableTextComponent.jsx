@@ -144,7 +144,6 @@ export default function EditableTextComponent({
       !data.configEntries ||
       data.configEntries.length === 0
     ) {
-      console.warn('Invalid data received in handleDataSelected:', data);
       return;
     }
 
@@ -154,8 +153,14 @@ export default function EditableTextComponent({
   };
 
   const handlePropertySelected = (property, value) => {
-    // Find the position of the last '[[' in the text
+    // Find the position of the last '[[]]' in the text
     const lastOpenBraces = editedText.lastIndexOf('[[]]');
+
+    if (lastOpenBraces === -1) {
+      setIsPropertySelectionOpen(false);
+      return;
+    }
+
     const textBeforeBraces = editedText.slice(0, lastOpenBraces);
     const textAfterBraces = editedText.slice(lastOpenBraces + 4);
 

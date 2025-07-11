@@ -10,7 +10,10 @@ import PropTypes from 'prop-types';
 import { useCallback, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DataPickerContainer from '../common/DataPickerContainer';
-import { setDataPickerLoading } from '@/redux/dataPickerSlice';
+import {
+  setDataPickerLoading,
+  triggerDataFetch,
+} from '@/redux/dataPickerSlice';
 
 export default function DataSelectionModal({ open, onClose, onDataSelected }) {
   const [warningMessage, setWarningMessage] = useState(null);
@@ -58,6 +61,32 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
     }
   }, [open, selectedNode]);
 
+  // Watch for when data fetching is complete and we have data
+  useEffect(() => {
+    if (
+      !isDataPickerLoading &&
+      dataPickerResults &&
+      dataPickerConfigEntries &&
+      !storedData
+    ) {
+      onDataSelected({
+        results: dataPickerResults,
+        configEntries: dataPickerConfigEntries,
+      });
+      // Set storedData to prevent multiple calls
+      setStoredData({
+        results: dataPickerResults,
+        configEntries: dataPickerConfigEntries,
+      });
+    }
+  }, [
+    isDataPickerLoading,
+    dataPickerResults,
+    dataPickerConfigEntries,
+    storedData,
+    onDataSelected,
+  ]);
+
   const handleWarning = useCallback((message) => {
     setWarningMessage(message);
   }, []);
@@ -82,25 +111,31 @@ export default function DataSelectionModal({ open, onClose, onDataSelected }) {
       return;
     }
 
-    // Use stored data if available, otherwise fall back to Redux store
-    const dataToUse =
-      storedData ||
-      (dataPickerResults && dataPickerConfigEntries
-        ? {
-            results: dataPickerResults,
-            configEntries: dataPickerConfigEntries,
-          }
-        : null);
-
-    if (dataToUse) {
-      onDataSelected(dataToUse);
+    // If we have stored data, use it immediately
+    if (storedData) {
+      onDataSelected(storedData);
+      return;
     }
+
+    // If we have data in Redux store, use it
+    if (dataPickerResults && dataPickerConfigEntries) {
+      onDataSelected({
+        results: dataPickerResults,
+        configEntries: dataPickerConfigEntries,
+      });
+      return;
+    }
+
+    // If no data is available, trigger a data fetch
+    dispatch(setDataPickerLoading(true));
+    dispatch(triggerDataFetch());
   }, [
     selectedNode,
     onDataSelected,
     storedData,
     dataPickerResults,
     dataPickerConfigEntries,
+    dispatch,
   ]);
 
   return (
