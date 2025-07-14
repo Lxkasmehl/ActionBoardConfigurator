@@ -35,6 +35,7 @@ export default function EditableTextComponent({
   const [isDataSelectionOpen, setIsDataSelectionOpen] = useState(false);
   const [isPropertySelectionOpen, setIsPropertySelectionOpen] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [currentBracketPosition, setCurrentBracketPosition] = useState(-1);
   const lastKeyRef = useRef(null);
   const modalRef = useRef(null);
 
@@ -118,7 +119,13 @@ export default function EditableTextComponent({
         e.preventDefault();
         const textBeforeCursor = editedText.slice(0, cursorPosition - 1);
         const textAfterCursor = editedText.slice(cursorPosition);
-        setEditedText(textBeforeCursor + '[[]]' + textAfterCursor);
+        const newText = textBeforeCursor + '[[]]' + textAfterCursor;
+        setEditedText(newText);
+
+        // Store the position where we inserted the brackets
+        const bracketPosition = cursorPosition - 1;
+        setCurrentBracketPosition(bracketPosition);
+
         setCursorPosition(cursorPosition + 2);
         setIsDataSelectionOpen(true);
       }
@@ -153,16 +160,14 @@ export default function EditableTextComponent({
   };
 
   const handlePropertySelected = (property, value) => {
-    // Find the position of the last '[[]]' in the text
-    const lastOpenBraces = editedText.lastIndexOf('[[]]');
-
-    if (lastOpenBraces === -1) {
+    // Use the stored bracket position instead of lastIndexOf
+    if (currentBracketPosition === -1) {
       setIsPropertySelectionOpen(false);
       return;
     }
 
-    const textBeforeBraces = editedText.slice(0, lastOpenBraces);
-    const textAfterBraces = editedText.slice(lastOpenBraces + 4);
+    const textBeforeBraces = editedText.slice(0, currentBracketPosition);
+    const textAfterBraces = editedText.slice(currentBracketPosition + 4);
 
     // Store config entries in Redux with selected property and value
     dispatch(
@@ -181,7 +186,10 @@ export default function EditableTextComponent({
       textBeforeBraces + '[[' + value.value + ']]' + textAfterBraces;
 
     setEditedText(newText);
-    setCursorPosition(lastOpenBraces + value.value.length + 4);
+    setCursorPosition(currentBracketPosition + value.value.length + 4);
+
+    // Reset the bracket position
+    setCurrentBracketPosition(-1);
     setIsPropertySelectionOpen(false);
   };
 
@@ -243,12 +251,18 @@ export default function EditableTextComponent({
       <DataSelectionModal
         ref={modalRef}
         open={isDataSelectionOpen}
-        onClose={() => setIsDataSelectionOpen(false)}
+        onClose={() => {
+          setIsDataSelectionOpen(false);
+          setCurrentBracketPosition(-1);
+        }}
         onDataSelected={handleDataSelected}
       />
       <PropertySelectionModal
         open={isPropertySelectionOpen}
-        onClose={() => setIsPropertySelectionOpen(false)}
+        onClose={() => {
+          setIsPropertySelectionOpen(false);
+          setCurrentBracketPosition(-1);
+        }}
         onPropertySelected={handlePropertySelected}
       />
     </>
