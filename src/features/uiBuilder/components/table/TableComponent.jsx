@@ -597,6 +597,22 @@ export default function TableComponent({ component, disabled = false }) {
           },
           ...(disabled ? { opacity: 0.7, pointerEvents: 'none' } : {}),
         }}
+        slotProps={{
+          basePopper: {
+            modifiers: [
+              {
+                name: 'insetFix',
+                enabled: true,
+                phase: 'afterWrite',
+                fn: ({ state }) => {
+                  if (state.elements.popper) {
+                    state.elements.popper.style.inset = '0 0px auto auto';
+                  }
+                },
+              },
+            ],
+          },
+        }}
       />
       {!disabled && (
         <IconButton
