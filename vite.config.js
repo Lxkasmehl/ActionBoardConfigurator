@@ -6,9 +6,84 @@ import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Plugin zum Patchen von Popper.js
+function popperPatchPlugin() {
+  return {
+    name: 'popper-patch',
+    transform(code, id) {
+      // Suche nach Popper.js-Dateien
+      if (id.includes('@popperjs/core')) {
+        // 1. Anpassung der enums.js - basePlacements zu Strings konvertieren
+        if (id.includes('enums.js')) {
+          console.log(
+            'Patching enums.js - converting basePlacements to strings',
+          );
+          const patchedCode = code.replace(
+            /export var basePlacements = \[top, bottom, right, left\];/,
+            "export var basePlacements = ['top', 'bottom', 'right', 'left'];",
+          );
+          return patchedCode;
+        }
+
+        // 2. Anpassung der offset.js Dateien - Imports von top, left, right entfernen und Array-Literale zu Strings konvertieren
+        if (id.includes('offset.js')) {
+          console.log(
+            'Patching offset.js - removing top, left, right imports and converting arrays to strings',
+          );
+          let patchedCode = code;
+
+          // Imports von top, left, right entfernen
+          patchedCode = patchedCode.replace(
+            /import \{ top, left, right, placements \} from ['"]\.\.\/enums\.js['"];?/,
+            "import { placements } from '../enums.js';",
+          );
+
+          // Array-Literale zu Strings konvertieren
+          patchedCode = patchedCode.replace(
+            /\[left, top\]/g,
+            "['left', 'top']",
+          );
+          patchedCode = patchedCode.replace(
+            /\[left, right\]/g,
+            "['left', 'right']",
+          );
+
+          return patchedCode;
+        }
+
+        // 3. Anpassung der computeOffsets.js Dateien - Imports entfernen und Variablen durch Strings ersetzen
+        if (id.includes('computeOffsets.js')) {
+          console.log(
+            'Patching computeOffsets.js - replacing imports with string literals',
+          );
+          let patchedCode = code;
+
+          // Imports von top, right, bottom, left entfernen
+          patchedCode = patchedCode.replace(
+            /import \{ top, right, bottom, left, start, end \} from ['"]\.\.\/enums\.js['"];?/,
+            "import { start, end } from '../enums.js';",
+          );
+
+          // top, right, bottom, left Variablen durch Strings ersetzen
+          patchedCode = patchedCode.replace(/\bcase top:/g, "case 'top':");
+          patchedCode = patchedCode.replace(
+            /\bcase bottom:/g,
+            "case 'bottom':",
+          );
+          patchedCode = patchedCode.replace(/\bcase right:/g, "case 'right':");
+          patchedCode = patchedCode.replace(/\bcase left:/g, "case 'left':");
+
+          return patchedCode;
+        }
+      }
+      return null;
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), popperPatchPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -18,6 +93,7 @@ export default defineConfig({
     minify: false,
     outDir: 'dist', // der von dir gewünschte Ausgabeordner
     assetsInlineLimit: 0, // damit alle Dateien in die Ausgabe kopiert werden
+    sourcemap: true,
     rollupOptions: {
       output: {
         entryFileNames: 'assets/index.js', // Hier wird der Name der Hauptdatei festgelegt
