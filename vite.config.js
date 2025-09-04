@@ -75,6 +75,22 @@ function popperPatchPlugin() {
 
           return patchedCode;
         }
+
+        // 4. Anpassung der getOppositePlacement.js - hash object keys zu Strings konvertieren
+        if (id.includes('getOppositePlacement.js')) {
+          console.log(
+            'Patching getOppositePlacement.js - converting hash object keys to strings',
+          );
+          let patchedCode = code;
+
+          // hash object keys von Variablen zu String-Literalen konvertieren
+          patchedCode = patchedCode.replace(
+            /var hash = \{\s*left: 'right',\s*right: 'left',\s*bottom: 'top',\s*top: 'bottom'\s*\};/,
+            "var hash = {\n  'left': 'right',\n  'right': 'left',\n  'bottom': 'top',\n  'top': 'bottom'\n};",
+          );
+
+          return patchedCode;
+        }
       }
       return null;
     },
