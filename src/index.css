@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.MuiAutocomplete-listbox {
+  inset: 0px auto auto 0px !important;
+}
