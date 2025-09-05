@@ -615,6 +615,13 @@ export default function TableComponent({ component, disabled = false }) {
               ],
             },
           }}
+          componentsProps={{
+            columnMenu: {
+              MenuProps: {
+                disableScrollLock: true,
+              },
+            },
+          }}
         />
       </MUICssVarsProvider>
       {!disabled && (
