@@ -3,9 +3,34 @@ import PropTypes from 'prop-types';
 import { LineChart, BarChart, PieChart, ScatterChart } from '@mui/x-charts';
 import { IconButton } from '@mui/joy';
 import Edit from '@mui/icons-material/Edit';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import ChartEditModal from './ChartEditModal';
 import { useDispatch } from 'react-redux';
 import { updateComponentProps } from '../../../../redux/uiBuilderSlice';
+
+// Create a Material theme for MUI X Charts
+const materialTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+  components: {
+    MuiChartsTooltip: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: 'white',
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+          borderRadius: '4px',
+        },
+      },
+    },
+  },
+});
 
 const sampleData = {
   lines: {
@@ -128,25 +153,33 @@ export default function ChartComponent({ component, disabled = false }) {
     case 'bars':
       return (
         <ChartWrapper>
-          <BarChart {...chartData} height={300} skipAnimation />
+          <ThemeProvider theme={materialTheme}>
+            <BarChart {...chartData} height={300} skipAnimation />
+          </ThemeProvider>
         </ChartWrapper>
       );
     case 'lines':
       return (
         <ChartWrapper>
-          <LineChart {...chartData} height={300} skipAnimation />
+          <ThemeProvider theme={materialTheme}>
+            <LineChart {...chartData} height={300} skipAnimation />
+          </ThemeProvider>
         </ChartWrapper>
       );
     case 'pie':
       return (
         <ChartWrapper>
-          <PieChart {...chartData} height={300} skipAnimation />
+          <ThemeProvider theme={materialTheme}>
+            <PieChart {...chartData} height={300} skipAnimation />
+          </ThemeProvider>
         </ChartWrapper>
       );
     case 'scatter':
       return (
         <ChartWrapper>
-          <ScatterChart {...chartData} height={300} skipAnimation />
+          <ThemeProvider theme={materialTheme}>
+            <ScatterChart {...chartData} height={300} skipAnimation />
+          </ThemeProvider>
         </ChartWrapper>
       );
     default:
