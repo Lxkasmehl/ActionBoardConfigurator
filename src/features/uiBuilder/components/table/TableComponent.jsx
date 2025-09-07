@@ -21,7 +21,6 @@ import {
   setTableConfigEntries,
 } from '../../../../redux/uiBuilderSlice';
 import { useConfigDataFetching } from '../../hooks/useConfigDataFetching';
-import { Experimental_CssVarsProvider as MUICssVarsProvider } from '@mui/material/styles';
 
 export default function TableComponent({ component, disabled = false }) {
   const dispatch = useDispatch();
@@ -521,109 +520,107 @@ export default function TableComponent({ component, disabled = false }) {
     <div
       style={{ maxHeight: 500, width: '100%', maxWidth: 'calc(100vw - 460px)' }}
     >
-      <MUICssVarsProvider>
-        <DataGridPro
-          rows={sortedRows}
-          columns={sortedColumns}
-          disableRowSelectionOnClick
-          experimentalFeatures={{ newEditingApi: true }}
-          columnReordering={!disabled}
-          onColumnOrderChange={(params) => {
-            const { column, targetIndex, oldIndex } = params;
-            if (!column || targetIndex === undefined || oldIndex === undefined)
-              return;
+      <DataGridPro
+        rows={sortedRows}
+        columns={sortedColumns}
+        disableRowSelectionOnClick
+        experimentalFeatures={{ newEditingApi: true }}
+        columnReordering={!disabled}
+        onColumnOrderChange={(params) => {
+          const { column, targetIndex, oldIndex } = params;
+          if (!column || targetIndex === undefined || oldIndex === undefined)
+            return;
 
-            // Create a new array with the updated order
-            const newColumnOrder = [...columnOrder];
-            const columnId = column.columnId;
+          // Create a new array with the updated order
+          const newColumnOrder = [...columnOrder];
+          const columnId = column.columnId;
 
-            // Remove the column from its old position
-            newColumnOrder.splice(oldIndex, 1);
-            // Insert it at the new position
-            newColumnOrder.splice(targetIndex, 0, columnId);
+          // Remove the column from its old position
+          newColumnOrder.splice(oldIndex, 1);
+          // Insert it at the new position
+          newColumnOrder.splice(targetIndex, 0, columnId);
 
-            dispatch(
-              setColumnOrder({
-                componentId: component.id,
-                columnOrder: newColumnOrder,
-              }),
-            );
-          }}
-          onColumnHeaderDragEnd={() => {
-            // Force a re-render after drag ends
-            dispatch({ type: 'FORCE_RERENDER' });
-          }}
-          hideFooter
-          loading={isLoading}
-          slots={{
-            toolbar: (props) => (
-              <CustomToolbar {...props} buttonProps={buttonProps} />
-            ),
-            columnMenu: (props) => (
-              <CustomColumnMenu
-                {...props}
-                onEditColumn={handleEditColumn}
-                onDeleteColumn={handleDeleteColumn}
-                disabled={disabled}
-              />
-            ),
-          }}
-          sx={{
-            '& .MuiDataGrid-cell': {
-              borderRight: '1px solid rgba(224, 224, 224, 1)',
+          dispatch(
+            setColumnOrder({
+              componentId: component.id,
+              columnOrder: newColumnOrder,
+            }),
+          );
+        }}
+        onColumnHeaderDragEnd={() => {
+          // Force a re-render after drag ends
+          dispatch({ type: 'FORCE_RERENDER' });
+        }}
+        hideFooter
+        loading={isLoading}
+        slots={{
+          toolbar: (props) => (
+            <CustomToolbar {...props} buttonProps={buttonProps} />
+          ),
+          columnMenu: (props) => (
+            <CustomColumnMenu
+              {...props}
+              onEditColumn={handleEditColumn}
+              onDeleteColumn={handleDeleteColumn}
+              disabled={disabled}
+            />
+          ),
+        }}
+        sx={{
+          '& .MuiDataGrid-cell': {
+            borderRight: '1px solid rgba(224, 224, 224, 1)',
+          },
+          '& .MuiDataGrid-cell:last-child': {
+            borderRight: 'none',
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            borderBottom: '1px solid rgba(224, 224, 224, 1)',
+            borderTop: '1px solid rgba(224, 224, 224, 1)',
+          },
+          '& .MuiDataGrid-columnHeader': {
+            borderRight: '1px solid rgba(224, 224, 224, 1)',
+          },
+          '& .MuiDataGrid-columnHeader:last-child': {
+            borderRight: 'none',
+          },
+          '& .MuiDataGrid-row:last-child .MuiDataGrid-cell': {
+            borderBottom: 'none',
+          },
+          '& .invalid-column-header': {
+            backgroundColor: 'rgba(255, 0, 0, 0.1)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 0, 0, 0.15)',
             },
-            '& .MuiDataGrid-cell:last-child': {
-              borderRight: 'none',
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              borderBottom: '1px solid rgba(224, 224, 224, 1)',
-              borderTop: '1px solid rgba(224, 224, 224, 1)',
-            },
-            '& .MuiDataGrid-columnHeader': {
-              borderRight: '1px solid rgba(224, 224, 224, 1)',
-            },
-            '& .MuiDataGrid-columnHeader:last-child': {
-              borderRight: 'none',
-            },
-            '& .MuiDataGrid-row:last-child .MuiDataGrid-cell': {
-              borderBottom: 'none',
-            },
-            '& .invalid-column-header': {
-              backgroundColor: 'rgba(255, 0, 0, 0.1)',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 0, 0, 0.15)',
-              },
-            },
-            '& .invalid-column-cell': {
-              backgroundColor: 'rgba(255, 0, 0, 0.05)',
-            },
-            ...(disabled ? { opacity: 0.7, pointerEvents: 'none' } : {}),
-          }}
-          slotProps={{
-            basePopper: {
-              modifiers: [
-                {
-                  name: 'insetFix',
-                  enabled: true,
-                  phase: 'afterWrite',
-                  fn: ({ state }) => {
-                    if (state.elements.popper) {
-                      state.elements.popper.style.inset = '0 0px auto auto';
-                    }
-                  },
+          },
+          '& .invalid-column-cell': {
+            backgroundColor: 'rgba(255, 0, 0, 0.05)',
+          },
+          ...(disabled ? { opacity: 0.7, pointerEvents: 'none' } : {}),
+        }}
+        slotProps={{
+          basePopper: {
+            modifiers: [
+              {
+                name: 'insetFix',
+                enabled: true,
+                phase: 'afterWrite',
+                fn: ({ state }) => {
+                  if (state.elements.popper) {
+                    state.elements.popper.style.inset = '0 0px auto auto';
+                  }
                 },
-              ],
-            },
-          }}
-          componentsProps={{
-            columnMenu: {
-              MenuProps: {
-                disableScrollLock: true,
               },
+            ],
+          },
+        }}
+        componentsProps={{
+          columnMenu: {
+            MenuProps: {
+              disableScrollLock: true,
             },
-          }}
-        />
-      </MUICssVarsProvider>
+          },
+        }}
+      />
       {!disabled && (
         <IconButton
           variant='solid'
