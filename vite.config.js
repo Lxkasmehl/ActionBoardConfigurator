@@ -91,6 +91,38 @@ function popperPatchPlugin() {
 
           return patchedCode;
         }
+
+        // 5. Anpassung der Utility.js - replace function mit null/undefined check
+        if (id.includes('Utility.js') || id.includes('chunk-HYK4YD6D.js')) {
+          console.log(
+            'Patching Utility.js - adding null/undefined check to replace function',
+          );
+          let patchedCode = code;
+
+          // replace function mit null/undefined check erweitern
+          patchedCode = patchedCode.replace(
+            /function replace\(value, pattern, replacement\) \{\s*return value\.replace\(pattern, replacement\);\s*\}/,
+            "function replace(value, pattern, replacement) {\n  if (value == null || typeof value !== 'string') {\n    return value;\n  }\n  return value.replace(pattern, replacement);\n}",
+          );
+
+          return patchedCode;
+        }
+
+        // 6. Anpassung der eventListeners.js - getOppositePlacement mit null/undefined check
+        if (id.includes('eventListeners.js')) {
+          console.log(
+            'Patching eventListeners.js - adding null/undefined check to getOppositePlacement',
+          );
+          let patchedCode = code;
+
+          // getOppositePlacement function mit null/undefined check erweitern
+          patchedCode = patchedCode.replace(
+            /function getOppositePlacement\(placement\) \{[^}]*\}/,
+            "function getOppositePlacement(placement) {\n  if (placement == null || typeof placement !== 'string') {\n    return 'top';\n  }\n  var hash = {\n    'left': 'right',\n    'right': 'left',\n    'bottom': 'top',\n    'top': 'bottom'\n  };\n  return hash[placement] || 'top';\n}",
+          );
+
+          return patchedCode;
+        }
       }
       return null;
     },
