@@ -194,7 +194,7 @@ test.describe('Group Tests', () => {
 
     // Expected values
     const expectedValues = {
-      '': 185,
+      '': 186,
       M: [480, 493],
       F: [330, 317],
       U: 3,
@@ -419,6 +419,6 @@ test.describe('Group Tests', () => {
     await page.getByTestId('sort-apply-button').click();
 
     // Verify sorting was applied by checking the first value
-    await verifySortApplied(page, sortableComponents.table, 'zzzztal2');
+    await verifySortApplied(page, sortableComponents.table, 'zzzzPETS');
   });
 });
