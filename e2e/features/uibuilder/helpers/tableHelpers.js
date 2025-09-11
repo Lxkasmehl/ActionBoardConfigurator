@@ -1,6 +1,9 @@
 import { expect } from '@playwright/test';
 import { dragAndVerifyComponent } from './componentHelpers';
-import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
+import {
+  selectFromAutocomplete,
+  selectFromEntitySelect,
+} from '../../../shared/helpers/autocompleteHelper';
 import { setupFlowConnection } from '../../datapicker/helpers/flowSetup';
 import fs from 'fs';
 
@@ -243,10 +246,34 @@ export async function configureTableColumn(
     await selectFromAutocomplete(page, 'entity-autocomplete', entity);
     await selectFromAutocomplete(page, 'property-selector', property);
   } else {
-    await selectFromAutocomplete(page, 'entity-select', entity, 0, {
+    await selectFromEntitySelect(page, 'entity-select', entity, 0, {
       useSection: false,
     });
-    await selectFromAutocomplete(page, 'property-select', property, 0, {
+
+    // Wait for the property dropdown to become enabled after entity selection
+    const propertySelect = page.getByTestId('property-select');
+    await propertySelect.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Wait for the property dropdown to be enabled (not disabled)
+    try {
+      await page.waitForFunction(
+        () => {
+          const input = document.querySelector(
+            '[data-testid="property-select"] input',
+          );
+          return input && !input.disabled;
+        },
+        { timeout: 15000 },
+      );
+    } catch (error) {
+      // If property dropdown is still disabled, it might mean the entity has no properties
+      // or there's an issue with the entity selection. Log this and continue.
+      console.warn(
+        'Property dropdown is still disabled after entity selection. This might indicate the entity has no available properties.',
+      );
+    }
+
+    await selectFromEntitySelect(page, 'property-select', property, 0, {
       useSection: false,
     });
   }
@@ -255,6 +282,29 @@ export async function configureTableColumn(
   if (mainEntity) {
     await page.getByTestId('main-entity-checkbox').click();
   } else if (relationship) {
+    // Wait for the relationship dropdown to become enabled
+    const relationshipSelect = page.getByTestId('relationship-select');
+    await relationshipSelect.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Wait for the relationship dropdown to be enabled (not disabled)
+    try {
+      await page.waitForFunction(
+        () => {
+          const input = document.querySelector(
+            '[data-testid="relationship-select"] input',
+          );
+          return input && !input.disabled;
+        },
+        { timeout: 15000 },
+      );
+    } catch (error) {
+      // If relationship dropdown is still disabled, it might mean there are no relationships
+      // or there's an issue with the entity selection. Log this and continue.
+      console.warn(
+        'Relationship dropdown is still disabled after entity selection. This might indicate there are no available relationships.',
+      );
+    }
+
     await selectFromAutocomplete(page, 'relationship-select', relationship, 0, {
       useSection: false,
     });

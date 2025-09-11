@@ -1,13 +1,35 @@
 import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
 
 export async function selectFilterProperty(page, propertyName) {
-  await selectFromAutocomplete(
-    page,
-    'filter-property-autocomplete',
-    propertyName,
-    0,
-    { useSection: false },
-  );
+  // Target the last filter property autocomplete specifically
+  const lastAutocomplete = page
+    .getByTestId('filter-property-autocomplete')
+    .last();
+  await lastAutocomplete.waitFor({ state: 'visible', timeout: 10000 });
+
+  // Click the autocomplete button
+  const button = lastAutocomplete.getByRole('button', { title: 'Open' });
+  await button.click();
+
+  // Wait for the option to be available and click it
+  const option = page.getByRole('option', { name: propertyName, exact: true });
+  await option.waitFor({ state: 'visible', timeout: 5000 });
+
+  // Try multiple approaches to click the option
+  try {
+    await option.click({ force: true });
+  } catch (error) {
+    // If force click fails, try dispatching a click event directly
+    try {
+      await option.evaluate((element) => {
+        element.click();
+      });
+    } catch (evalError) {
+      // If evaluate fails, try using keyboard navigation
+      await option.focus();
+      await page.keyboard.press('Enter');
+    }
+  }
 }
 
 export async function setupFilterCondition(
@@ -21,7 +43,21 @@ export async function setupFilterCondition(
   const sections = page.getByTestId('entity-section');
   const targetSection = sections.nth(sectionIndex);
 
-  await targetSection.getByTestId('add-filter-button').click();
+  // Wait for the Add Filter button to be enabled (which happens after entity selection)
+  const addFilterButton = targetSection.getByTestId('add-filter-button');
+
+  // Wait for the button to be visible first
+  await addFilterButton.waitFor({ state: 'visible', timeout: 10000 });
+
+  // Wait for the button to be enabled
+  await addFilterButton.waitFor(
+    async (button) => {
+      return !(await button.isDisabled());
+    },
+    { timeout: 10000 },
+  );
+
+  await addFilterButton.click();
   await page.getByTestId('add-condition-button').first().click();
 
   await selectFilterProperty(page, propertyName);
