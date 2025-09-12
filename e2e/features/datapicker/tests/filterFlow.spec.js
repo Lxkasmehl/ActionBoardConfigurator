@@ -98,11 +98,6 @@ test('use selected properties from one entity section as filter values in anothe
     Granger: 2, 
   };
 
-  await page.screenshot({
-    path: 'debug-candidate-selection.png',
-    fullPage: true,
-  });
-
   for (const [name, count] of Object.entries(expectedNames)) {
     const elements = await page.locator(`text=lastName: ${name}`).all();
     expect(elements).toHaveLength(count);
