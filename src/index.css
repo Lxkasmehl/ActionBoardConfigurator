@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* WORKAROUND: This !important inset style is required for proper positioning of MUI Autocomplete
+   listboxes when the app runs in production within SuccessFactors. However, this causes positioning
+   issues in the development environment where the dropdowns are not properly visible for testing.
+   The test suite uses a workaround by typing only the first 4 characters of option names to
+   trigger autocomplete functionality despite the positioning problems. This solution is not perfect
+   and similar positioning issues are already appearing in production with other autocomplete
+   components, indicating that this approach may need to be redesigned in the future. */
 .MuiAutocomplete-listbox {
   inset: 0px auto auto 0px !important;
 }
