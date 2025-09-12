@@ -54,6 +54,30 @@ This guide helps you resolve common issues with the WebAppConfigurator.
 - Test responsiveness
 - Check components
 
+#### Autocomplete Positioning Issues
+
+The application uses a CSS workaround for MUI Autocomplete positioning that can cause issues:
+
+**Problem**: MUI Autocomplete dropdowns may not display correctly in different environments due to conflicting CSS positioning rules.
+
+**Root Cause**: The app requires an `!important inset` style for proper positioning when running within SuccessFactors in production, but this causes positioning issues in the development environment where dropdowns become invisible to automated tests.
+
+**Current Workaround**:
+
+- The test suite uses a substring approach (typing only first 4 characters) to trigger autocomplete functionality
+- This allows tests to work around the positioning issues without removing the required CSS
+
+**Known Limitations**:
+
+- This solution is not perfect and may need redesign
+- Similar positioning issues are already appearing in production with other autocomplete components
+- The workaround indicates a need for a more robust solution
+
+**Files Affected**:
+
+- `src/index.css` - Contains the `!important inset` style
+- `e2e/shared/helpers/autocompleteHelper.js` - Contains the substring workaround
+
 ## Debugging
 
 ### Development Tools

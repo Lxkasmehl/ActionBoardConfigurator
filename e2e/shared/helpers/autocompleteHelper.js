@@ -53,7 +53,15 @@ export async function selectFromAutocomplete(
     const input = autocompleteComponent.locator('input');
     if (await input.isVisible()) {
       await input.focus();
-      // TODO: this entire substring workaround can be removed when issue #80 is fixed
+      // WORKAROUND: This substring workaround is necessary due to a CSS positioning issue
+      // The MuiAutocomplete-listbox has an !important inset style that causes positioning problems
+      // in the development environment, making the dropdown not properly visible for tests.
+      // By typing only the first 4 characters, we can still trigger the autocomplete functionality
+      // and allow tests to work around the positioning issue. This workaround cannot be removed
+      // because the !important inset style is required for proper positioning in the production
+      // environment when the app runs within SuccessFactors. However, this solution is not perfect
+      // and may need to be redesigned as similar positioning issues are already appearing in
+      // production with other autocomplete components.
       await input.type(optionName.substring(0, 4));
       await page.waitForTimeout(500);
     }
