@@ -53,7 +53,8 @@ export async function selectFromAutocomplete(
     const input = autocompleteComponent.locator('input');
     if (await input.isVisible()) {
       await input.focus();
-      await input.type(optionName.substring(0, 3));
+      // TODO: this entire substring workaround can be removed when issue #80 is fixed
+      await input.type(optionName.substring(0, 4));
       await page.waitForTimeout(500);
     }
   } catch (error) {
