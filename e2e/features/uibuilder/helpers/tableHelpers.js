@@ -1,6 +1,9 @@
 import { expect } from '@playwright/test';
 import { dragAndVerifyComponent } from './componentHelpers';
-import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
+import {
+  selectFromAutocomplete,
+  selectFromEntitySelect,
+} from '../../../shared/helpers/autocompleteHelper';
 import { setupFlowConnection } from '../../datapicker/helpers/flowSetup';
 import fs from 'fs';
 
@@ -243,7 +246,7 @@ export async function configureTableColumn(
     await selectFromAutocomplete(page, 'entity-autocomplete', entity);
     await selectFromAutocomplete(page, 'property-selector', property);
   } else {
-    await selectFromAutocomplete(page, 'entity-select', entity, 0, {
+    await selectFromEntitySelect(page, 'entity-select', entity, 0, {
       useSection: false,
     });
 
@@ -270,7 +273,7 @@ export async function configureTableColumn(
       );
     }
 
-    await selectFromAutocomplete(page, 'property-select', property, 0, {
+    await selectFromEntitySelect(page, 'property-select', property, 0, {
       useSection: false,
     });
   }
