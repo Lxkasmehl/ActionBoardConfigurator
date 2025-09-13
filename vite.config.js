@@ -123,6 +123,28 @@ function popperPatchPlugin() {
 
           return patchedCode;
         }
+
+        // 7. Anpassung der flip.js - Imports entfernen und Variablen durch Strings ersetzen
+        if (id.includes('flip.js')) {
+          console.log(
+            'Patching flip.js - replacing imports with string literals',
+          );
+          let patchedCode = code;
+
+          // Imports von top, bottom, start, right, left, auto entfernen
+          patchedCode = patchedCode.replace(
+            /import \{ bottom, top, start, right, left, auto \} from ['"]\.\.\/enums\.js['"];?/,
+            "import { start, auto } from '../enums.js';",
+          );
+
+          // top, bottom, start, right, left, auto Variablen durch Strings ersetzen
+          patchedCode = patchedCode.replace(/\btop\b/g, "'top'");
+          patchedCode = patchedCode.replace(/\bbottom\b/g, "'bottom'");
+          patchedCode = patchedCode.replace(/\bright\b/g, "'right'");
+          patchedCode = patchedCode.replace(/\bleft\b/g, "'left'");
+
+          return patchedCode;
+        }
       }
       return null;
     },
