@@ -419,6 +419,6 @@ test.describe('Group Tests', () => {
     await page.getByTestId('sort-apply-button').click();
 
     // Verify sorting was applied by checking the first value
-    await verifySortApplied(page, sortableComponents.table, 'zzzzPETS');
+    await verifySortApplied(page, sortableComponents.table, 'zzzztal2');
   });
 });
