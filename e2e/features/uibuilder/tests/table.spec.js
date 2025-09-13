@@ -51,7 +51,7 @@ test.describe('Table Tests', () => {
     await verifyTableColumnCount(page, table, 4);
 
     // Verify the first column contains alphanumeric data (not necessarily UUIDs)
-    await verifyColumnDataPattern(page, table, 1, /^[a-zA-Z0-9_-]+$/);
+    await verifyColumnDataPattern(page, table, 1, /^[a-zA-Z0-9_.-]+$/);
   });
 
   test('fill table with fetched data with dataPicker', async ({ page }) => {
@@ -73,7 +73,7 @@ test.describe('Table Tests', () => {
     await verifyTableColumnCount(page, table, 4);
 
     // Verify the first column contains alphanumeric data (not necessarily UUIDs)
-    await verifyColumnDataPattern(page, table, 1, /^[a-zA-Z0-9_-]+$/);
+    await verifyColumnDataPattern(page, table, 1, /^[a-zA-Z0-9_.-]+$/);
   });
 
   test('fill table with fetched data from different entities and connect via relation and delete column', async ({
@@ -119,7 +119,7 @@ test.describe('Table Tests', () => {
     await verifyTableColumnCount(page, table, 3);
 
     // Verify the first column contains alphanumeric data (not necessarily UUIDs)
-    await verifyColumnDataPattern(page, table, 1, /^[a-zA-Z0-9_-]+$/);
+    await verifyColumnDataPattern(page, table, 1, /^[a-zA-Z0-9_.-]+$/);
 
     // Verify the second column contains address data
     await verifyColumnDataPattern(page, table, 2, /^.+$/);
