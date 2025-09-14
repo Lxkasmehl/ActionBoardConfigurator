@@ -75,6 +75,76 @@ function popperPatchPlugin() {
 
           return patchedCode;
         }
+
+        // 4. Anpassung der getOppositePlacement.js - hash object keys zu Strings konvertieren
+        if (id.includes('getOppositePlacement.js')) {
+          console.log(
+            'Patching getOppositePlacement.js - converting hash object keys to strings',
+          );
+          let patchedCode = code;
+
+          // hash object keys von Variablen zu String-Literalen konvertieren
+          patchedCode = patchedCode.replace(
+            /var hash = \{\s*left: 'right',\s*right: 'left',\s*bottom: 'top',\s*top: 'bottom'\s*\};/,
+            "var hash = {\n  'left': 'right',\n  'right': 'left',\n  'bottom': 'top',\n  'top': 'bottom'\n};",
+          );
+
+          return patchedCode;
+        }
+
+        // 5. Anpassung der Utility.js - replace function mit null/undefined check
+        if (id.includes('Utility.js') || id.includes('chunk-HYK4YD6D.js')) {
+          console.log(
+            'Patching Utility.js - adding null/undefined check to replace function',
+          );
+          let patchedCode = code;
+
+          // replace function mit null/undefined check erweitern
+          patchedCode = patchedCode.replace(
+            /function replace\(value, pattern, replacement\) \{\s*return value\.replace\(pattern, replacement\);\s*\}/,
+            "function replace(value, pattern, replacement) {\n  if (value == null || typeof value !== 'string') {\n    return value;\n  }\n  return value.replace(pattern, replacement);\n}",
+          );
+
+          return patchedCode;
+        }
+
+        // 6. Anpassung der eventListeners.js - getOppositePlacement mit null/undefined check
+        if (id.includes('eventListeners.js')) {
+          console.log(
+            'Patching eventListeners.js - adding null/undefined check to getOppositePlacement',
+          );
+          let patchedCode = code;
+
+          // getOppositePlacement function mit null/undefined check erweitern
+          patchedCode = patchedCode.replace(
+            /function getOppositePlacement\(placement\) \{[^}]*\}/,
+            "function getOppositePlacement(placement) {\n  if (placement == null || typeof placement !== 'string') {\n    return 'top';\n  }\n  var hash = {\n    'left': 'right',\n    'right': 'left',\n    'bottom': 'top',\n    'top': 'bottom'\n  };\n  return hash[placement] || 'top';\n}",
+          );
+
+          return patchedCode;
+        }
+
+        // 7. Anpassung der flip.js - Imports entfernen und Variablen durch Strings ersetzen
+        if (id.includes('flip.js')) {
+          console.log(
+            'Patching flip.js - replacing imports with string literals',
+          );
+          let patchedCode = code;
+
+          // Imports von top, bottom, start, right, left, auto entfernen
+          patchedCode = patchedCode.replace(
+            /import \{ bottom, top, start, right, left, auto \} from ['"]\.\.\/enums\.js['"];?/,
+            "import { start, auto } from '../enums.js';",
+          );
+
+          // top, bottom, start, right, left, auto Variablen durch Strings ersetzen
+          patchedCode = patchedCode.replace(/\btop\b/g, "'top'");
+          patchedCode = patchedCode.replace(/\bbottom\b/g, "'bottom'");
+          patchedCode = patchedCode.replace(/\bright\b/g, "'right'");
+          patchedCode = patchedCode.replace(/\bleft\b/g, "'left'");
+
+          return patchedCode;
+        }
       }
       return null;
     },

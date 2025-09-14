@@ -9,7 +9,8 @@ import {
   Menu,
   MenuItem,
   Input,
-  Autocomplete,
+  Select,
+  Option,
 } from '@mui/joy';
 import { COMPONENT_CONFIGS } from '../common/constants';
 import DraggableComponent from '../dragAndDrop/DraggableComponent';
@@ -172,18 +173,23 @@ export default function ComponentLibrary() {
       ) : (
         <Box>
           {showGroupSelector && (
-            <Autocomplete
-              options={Object.keys(componentGroups)}
+            <Select
+              placeholder='Select Group'
               onChange={(e, value) => {
                 if (value) {
                   dispatch(setGroupToEdit(value));
                 }
               }}
-              onBlur={() => setShowGroupSelector(false)}
-              placeholder='Select Group'
+              onClose={() => setShowGroupSelector(false)}
               sx={{ marginBottom: 2 }}
               data-testid='group-selector'
-            />
+            >
+              {Object.keys(componentGroups).map((groupName) => (
+                <Option key={groupName} value={groupName}>
+                  {groupName}
+                </Option>
+              ))}
+            </Select>
           )}
           <Dropdown>
             <MenuButton

@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
+import { selectFromSelect } from '../../../shared/helpers/selectHelper';
 
 // Helper function to create and verify a group of components
 export async function createAndVerifyGroup(page, components, groupName) {
@@ -55,7 +55,7 @@ export async function editGroup(page, groupName, buttonBarIndices) {
   await page.getByTestId('create-edit-group-button').click();
   await page.getByTestId('edit-existing-group-button').click();
 
-  await selectFromAutocomplete(page, 'group-selector', groupName, 0, {
+  await selectFromSelect(page, 'group-selector', groupName, 0, {
     useSection: false,
   });
 

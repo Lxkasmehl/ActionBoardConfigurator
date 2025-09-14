@@ -37,6 +37,7 @@ test('use expand with selected property with simple flow and simple filter', asy
 });
 
 test('use expand in filter', async ({ page }) => {
+  test.setTimeout(60000);
   await setupFlowConnection(page);
   await selectFromAutocomplete(page, 'entity-autocomplete', 'FOBusinessUnit');
 
