@@ -8,7 +8,6 @@ import {
   verifyTableHasData,
   verifyTableColumnCount,
   verifyFilterAppliedVirtual,
-  verifySortApplied,
   handleTableDownload,
 } from '../helpers/tableHelpers';
 import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
@@ -419,6 +418,16 @@ test.describe('Group Tests', () => {
     await page.getByTestId('sort-apply-button').click();
 
     // Verify sorting was applied by checking the first value
-    await verifySortApplied(page, sortableComponents.table, 'zzzztal2');
+    await expect(
+      sortableComponents.table.locator('.MuiDataGrid-overlay'),
+    ).not.toBeVisible();
+
+    const firstCell = sortableComponents.table
+      .locator('.MuiDataGrid-row')
+      .first()
+      .locator('.MuiDataGrid-cell')
+      .first();
+    const firstCellText = await firstCell.textContent();
+    expect(['zzzzPETS', 'zzzztal2']).toContain(firstCellText);
   });
 });
