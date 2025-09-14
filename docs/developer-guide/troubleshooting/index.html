@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.8.0">
 <title data-rh="true">Troubleshooting Guide | WebAppConfigurator</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://lxkasmehl.github.io/WebAppConfigurator/img/docusaurus-social-card.jpg"><meta data-rh="true" name="twitter:image" content="https://lxkasmehl.github.io/WebAppConfigurator/img/docusaurus-social-card.jpg"><meta data-rh="true" property="og:url" content="https://lxkasmehl.github.io/WebAppConfigurator/docs/developer-guide/troubleshooting/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Troubleshooting Guide | WebAppConfigurator"><meta data-rh="true" name="description" content="This guide helps you resolve common issues with the WebAppConfigurator."><meta data-rh="true" property="og:description" content="This guide helps you resolve common issues with the WebAppConfigurator."><link data-rh="true" rel="icon" href="https://www.pentoslabs.com/wp-content/uploads/2020/03/pentos_labs_favicon.jpg"><link data-rh="true" rel="canonical" href="https://lxkasmehl.github.io/WebAppConfigurator/docs/developer-guide/troubleshooting/"><link data-rh="true" rel="alternate" href="https://lxkasmehl.github.io/WebAppConfigurator/docs/developer-guide/troubleshooting/" hreflang="en"><link data-rh="true" rel="alternate" href="https://lxkasmehl.github.io/WebAppConfigurator/docs/developer-guide/troubleshooting/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Troubleshooting Guide","item":"https://lxkasmehl.github.io/WebAppConfigurator/docs/developer-guide/troubleshooting"}]}</script><link rel="stylesheet" href="/WebAppConfigurator/assets/css/styles.4a0cf8b4.css">
-<script src="/WebAppConfigurator/assets/js/runtime~main.b06d2b4d.js" defer="defer"></script>
+<script src="/WebAppConfigurator/assets/js/runtime~main.ab6d1fff.js" defer="defer"></script>
 <script src="/WebAppConfigurator/assets/js/main.24f872ca.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -57,6 +57,26 @@
 <li>Verify styles</li>
 <li>Test responsiveness</li>
 <li>Check components</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="autocomplete-positioning-issues">Autocomplete Positioning Issues<a href="#autocomplete-positioning-issues" class="hash-link" aria-label="Direct link to Autocomplete Positioning Issues" title="Direct link to Autocomplete Positioning Issues">​</a></h4>
+<p>The application uses a CSS workaround for MUI Autocomplete positioning that can cause issues:</p>
+<p><strong>Problem</strong>: MUI Autocomplete dropdowns may not display correctly in different environments due to conflicting CSS positioning rules.</p>
+<p><strong>Root Cause</strong>: The app requires an <code>!important inset</code> style for proper positioning when running within SuccessFactors in production, but this causes positioning issues in the development environment where dropdowns become invisible to automated tests.</p>
+<p><strong>Current Workaround</strong>:</p>
+<ul>
+<li>The test suite uses a substring approach (typing only first 4 characters) to trigger autocomplete functionality</li>
+<li>This allows tests to work around the positioning issues without removing the required CSS</li>
+</ul>
+<p><strong>Known Limitations</strong>:</p>
+<ul>
+<li>This solution is not perfect and may need redesign</li>
+<li>Similar positioning issues are already appearing in production with other autocomplete components</li>
+<li>The workaround indicates a need for a more robust solution</li>
+</ul>
+<p><strong>Files Affected</strong>:</p>
+<ul>
+<li><code>src/index.css</code> - Contains the <code>!important inset</code> style</li>
+<li><code>e2e/shared/helpers/autocompleteHelper.js</code> - Contains the substring workaround</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="debugging">Debugging<a href="#debugging" class="hash-link" aria-label="Direct link to Debugging" title="Direct link to Debugging">​</a></h2>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="development-tools">Development Tools<a href="#development-tools" class="hash-link" aria-label="Direct link to Development Tools" title="Direct link to Development Tools">​</a></h3>
