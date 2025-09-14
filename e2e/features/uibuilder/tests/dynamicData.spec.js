@@ -45,17 +45,8 @@ test.describe('Dynamic Data Tests', () => {
       'entity-autocomplete',
       'InterviewOverallAssessment',
     );
-    await setupFilterCondition(
-      page,
-      'interviewOverallAssessmentId',
-      '=',
-      '21',
-    );
-    await selectFromAutocomplete(
-      page,
-      'property-selector',
-      'averageRating',
-    );
+    await setupFilterCondition(page, 'interviewOverallAssessmentId', '=', '21');
+    await selectFromAutocomplete(page, 'property-selector', 'averageRating');
 
     await page.getByTestId('confirm-selection-button').click();
 
@@ -86,11 +77,7 @@ test.describe('Dynamic Data Tests', () => {
       true,
     );
 
-    await selectFromAutocomplete(
-      page,
-      'entity-autocomplete',
-      'Candidate',
-    );
+    await selectFromAutocomplete(page, 'entity-autocomplete', 'Candidate');
     await setupFilterCondition(page, 'candidateId', '=', '81');
     await selectFromAutocomplete(page, 'property-selector', 'address');
 

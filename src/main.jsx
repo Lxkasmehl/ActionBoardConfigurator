@@ -1,18 +1,21 @@
-// src/index.js
+// src/index.tsx|js
 import ReactDOM from 'react-dom/client';
-import { Provider } from 'react-redux';
 import { StrictMode } from 'react';
-import store from './redux/store';
+import { Provider } from 'react-redux';
 import { ReactFlowProvider } from '@xyflow/react';
 import { RouterProvider } from 'react-router-dom';
-import { router } from './routes/index';
+import store from './redux/store';
+import { router } from './routes';
 
-ReactDOM.createRoot(document.getElementById('pidgetReactContainer')).render(
-  <ReactFlowProvider>
-    <StrictMode>
-      <Provider store={store}>
-        <RouterProvider router={router} />
-      </Provider>
-    </StrictMode>
-  </ReactFlowProvider>,
-);
+const container = document.getElementById('pidgetReactContainer');
+if (container) {
+  ReactDOM.createRoot(container).render(
+    <ReactFlowProvider>
+      <StrictMode>
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      </StrictMode>
+    </ReactFlowProvider>,
+  );
+}

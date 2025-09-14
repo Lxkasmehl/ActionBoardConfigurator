@@ -30,6 +30,7 @@
     "@mui/x-data-grid": "^7.28.3",
     "@mui/x-data-grid-pro": "^7.28.3",
     "@mui/x-date-pickers": "^7.27.1",
+    "@popperjs/core": "^2.11.8",
     "@reduxjs/toolkit": "^2.5.1",
     "@tanstack/react-virtual": "^3.13.6",
     "@xyflow/react": "^12.4.3",
