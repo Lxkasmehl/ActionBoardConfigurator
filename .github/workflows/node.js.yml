@@ -25,10 +25,23 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - name: Install AdminView dependencies
+        working-directory: ./AdminView
+        run: npm ci --legacy-peer-deps
+      - name: Install CustomerView dependencies
+        working-directory: ./CustomerView
+        run: npm ci --legacy-peer-deps
       - name: Restore SSL key.pem and cert.pem
+        working-directory: ./AdminView
         run: |
           echo "${{ secrets.SSL_KEY_PEM }}" > key.pem
           echo "${{ secrets.SSL_CERT_PEM }}" > cert.pem
-      - run: npm run build --if-present
-      - run: NODE_OPTIONS=--experimental-vm-modules npm run test:unit
+      - name: Build AdminView
+        working-directory: ./AdminView
+        run: npm run build
+      - name: Build CustomerView
+        working-directory: ./CustomerView
+        run: npm run build
+      - name: Run AdminView unit tests
+        working-directory: ./AdminView
+        run: NODE_OPTIONS=--experimental-vm-modules npm run test:unit
