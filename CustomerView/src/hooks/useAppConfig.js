@@ -22,33 +22,24 @@ export const useAppConfig = (appId = '01') => {
         setLoadingState(true);
         setErrorState(null);
 
-        let docRef;
-        let appConfig;
-
-        if (actualAppId === '01') {
-          // Load from legacy apps collection
-          docRef = doc(db, 'apps', actualAppId);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            appConfig = docSnap.data();
-          } else {
-            throw new Error('App configuration not found');
-          }
-        } else {
-          // Load from new configs collection
-          docRef = doc(db, 'configs', actualAppId);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            appConfig = docSnap.data();
-          } else {
-            throw new Error('Configuration not found');
-          }
+        if (!actualAppId || actualAppId === '01') {
+          // No config selected or legacy config - show empty state
+          setConfig(null);
+          dispatch(setAppConfig(null));
+          return;
         }
 
-        setConfig(appConfig);
-        dispatch(setAppConfig(appConfig));
+        // Load from configs collection
+        const docRef = doc(db, 'configs', actualAppId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const appConfig = docSnap.data();
+          setConfig(appConfig);
+          dispatch(setAppConfig(appConfig));
+        } else {
+          throw new Error('Configuration not found');
+        }
       } catch (err) {
         console.error('Error loading app config:', err);
         setErrorState(err.message);

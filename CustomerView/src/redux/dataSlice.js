@@ -19,6 +19,20 @@ const dataSlice = createSlice({
   reducers: {
     setAppConfig: (state, action) => {
       const config = action.payload;
+
+      if (config === null || config === undefined) {
+        // Reset to initial state when no config
+        state.components = [];
+        state.columnData = {};
+        state.tableColumns = {};
+        state.componentGroups = [];
+        state.tableData = {};
+        state.visibleColumns = {};
+        state.tableConfigEntries = {};
+        state.appConfig = null;
+        return;
+      }
+
       state.components = config.components || [];
       state.columnData = config.columnData || {};
       state.tableColumns = config.tableColumns || {};

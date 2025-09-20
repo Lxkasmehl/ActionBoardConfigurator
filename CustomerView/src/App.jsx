@@ -1,20 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Typography, CircularProgress, Alert } from '@mui/joy';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { CssVarsProvider } from '@mui/joy/styles';
 import store from './redux/store';
 import { useAppConfig } from './hooks/useAppConfig';
 import ComponentRenderer from './components/ComponentRenderer';
-import ConfigSelector from './components/ConfigSelector';
+import ConfigSelectorFloating from './components/ConfigSelectorFloating';
+import NoConfigSelected from './components/NoConfigSelected';
 import { setVisibleColumns } from './redux/uiStateSlice';
 
 function AppContent() {
   const { config, loading, error } = useAppConfig();
   const dispatch = useDispatch();
-  const components = useSelector((state) => state.data.components);
-  const visibleColumns = useSelector((state) => state.data.visibleColumns);
-  const columnData = useSelector((state) => state.data.columnData);
-  const tableColumns = useSelector((state) => state.data.tableColumns);
+  const selectedConfigId = useSelector(
+    (state) => state.configSelector.selectedConfigId
+  );
+  const [showConfigSelector, setShowConfigSelector] = useState(false);
+
+  // Get components from config, not from Redux store
+  const components = config?.components || [];
+  const visibleColumns = config?.visibleColumns || {};
+  const columnData = config?.columnData || {};
+  const tableColumns = config?.tableColumns || {};
 
   useEffect(() => {
     // Initialize visibleColumns in Redux store
@@ -64,31 +71,30 @@ function AppContent() {
     );
   }
 
-  if (!config || !components || components.length === 0) {
+  // No config selected
+  if (!selectedConfigId || !config || components.length === 0) {
     return (
-      <Box sx={{ p: 2 }}>
-        <Alert color='warning' variant='soft'>
-          <Typography level='title-sm'>No configuration found</Typography>
-          <Typography level='body-sm'>
-            Please configure your application in the admin panel first.
-          </Typography>
-        </Alert>
-      </Box>
+      <>
+        <ConfigSelectorFloating />
+        <NoConfigSelected />
+      </>
     );
   }
 
   return (
-    <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: 2 }}>
-      <ConfigSelector />
-      {components.map((component, index) => (
-        <ComponentRenderer
-          key={component.id || index}
-          component={component}
-          onFilterChange={handleFilterChange}
-          onButtonClick={handleButtonClick}
-        />
-      ))}
-    </Box>
+    <>
+      <ConfigSelectorFloating />
+      <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: 2 }}>
+        {components.map((component, index) => (
+          <ComponentRenderer
+            key={component.id || index}
+            component={component}
+            onFilterChange={handleFilterChange}
+            onButtonClick={handleButtonClick}
+          />
+        ))}
+      </Box>
+    </>
   );
 }
 

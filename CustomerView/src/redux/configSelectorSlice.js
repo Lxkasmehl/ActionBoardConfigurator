@@ -41,8 +41,12 @@ export const loadAvailableConfigs = () => async (dispatch) => {
     const configs = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       name: doc.data().name,
-      createdAt: doc.data().createdAt?.toDate?.() || new Date(),
-      lastModified: doc.data().lastModified?.toDate?.() || new Date(),
+      createdAt:
+        doc.data().createdAt?.toDate?.()?.toISOString() ||
+        new Date().toISOString(),
+      lastModified:
+        doc.data().lastModified?.toDate?.()?.toISOString() ||
+        new Date().toISOString(),
     }));
 
     dispatch(setAvailableConfigs(configs));
