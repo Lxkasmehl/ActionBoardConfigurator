@@ -6,7 +6,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { RouterProvider } from 'react-router-dom';
 import store from './redux/store';
 import { router } from './routes';
-import '../firebase';
+import './firebase';
 
 const container = document.getElementById('pidgetReactContainer');
 if (container) {

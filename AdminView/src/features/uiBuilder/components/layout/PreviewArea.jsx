@@ -6,7 +6,7 @@ import EmptyState from './EmptyState';
 import TrashBin from './TrashBin';
 import ConfigManagement from './ConfigManagement';
 import { useSelector } from 'react-redux';
-import { db } from '../../../../../firebase';
+import { db } from '../../../../firebase';
 import { setDoc, doc } from 'firebase/firestore';
 
 export default function PreviewArea({ activeDragData, onTrashOver }) {
