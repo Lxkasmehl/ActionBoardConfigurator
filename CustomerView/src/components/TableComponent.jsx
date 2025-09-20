@@ -9,8 +9,28 @@ const theme = createTheme({
     MuiDataGrid: {
       styleOverrides: {
         root: {
-          border: '1px solid #e0e0e0',
-          borderRadius: '8px',
+          border: '1px solid rgba(224, 224, 224, 1)',
+        },
+        cell: {
+          borderRight: '1px solid rgba(224, 224, 224, 1)',
+          '&:last-child': {
+            borderRight: 'none',
+          },
+        },
+        columnHeaders: {
+          borderBottom: '1px solid rgba(224, 224, 224, 1)',
+          borderTop: '1px solid rgba(224, 224, 224, 1)',
+        },
+        columnHeader: {
+          borderRight: '1px solid rgba(224, 224, 224, 1)',
+          '&:last-child': {
+            borderRight: 'none',
+          },
+        },
+        row: {
+          '&:last-child .MuiDataGrid-cell': {
+            borderBottom: 'none',
+          },
         },
       },
     },
@@ -151,42 +171,20 @@ export default function TableComponent({ component }) {
 
   return (
     <Box sx={{ marginBottom: 2 }}>
-      {title && (
-        <Typography level='h4' sx={{ marginBottom: 2 }}>
-          {title}
-        </Typography>
-      )}
       <ThemeProvider theme={theme}>
-        <DataGridPro
-          rows={data}
-          columns={displayColumns}
-          loading={loading}
-          pagination={enablePagination}
-          paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
-          pageSizeOptions={[10, 25, 50, 100]}
-          sortingMode={enableSorting ? 'client' : 'server'}
-          onSortModelChange={handleSortModelChange}
-          filterMode={enableFiltering ? 'client' : 'server'}
-          onFilterModelChange={handleFilterModelChange}
-          disableColumnFilter={!enableFiltering}
-          disableColumnSorting={!enableSorting}
-          autoHeight
-          getRowId={(row) => row.id}
-          disableRowSelectionOnClick
-          sx={{
-            '& .MuiDataGrid-cell': {
-              borderRight: '1px solid #e0e0e0',
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: '#f5f5f5',
-              fontWeight: 'bold',
-            },
-            '& .MuiDataGrid-row': {
-              minHeight: '48px',
-            },
-          }}
-        />
+        <div style={{ height: 500, width: '100%', overflow: 'auto' }}>
+          <DataGridPro
+            rows={data}
+            columns={displayColumns}
+            loading={loading}
+            disableRowSelectionOnClick
+            disableColumnReorder={true}
+            experimentalFeatures={{ newEditingApi: true }}
+            hideFooter
+            disableColumnSorting
+            disableColumnMenu
+          />
+        </div>
       </ThemeProvider>
     </Box>
   );
