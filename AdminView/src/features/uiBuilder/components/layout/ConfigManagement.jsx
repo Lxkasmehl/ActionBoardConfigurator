@@ -52,10 +52,9 @@ export default function ConfigManagement() {
     lastSaved,
   } = useSelector((state) => state.configManagement);
 
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [configName, setConfigName] = useState('');
-  const [isNewConfig, setIsNewConfig] = useState(true);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedConfigId, setSelectedConfigId] = useState(null);
 
@@ -67,11 +66,25 @@ export default function ConfigManagement() {
     if (!configName.trim()) return;
 
     try {
-      await dispatch(saveConfig(configName, isNewConfig)).unwrap();
-      setSaveDialogOpen(false);
+      await dispatch(saveConfig(configName, true)).unwrap(); // Always new config for Save As
+      setSaveAsDialogOpen(false);
       setConfigName('');
     } catch (error) {
       console.error('Failed to save config:', error);
+    }
+  };
+
+  const handleSaveCurrent = async () => {
+    if (currentConfigId) {
+      // Save over existing config
+      try {
+        await dispatch(saveConfig(currentConfigName, false)).unwrap();
+      } catch (error) {
+        console.error('Failed to save config:', error);
+      }
+    } else {
+      // No current config, open Save As dialog
+      setSaveAsDialogOpen(true);
     }
   };
 
@@ -93,18 +106,9 @@ export default function ConfigManagement() {
     }
   };
 
-  const handleSaveAsNew = () => {
-    setIsNewConfig(true);
+  const handleSaveAs = () => {
     setConfigName('');
-    setSaveDialogOpen(true);
-  };
-
-  const handleSaveOverwrite = () => {
-    if (currentConfigId) {
-      setIsNewConfig(false);
-      setConfigName(currentConfigName || '');
-      setSaveDialogOpen(true);
-    }
+    setSaveAsDialogOpen(true);
   };
 
   const handleMenuOpen = (event, configId) => {
@@ -137,25 +141,23 @@ export default function ConfigManagement() {
         variant='solid'
         color='primary'
         startDecorator={<Save />}
-        onClick={handleSaveAsNew}
+        onClick={handleSaveCurrent}
         disabled={isLoading}
         size='sm'
       >
-        Save As New
+        Save
       </Button>
 
-      {currentConfigId && (
-        <Button
-          variant='outlined'
-          color='primary'
-          startDecorator={<Save />}
-          onClick={handleSaveOverwrite}
-          disabled={isLoading}
-          size='sm'
-        >
-          Save Overwrite
-        </Button>
-      )}
+      <Button
+        variant='outlined'
+        color='primary'
+        startDecorator={<Save />}
+        onClick={handleSaveAs}
+        disabled={isLoading}
+        size='sm'
+      >
+        Save As
+      </Button>
 
       {/* Load Config Button */}
       <Button
@@ -197,11 +199,12 @@ export default function ConfigManagement() {
       {/* Loading Indicator */}
       {isLoading && <CircularProgress size='sm' />}
 
-      {/* Save Dialog */}
-      <Dialog open={saveDialogOpen} onClose={() => setSaveDialogOpen(false)}>
-        <DialogTitle>
-          {isNewConfig ? 'Save New Configuration' : 'Save Configuration'}
-        </DialogTitle>
+      {/* Save As Dialog */}
+      <Dialog
+        open={saveAsDialogOpen}
+        onClose={() => setSaveAsDialogOpen(false)}
+      >
+        <DialogTitle>Save As New Configuration</DialogTitle>
         <DialogContent>
           <FormControl>
             <FormLabel>Configuration Name</FormLabel>
@@ -215,12 +218,12 @@ export default function ConfigManagement() {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSaveDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setSaveAsDialogOpen(false)}>Cancel</Button>
           <Button
             onClick={handleSaveConfig}
             disabled={!configName.trim() || isLoading}
           >
-            {isNewConfig ? 'Save New' : 'Save Overwrite'}
+            Save As
           </Button>
         </DialogActions>
       </Dialog>
@@ -229,14 +232,32 @@ export default function ConfigManagement() {
       <Dialog
         open={loadDialogOpen}
         onClose={() => setLoadDialogOpen(false)}
-        maxWidth='sm'
+        maxWidth='md'
         fullWidth
+        PaperProps={{
+          sx: { zIndex: 1300 }, // Ensure dialog is above other elements
+        }}
       >
         <DialogTitle>Available Configurations</DialogTitle>
         <DialogContent>
           <List>
             {availableConfigs.map((config) => (
-              <ListItem key={config.id}>
+              <ListItem
+                key={config.id}
+                button
+                onClick={() => {
+                  handleLoadConfig(config.id);
+                  setLoadDialogOpen(false);
+                }}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                  borderRadius: 1,
+                  mb: 0.5,
+                }}
+              >
                 <ListItemText
                   primary={config.name}
                   secondary={`Created: ${formatDate(config.createdAt)} • Modified: ${formatDate(config.lastModified)}`}
@@ -244,7 +265,11 @@ export default function ConfigManagement() {
                 <ListItemSecondaryAction>
                   <IconButton
                     edge='end'
-                    onClick={(e) => handleMenuOpen(e, config.id)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the list item click
+                      handleMenuOpen(e, config.id);
+                    }}
+                    sx={{ zIndex: 1400 }} // Ensure menu button is above dialog
                   >
                     <MoreVert />
                   </IconButton>
@@ -263,25 +288,19 @@ export default function ConfigManagement() {
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
         onClose={handleMenuClose}
+        sx={{ zIndex: 1500 }} // Ensure menu is above dialog
+        MenuListProps={{
+          sx: { zIndex: 1500 },
+        }}
       >
-        <MenuItem
-          onClick={() => {
-            handleLoadConfig(selectedConfigId);
-            handleMenuClose();
-          }}
-        >
-          <Edit sx={{ mr: 1 }} />
-          Load
-        </MenuItem>
         <MenuItem
           onClick={() => {
             const config = availableConfigs.find(
               (c) => c.id === selectedConfigId,
             );
             if (config) {
-              setIsNewConfig(true);
               setConfigName(`${config.name} (Copy)`);
-              setSaveDialogOpen(true);
+              setSaveAsDialogOpen(true);
               setLoadDialogOpen(false);
             }
             handleMenuClose();
