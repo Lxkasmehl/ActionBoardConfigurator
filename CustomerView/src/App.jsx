@@ -5,6 +5,7 @@ import { CssVarsProvider } from '@mui/joy/styles';
 import store from './redux/store';
 import { useAppConfig } from './hooks/useAppConfig';
 import ComponentRenderer from './components/ComponentRenderer';
+import ConfigSelector from './components/ConfigSelector';
 import { setVisibleColumns } from './redux/uiStateSlice';
 
 function AppContent() {
@@ -78,6 +79,7 @@ function AppContent() {
 
   return (
     <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: 2 }}>
+      <ConfigSelector />
       {components.map((component, index) => (
         <ComponentRenderer
           key={component.id || index}

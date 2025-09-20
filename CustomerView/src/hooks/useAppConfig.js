@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setAppConfig, setLoading, setError } from '../redux/dataSlice';
 
 export const useAppConfig = (appId = '01') => {
@@ -10,22 +10,45 @@ export const useAppConfig = (appId = '01') => {
   const [error, setErrorState] = useState(null);
   const dispatch = useDispatch();
 
+  // Get selected config ID from Redux store
+  const selectedConfigId = useSelector(
+    (state) => state.configSelector.selectedConfigId
+  );
+  const actualAppId = selectedConfigId || appId;
+
   useEffect(() => {
     const loadConfig = async () => {
       try {
         setLoadingState(true);
         setErrorState(null);
 
-        const docRef = doc(db, 'apps', appId);
-        const docSnap = await getDoc(docRef);
+        let docRef;
+        let appConfig;
 
-        if (docSnap.exists()) {
-          const appConfig = docSnap.data();
-          setConfig(appConfig);
-          dispatch(setAppConfig(appConfig));
+        if (actualAppId === '01') {
+          // Load from legacy apps collection
+          docRef = doc(db, 'apps', actualAppId);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            appConfig = docSnap.data();
+          } else {
+            throw new Error('App configuration not found');
+          }
         } else {
-          throw new Error('App configuration not found');
+          // Load from new configs collection
+          docRef = doc(db, 'configs', actualAppId);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            appConfig = docSnap.data();
+          } else {
+            throw new Error('Configuration not found');
+          }
         }
+
+        setConfig(appConfig);
+        dispatch(setAppConfig(appConfig));
       } catch (err) {
         console.error('Error loading app config:', err);
         setErrorState(err.message);
@@ -37,7 +60,7 @@ export const useAppConfig = (appId = '01') => {
     };
 
     loadConfig();
-  }, [appId, dispatch]);
+  }, [actualAppId, dispatch]);
 
   return { config, loading, error };
 };

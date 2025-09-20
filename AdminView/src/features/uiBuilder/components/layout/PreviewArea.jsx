@@ -4,6 +4,7 @@ import { useDroppable } from '@dnd-kit/core';
 import SortableComponent from '../dragAndDrop/SortableComponent';
 import EmptyState from './EmptyState';
 import TrashBin from './TrashBin';
+import ConfigManagement from './ConfigManagement';
 import { useSelector } from 'react-redux';
 import { db } from '../../../../../firebase';
 import { setDoc, doc } from 'firebase/firestore';
@@ -89,8 +90,9 @@ export default function PreviewArea({ activeDragData, onTrashOver }) {
         tableConfigEntries,
       });
 
+      // For backward compatibility, still save to apps/01
       await setDoc(doc(db, 'apps', '01'), cleanedData);
-      console.log('Successfully exported to Firebase');
+      console.log('Successfully exported to Firebase (legacy apps/01)');
     } catch (error) {
       console.error('Error exporting to Firebase:', error);
       // You could add user notification here if needed
@@ -113,17 +115,11 @@ export default function PreviewArea({ activeDragData, onTrashOver }) {
           justifyContent: 'space-between',
           alignItems: 'center',
           mb: 2,
+          mx: 2,
         }}
       >
         <Typography level='h4'>Preview</Typography>
-        <Button
-          variant='solid'
-          color='primary'
-          onClick={handleExport}
-          disabled={components.length === 0}
-        >
-          Export Website
-        </Button>
+        <ConfigManagement />
       </Box>
 
       <Box

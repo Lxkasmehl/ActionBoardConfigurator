@@ -185,6 +185,17 @@ const uiBuilderSlice = createSlice({
         configEntries,
       };
     },
+    loadConfigData: (state, action) => {
+      const configData = action.payload;
+      state.components = configData.components || [];
+      state.columnData = configData.columnData || {};
+      state.tableColumns = configData.tableColumns || {};
+      state.componentGroups = configData.componentGroups || {};
+      state.tableData = configData.tableData || {};
+      state.visibleColumns = configData.visibleColumns || {};
+      state.tableConfigEntries = configData.tableConfigEntries || {};
+      state.textConfigEntries = configData.textConfigEntries || {};
+    },
   },
 });
 
@@ -214,6 +225,7 @@ export const {
   updateComponentProps,
   setTextConfigEntries,
   setTableConfigEntries,
+  loadConfigData,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;
