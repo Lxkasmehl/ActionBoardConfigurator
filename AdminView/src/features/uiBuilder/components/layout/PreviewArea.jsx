@@ -1,4 +1,4 @@
-import { Box, Card, Typography, Button } from '@mui/joy';
+import { Box, Card, Typography, Button, Chip } from '@mui/joy';
 import PropTypes from 'prop-types';
 import { useDroppable } from '@dnd-kit/core';
 import SortableComponent from '../dragAndDrop/SortableComponent';
@@ -8,6 +8,7 @@ import ConfigManagement from './ConfigManagement';
 import { useSelector } from 'react-redux';
 import { db } from '../../../../firebase';
 import { setDoc, doc } from 'firebase/firestore';
+import { FolderOpen } from '@mui/icons-material';
 
 export default function PreviewArea({ activeDragData, onTrashOver }) {
   const isInCreateGroupMode = useSelector(
@@ -24,6 +25,9 @@ export default function PreviewArea({ activeDragData, onTrashOver }) {
   const visibleColumns = useSelector((state) => state.uiBuilder.visibleColumns);
   const tableConfigEntries = useSelector(
     (state) => state.uiBuilder.tableConfigEntries,
+  );
+  const currentConfigName = useSelector(
+    (state) => state.configManagement.currentConfigName,
   );
   const { setNodeRef, isOver } = useDroppable({
     id: 'preview-area',
@@ -118,7 +122,17 @@ export default function PreviewArea({ activeDragData, onTrashOver }) {
           mx: 2,
         }}
       >
-        <Typography level='h4'>Preview</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography level='h4'>Preview</Typography>
+          {currentConfigName && (
+            <>
+              <Typography level='h4'>·</Typography>
+              <Chip color='primary' variant='soft' size='lg'>
+                {currentConfigName}
+              </Chip>
+            </>
+          )}
+        </Box>
         <ConfigManagement />
       </Box>
 

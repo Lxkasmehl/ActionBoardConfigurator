@@ -130,13 +130,6 @@ export default function ConfigManagement() {
     <Box
       sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}
     >
-      {/* Current Config Info */}
-      {currentConfigId && (
-        <Chip color='primary' variant='soft' startDecorator={<FolderOpen />}>
-          {currentConfigName}
-        </Chip>
-      )}
-
       {/* Save Buttons */}
       <Button
         variant='solid'
