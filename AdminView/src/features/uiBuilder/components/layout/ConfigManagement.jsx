@@ -71,6 +71,7 @@ export default function ConfigManagement() {
       setConfigName('');
     } catch (error) {
       console.error('Failed to save config:', error);
+      // Error is already set in the Redux state, so it will be displayed
     }
   };
 

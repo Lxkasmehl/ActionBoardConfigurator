@@ -35,19 +35,23 @@ export const loadAvailableConfigs = () => async (dispatch) => {
     dispatch(setError(null));
 
     const configsRef = collection(db, 'configs');
-    const q = query(configsRef, orderBy('createdAt', 'desc'));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(configsRef);
 
-    const configs = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      name: doc.data().name,
-      createdAt:
-        doc.data().createdAt?.toDate?.()?.toISOString() ||
-        new Date().toISOString(),
-      lastModified:
-        doc.data().lastModified?.toDate?.()?.toISOString() ||
-        new Date().toISOString(),
-    }));
+    const configs = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name || 'Unnamed Config',
+        createdAt:
+          data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        lastModified:
+          data.lastModified?.toDate?.()?.toISOString() ||
+          new Date().toISOString(),
+      };
+    });
+
+    // Sort by creation date (newest first)
+    configs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     dispatch(setAvailableConfigs(configs));
   } catch (error) {

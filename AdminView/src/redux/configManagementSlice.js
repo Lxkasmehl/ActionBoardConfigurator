@@ -55,15 +55,20 @@ export const loadAvailableConfigs = () => async (dispatch) => {
     dispatch(setError(null));
 
     const configsRef = collection(db, 'configs');
-    const q = query(configsRef, orderBy('createdAt', 'desc'));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(configsRef);
 
-    const configs = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      name: doc.data().name,
-      createdAt: doc.data().createdAt?.toDate?.() || new Date(),
-      lastModified: doc.data().lastModified?.toDate?.() || new Date(),
-    }));
+    const configs = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name || 'Unnamed Config',
+        createdAt: data.createdAt?.toDate?.() || new Date(),
+        lastModified: data.lastModified?.toDate?.() || new Date(),
+      };
+    });
+
+    // Sort by creation date (newest first)
+    configs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     dispatch(setAvailableConfigs(configs));
   } catch (error) {
@@ -120,7 +125,19 @@ export const saveConfig =
       dispatch(setError(null));
 
       const state = getState();
-      const { uiBuilder } = state;
+      const { uiBuilder, configManagement } = state;
+
+      // Check for duplicate names if creating new config
+      if (isNewConfig) {
+        const existingConfig = configManagement.availableConfigs.find(
+          (config) => config.name.toLowerCase() === configName.toLowerCase(),
+        );
+        if (existingConfig) {
+          throw new Error(
+            `A configuration with the name "${configName}" already exists`,
+          );
+        }
+      }
 
       // Prepare config data
       const configData = {
@@ -143,7 +160,7 @@ export const saveConfig =
         configData.createdAt = new Date();
       } else {
         // Update existing config
-        configId = state.configManagement.currentConfigId;
+        configId = configManagement.currentConfigId;
         if (!configId) {
           throw new Error('No current config to update');
         }
