@@ -152,12 +152,24 @@ function popperPatchPlugin() {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react(), popperPatchPlugin()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    popperPatchPlugin(),
+    {
+      name: 'set-env-attribute',
+      transformIndexHtml(html) {
+        return html.replace('<html', `<html data-env="${mode}"`);
+      },
+    },
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+  },
+  define: {
+    __IS_PRODUCTION__: mode === 'production',
   },
   build: {
     minify: false,
@@ -185,4 +197,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
