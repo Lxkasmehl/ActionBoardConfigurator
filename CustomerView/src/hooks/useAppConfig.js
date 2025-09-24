@@ -38,7 +38,9 @@ export const useAppConfig = (appId = '01') => {
           setConfig(appConfig);
           dispatch(setAppConfig(appConfig));
         } else {
-          throw new Error('Configuration not found');
+          throw new Error(
+            `Configuration "${actualAppId}" not found. Please check the URL parameter or select a valid configuration.`
+          );
         }
       } catch (err) {
         console.error('Error loading app config:', err);

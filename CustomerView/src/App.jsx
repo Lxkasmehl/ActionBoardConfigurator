@@ -5,8 +5,9 @@ import { CssVarsProvider } from '@mui/joy/styles';
 import store from './redux/store';
 import { useAppConfig } from './hooks/useAppConfig';
 import ComponentRenderer from './components/ComponentRenderer';
-import ConfigSelectorFloating from './components/ConfigSelectorFloating';
 import NoConfigSelected from './components/NoConfigSelected';
+import ConfigError from './components/ConfigError';
+import ConfigUrlHandler from './components/ConfigUrlHandler';
 import { setVisibleColumns } from './redux/uiStateSlice';
 
 function AppContent() {
@@ -62,12 +63,10 @@ function AppContent() {
 
   if (error) {
     return (
-      <Box sx={{ p: 2 }}>
-        <Alert color='danger' variant='soft'>
-          <Typography level='title-sm'>Error loading configuration</Typography>
-          <Typography level='body-sm'>{error}</Typography>
-        </Alert>
-      </Box>
+      <>
+        <ConfigUrlHandler />
+        <ConfigError error={error} configId={selectedConfigId} />
+      </>
     );
   }
 
@@ -75,7 +74,7 @@ function AppContent() {
   if (!selectedConfigId || !config || components.length === 0) {
     return (
       <>
-        <ConfigSelectorFloating />
+        <ConfigUrlHandler />
         <NoConfigSelected />
       </>
     );
@@ -83,7 +82,7 @@ function AppContent() {
 
   return (
     <>
-      <ConfigSelectorFloating />
+      <ConfigUrlHandler />
       <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: 2 }}>
         {components.map((component, index) => (
           <ComponentRenderer
