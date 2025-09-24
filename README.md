@@ -137,7 +137,15 @@ ActionBoardConfigurator/
 │   │   ├── hooks/               # Custom hooks
 │   │   ├── redux/               # Redux store for runtime
 │   │   └── utils/               # Utility functions
+│   ├── e2e/                     # CustomerView E2E tests
+│   │   ├── helpers/             # Test helper functions
+│   │   └── tests/               # Test files
+│   ├── playwright.config.js     # Playwright configuration
 │   └── package.json             # CustomerView dependencies
+├── e2e-integration/             # Integration testing
+│   ├── tests/                   # Integration test files
+│   ├── playwright.config.js     # Integration test configuration
+│   └── package.json             # Integration test dependencies
 ├── docs-site/                   # Documentation site
 │   ├── docs/                    # Documentation content
 │   │   ├── user-guide/         # User documentation
@@ -179,6 +187,10 @@ npm install
 
 # Install Documentation site dependencies
 cd ../docs-site
+npm install
+
+# Install Integration testing dependencies
+cd ../e2e-integration
 npm install
 ```
 
@@ -275,7 +287,7 @@ npm run preview
 
 ## 🧪 Testing
 
-The project includes comprehensive testing across all applications:
+The project includes comprehensive testing across all applications with multiple testing strategies:
 
 ### AdminView Testing
 
@@ -306,7 +318,45 @@ npm run test
 
 ### CustomerView Testing
 
-Currently, CustomerView focuses on runtime functionality. Testing is primarily done through the AdminView's export functionality.
+#### End-to-End Tests
+
+Run Playwright E2E tests for CustomerView:
+
+```bash
+cd CustomerView
+npm run test:e2e
+```
+
+#### Run All CustomerView Tests
+
+```bash
+cd CustomerView
+npm run test
+```
+
+### Integration Testing
+
+#### Cross-Application Integration Tests
+
+Run integration tests that test both AdminView and CustomerView together:
+
+```bash
+cd e2e-integration
+npm run test
+```
+
+#### Integration Test Options
+
+```bash
+# Run tests with visible browser
+npm run test:headed
+
+# Run tests in debug mode
+npm run test:debug
+
+# Show test report
+npm run test:report
+```
 
 ### Documentation Site Testing
 
@@ -316,7 +366,9 @@ The documentation site uses Docusaurus's built-in testing and validation.
 
 - **Jest**: Configured for React component testing with Babel transformation
 - **Playwright**: Configured for cross-browser testing (Chrome, Firefox, Safari)
-- **SSL Support**: E2E tests run with SSL certificates for SuccessFactors integration
+- **SSL Support**: AdminView E2E tests run with SSL certificates for SuccessFactors integration
+- **HTTP Support**: CustomerView E2E tests run with standard HTTP
+- **Integration Testing**: Tests both applications simultaneously with different ports
 - **Test Reports**: HTML reports generated for test results and debugging
 
 ## 🎨 Code Formatting
@@ -349,6 +401,15 @@ npm run format
 - `build`: Build for production
 - `preview`: Preview production build
 - `lint`: Run ESLint
+- `test:e2e`: Run Playwright E2E tests
+- `test`: Run all tests (E2E)
+
+### Integration Testing Scripts
+
+- `test`: Run integration tests
+- `test:headed`: Run tests with visible browser
+- `test:debug`: Run tests in debug mode
+- `test:report`: Show test report
 
 ### Documentation Site Scripts
 
