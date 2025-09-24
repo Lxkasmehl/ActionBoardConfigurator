@@ -21,7 +21,7 @@ jobs:
           echo "${{ secrets.SSL_CERT_PEM }}" > cert.pem
       - name: Install dependencies
         working-directory: ./AdminView
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
       - name: Install Playwright Browsers
         working-directory: ./AdminView
         run: npx playwright install --with-deps
@@ -49,7 +49,7 @@ jobs:
           node-version: lts/*
       - name: Install dependencies
         working-directory: ./CustomerView
-        run: npm ci
+        run: npm install
       - name: Install Playwright Browsers
         working-directory: ./CustomerView
         run: npx playwright install --with-deps
@@ -79,13 +79,13 @@ jobs:
           echo "${{ secrets.SSL_CERT_PEM }}" > cert.pem
       - name: Install AdminView dependencies
         working-directory: ./AdminView
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
       - name: Install CustomerView dependencies
         working-directory: ./CustomerView
-        run: npm ci
+        run: npm install
       - name: Install Integration Test dependencies
         working-directory: ./e2e-integration
-        run: npm ci
+        run: npm install
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run Integration tests

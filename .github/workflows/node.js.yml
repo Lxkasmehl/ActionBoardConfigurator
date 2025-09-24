@@ -26,10 +26,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install AdminView dependencies
         working-directory: ./AdminView
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
       - name: Install CustomerView dependencies
         working-directory: ./CustomerView
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
       - name: Restore SSL key.pem and cert.pem
         working-directory: ./AdminView
         run: |
