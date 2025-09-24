@@ -123,7 +123,6 @@ ActionBoardConfigurator/
 │   │   │       │   └── text/     # Text components
 │   │   │       ├── hooks/        # Custom hooks for UI builder
 │   │   │       └── utils/        # Utility functions and export tools
-│   │   │           └── exportUtils/ # Export functionality
 │   │   ├── redux/                # Redux store and slices
 │   │   ├── routes/               # Route definitions
 │   │   ├── shared/               # Shared components and utilities
