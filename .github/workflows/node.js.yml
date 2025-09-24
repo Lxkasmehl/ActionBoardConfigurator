@@ -37,10 +37,10 @@ jobs:
           echo "${{ secrets.SSL_CERT_PEM }}" > cert.pem
       - name: Build AdminView
         working-directory: ./AdminView
-        run: npm run build
+        run: NODE_OPTIONS="--max-old-space-size=4096" npm run build
       - name: Build CustomerView
         working-directory: ./CustomerView
-        run: npm run build
+        run: NODE_OPTIONS="--max-old-space-size=4096" npm run build
       - name: Run AdminView unit tests
         working-directory: ./AdminView
         run: NODE_OPTIONS=--experimental-vm-modules npm run test:unit
