@@ -1,4 +1,3 @@
-// @ts-check
 import { defineConfig, devices } from '@playwright/test';
 import process from 'process';
 
@@ -50,13 +49,13 @@ export default defineConfig({
   /* Run your local dev servers before starting the tests */
   webServer: [
     {
-      command: 'cd AdminView && npm run dev:ssl',
+      command: 'cd ../AdminView && npm run dev:ssl',
       url: 'https://localhost:5173/',
       reuseExistingServer: !process.env.CI,
       ignoreHTTPSErrors: true,
     },
     {
-      command: 'cd CustomerView && npm run dev',
+      command: 'cd ../CustomerView && npm run dev',
       url: 'http://localhost:5174/',
       reuseExistingServer: !process.env.CI,
       ignoreHTTPSErrors: true,
