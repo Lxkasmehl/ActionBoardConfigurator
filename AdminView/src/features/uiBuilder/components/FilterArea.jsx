@@ -43,6 +43,32 @@ export default function FilterArea({ component, disabled = false }) {
     [selectedFilterOptions, groupName],
   );
 
+  // Helper function to get filtered options for a filter
+  const getFilterOptions = useMemo(() => {
+    return (filterLabel) => {
+      if (!tableComponentId) return [];
+
+      return Array.from(
+        new Set(
+          (columnData[tableComponentId]?.[filterLabel] || []).filter(
+            (option) =>
+              option !== undefined &&
+              option !== null &&
+              option !== '' &&
+              option.toString().trim() !== '',
+          ),
+        ),
+      );
+    };
+  }, [tableComponentId, columnData]);
+
+  // Helper function to check if filter has no options
+  const hasNoFilterOptions = useMemo(() => {
+    return (filterLabel) => {
+      return !tableComponentId || getFilterOptions(filterLabel).length === 0;
+    };
+  }, [tableComponentId, getFilterOptions]);
+
   const handleAddFilter = () => {
     if (disabled) return;
     const newFilters = [
@@ -145,32 +171,43 @@ export default function FilterArea({ component, disabled = false }) {
         >
           <div className='grid grid-cols-[1fr,auto,auto] items-center gap-2'>
             {editingId === filter.id ? (
-              <Tooltip
-                title={
-                  getColumnOptions().length === 0 &&
-                  'Please create a group with a table to select table columns as options'
+              <Autocomplete
+                size='sm'
+                placeholder='Select Column'
+                disabled={disabled}
+                onBlur={handleEditComplete}
+                onKeyDown={handleKeyDown}
+                options={
+                  getColumnOptions().length === 0
+                    ? [
+                        {
+                          label:
+                            '⚠️ No columns available. Please create a group with a table to select table columns as options.',
+                          value: 'no-columns',
+                          disabled: true,
+                        },
+                      ]
+                    : getColumnOptions()
                 }
-                placement='top'
-                sx={{
-                  maxWidth: '300px',
+                getOptionLabel={(option) => option.label}
+                isOptionEqualToValue={(option, value) =>
+                  option.value === value?.value
+                }
+                onChange={(event, newValue) => {
+                  if (newValue && !newValue.disabled) {
+                    setEditingValue(newValue.label);
+                  }
                 }}
-              >
-                <Autocomplete
-                  size='sm'
-                  placeholder='Select Column'
-                  disabled={disabled}
-                  onBlur={handleEditComplete}
-                  onKeyDown={handleKeyDown}
-                  options={getColumnOptions()}
-                  getOptionLabel={(option) => option.label}
-                  onChange={(event, newValue) => {
-                    if (newValue) {
-                      setEditingValue(newValue.label);
-                    }
-                  }}
-                  data-testid='filter-column-select'
-                />
-              </Tooltip>
+                data-testid='filter-column-select'
+                sx={{
+                  '& .MuiAutocomplete-input': {
+                    color:
+                      getColumnOptions().length === 0
+                        ? 'text.secondary'
+                        : 'inherit',
+                  },
+                }}
+              />
             ) : (
               <FormLabel
                 size='sm'
@@ -214,32 +251,78 @@ export default function FilterArea({ component, disabled = false }) {
           <Autocomplete
             size='sm'
             placeholder='Select an option'
-            options={Array.from(
-              new Set(
-                (columnData[tableComponentId]?.[filter.label] || []).filter(
-                  (option) =>
-                    option !== undefined &&
-                    option !== null &&
-                    option !== '' &&
-                    option.toString().trim() !== '',
-                ),
-              ),
-            )}
+            options={
+              hasNoFilterOptions(filter.label)
+                ? [
+                    {
+                      label: !tableComponentId
+                        ? '⚠️ No table found in the group. Please add a table to the group to get filter options.'
+                        : '⚠️ No filter options available. Please select a column that contains data.',
+                      value: 'no-options',
+                      disabled: true,
+                    },
+                  ]
+                : getFilterOptions(filter.label).map((option) => ({
+                    label: option?.toString() || '',
+                    value: option,
+                    disabled: false,
+                  }))
+            }
             disabled={disabled}
-            getOptionLabel={(option) => option?.toString() || ''}
+            getOptionLabel={(option) =>
+              option.label || option?.toString() || ''
+            }
+            isOptionEqualToValue={(option, value) => option.value === value}
             multiple
-            value={currentSelectedOptions[filter.id] || []}
+            value={
+              hasNoFilterOptions(filter.label)
+                ? []
+                : (currentSelectedOptions[filter.id] || []).map((option) => ({
+                    label: option?.toString() || '',
+                    value: option,
+                    disabled: false,
+                  }))
+            }
             data-testid={`filter-option-select-${filter.label}`}
             onChange={(event, newValue) => {
+              // Filter out disabled options and extract values
+              const validOptions = newValue
+                .filter((option) => !option.disabled)
+                .map((option) => option.value);
               dispatch(
                 setSelectedFilterOptions({
                   groupName,
                   options: {
                     ...currentSelectedOptions,
-                    [filter.id]: newValue,
+                    [filter.id]: validOptions,
                   },
                 }),
               );
+            }}
+            renderOption={(props, option) => (
+              <li
+                {...props}
+                style={{
+                  ...props.style,
+                  color: option.disabled
+                    ? 'var(--joy-palette-danger-500)'
+                    : 'inherit',
+                  backgroundColor: option.disabled
+                    ? 'var(--joy-palette-danger-50)'
+                    : 'inherit',
+                  cursor: option.disabled ? 'default' : 'pointer',
+                  fontStyle: option.disabled ? 'italic' : 'normal',
+                }}
+              >
+                {option.toString()}
+              </li>
+            )}
+            sx={{
+              '& .MuiAutocomplete-input': {
+                color: hasNoFilterOptions(filter.label)
+                  ? 'text.secondary'
+                  : 'inherit',
+              },
             }}
           />
         </div>

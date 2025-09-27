@@ -10,6 +10,11 @@ import {
   query,
   orderBy,
 } from 'firebase/firestore';
+import {
+  cleanDataForFirebase,
+  cleanComponentData,
+  cleanTableData,
+} from '../utils/dataCleaner';
 
 const initialState = {
   availableConfigs: [],
@@ -139,19 +144,19 @@ export const saveConfig =
         }
       }
 
-      // Prepare config data
-      const configData = {
+      // Prepare config data and clean it to remove functions and nested arrays
+      const configData = cleanDataForFirebase({
         name: configName,
-        components: uiBuilder.components,
-        columnData: uiBuilder.columnData,
-        tableColumns: uiBuilder.tableColumns,
+        components: cleanComponentData(uiBuilder.components),
+        columnData: cleanTableData(uiBuilder.columnData),
+        tableColumns: cleanTableData(uiBuilder.tableColumns),
         componentGroups: uiBuilder.componentGroups,
-        tableData: uiBuilder.tableData,
-        visibleColumns: uiBuilder.visibleColumns,
-        tableConfigEntries: uiBuilder.tableConfigEntries,
-        textConfigEntries: uiBuilder.textConfigEntries,
+        tableData: cleanTableData(uiBuilder.tableData),
+        visibleColumns: cleanTableData(uiBuilder.visibleColumns),
+        tableConfigEntries: cleanTableData(uiBuilder.tableConfigEntries),
+        textConfigEntries: cleanTableData(uiBuilder.textConfigEntries),
         lastModified: new Date(),
-      };
+      });
 
       let configId;
       if (isNewConfig) {

@@ -8,6 +8,11 @@ import ConfigManagement from './ConfigManagement';
 import { useSelector } from 'react-redux';
 import { db } from '../../../../firebase';
 import { setDoc, doc } from 'firebase/firestore';
+import {
+  cleanDataForFirebase,
+  cleanComponentData,
+  cleanTableData,
+} from '../../../../utils/dataCleaner';
 import { FolderOpen } from '@mui/icons-material';
 
 export default function PreviewArea({ activeDragData, onTrashOver }) {
@@ -83,15 +88,15 @@ export default function PreviewArea({ activeDragData, onTrashOver }) {
         tableConfigEntries,
       );
 
-      // Clean the data to remove undefined values before sending to Firebase
-      const cleanedData = removeUndefinedValues({
-        components,
-        columnData,
-        tableColumns,
+      // Clean the data to remove functions, undefined values, and nested arrays before sending to Firebase
+      const cleanedData = cleanDataForFirebase({
+        components: cleanComponentData(components),
+        columnData: cleanTableData(columnData),
+        tableColumns: cleanTableData(tableColumns),
         componentGroups,
-        tableData,
-        visibleColumns,
-        tableConfigEntries,
+        tableData: cleanTableData(tableData),
+        visibleColumns: cleanTableData(visibleColumns),
+        tableConfigEntries: cleanTableData(tableConfigEntries),
       });
 
       // For backward compatibility, still save to apps/01
