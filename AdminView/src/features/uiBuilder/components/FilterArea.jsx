@@ -299,24 +299,6 @@ export default function FilterArea({ component, disabled = false }) {
                 }),
               );
             }}
-            renderOption={(props, option) => (
-              <li
-                {...props}
-                style={{
-                  ...props.style,
-                  color: option.disabled
-                    ? 'var(--joy-palette-danger-500)'
-                    : 'inherit',
-                  backgroundColor: option.disabled
-                    ? 'var(--joy-palette-danger-50)'
-                    : 'inherit',
-                  cursor: option.disabled ? 'default' : 'pointer',
-                  fontStyle: option.disabled ? 'italic' : 'normal',
-                }}
-              >
-                {option.toString()}
-              </li>
-            )}
             sx={{
               '& .MuiAutocomplete-input': {
                 color: hasNoFilterOptions(filter.label)

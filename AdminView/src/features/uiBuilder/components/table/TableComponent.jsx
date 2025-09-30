@@ -37,6 +37,69 @@ export default function TableComponent({ component, disabled = false }) {
     getInitialDummyData(),
     component.id,
   );
+
+  // Get table data from Redux store
+  const reduxTableData = useSelector(
+    (state) => state.uiBuilder.tableData[component.id],
+  );
+  const reduxColumnData = useSelector(
+    (state) => state.uiBuilder.columnData[component.id],
+  );
+  const reduxTableColumns = useSelector(
+    (state) => state.uiBuilder.tableColumns[component.id],
+  );
+
+  // Load data from Redux store when config is loaded (only once)
+  useEffect(() => {
+    if (
+      reduxTableData &&
+      Array.isArray(reduxTableData) &&
+      reduxTableData.length > 0 &&
+      !hasLoadedFromRedux.current
+    ) {
+      setTableData(reduxTableData);
+      hasLoadedFromRedux.current = true;
+    }
+  }, [reduxTableData, component.id]);
+
+  // Update visibleColumns when columns change (separate from data loading)
+  useEffect(() => {
+    if (
+      reduxTableColumns &&
+      Array.isArray(reduxTableColumns) &&
+      reduxTableColumns.length > 0
+    ) {
+      // Update visibleColumns to match the new column IDs
+      const newColumnIds = reduxTableColumns.map((col) => col.id);
+      dispatch(
+        setVisibleColumns({
+          componentId: component.id,
+          columnIds: newColumnIds,
+        }),
+      );
+    }
+  }, [reduxTableColumns, component.id, dispatch]);
+
+  // Use the column IDs from reduxTableColumns directly if available, otherwise fall back to visibleColumns
+  const effectiveVisibleColumns =
+    reduxTableColumns &&
+    Array.isArray(reduxTableColumns) &&
+    reduxTableColumns.length > 0
+      ? reduxTableColumns.map((col) => col.id)
+      : visibleColumns;
+
+  // Load columns from Redux store when config is loaded (only once)
+  useEffect(() => {
+    if (
+      reduxTableColumns &&
+      Array.isArray(reduxTableColumns) &&
+      reduxTableColumns.length > 0 &&
+      !hasLoadedFromRedux.current
+    ) {
+      setColumns(reduxTableColumns);
+    }
+  }, [reduxTableColumns, component.id]);
+
   const [relationData, setRelationData] = useState({});
   const sendRequest = useSendRequest();
   const groupFilters = useSelector((state) => state.uiBuilder.groupFilters);
@@ -60,6 +123,7 @@ export default function TableComponent({ component, disabled = false }) {
   );
   const [shouldSyncWithBackend, setShouldSyncWithBackend] = useState(false);
   const isInitialized = useRef(false);
+  const hasLoadedFromRedux = useRef(false);
   const columnSeparators = useSelector(
     (state) => state.uiBuilder.columnSeparators[component.id] || {},
   );
@@ -413,10 +477,21 @@ export default function TableComponent({ component, disabled = false }) {
     }
   };
 
+  // Get the actual field names from the table data
+  const availableFields = tableData.length > 0 ? Object.keys(tableData[0]) : [];
+
   const gridColumns = columns.map((column) => {
     const isInvalid = isColumnInvalid(column);
+
+    // Find the matching field in the table data
+    const matchingField = availableFields.find(
+      (field) =>
+        field === column.label ||
+        field.toLowerCase() === column.label.toLowerCase(),
+    );
+
     return {
-      field: column.label,
+      field: matchingField || column.label, // Use the actual field name from data
       headerName: column.label,
       minWidth: 100,
       flex: 1,
@@ -434,7 +509,7 @@ export default function TableComponent({ component, disabled = false }) {
 
   // Filter columns based on visible columns
   const filteredColumns = gridColumns.filter((column) =>
-    visibleColumns.includes(column.columnId),
+    effectiveVisibleColumns.includes(column.columnId),
   );
 
   // Sort columns based on column order

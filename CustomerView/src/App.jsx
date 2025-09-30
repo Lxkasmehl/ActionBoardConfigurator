@@ -23,6 +23,7 @@ function AppContent() {
   const visibleColumns = config?.visibleColumns || {};
   const columnData = config?.columnData || {};
   const tableColumns = config?.tableColumns || {};
+  const componentGroups = config?.componentGroups || {};
 
   useEffect(() => {
     // Initialize visibleColumns in Redux store
@@ -87,7 +88,12 @@ function AppContent() {
         {components.map((component, index) => (
           <ComponentRenderer
             key={component.id || index}
-            component={component}
+            component={{
+              ...component,
+              columnData,
+              tableColumns,
+              componentGroups,
+            }}
             onFilterChange={handleFilterChange}
             onButtonClick={handleButtonClick}
           />

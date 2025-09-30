@@ -28,7 +28,12 @@ const ComponentRenderer = ({ component, onFilterChange, onButtonClick }) => {
 
       case 'filterArea':
         return (
-          <FilterArea component={component} onFilterChange={onFilterChange} />
+          <FilterArea
+            component={component}
+            columnData={component.columnData || {}}
+            tableColumns={component.tableColumns || {}}
+            componentGroups={component.componentGroups || {}}
+          />
         );
 
       case 'buttonBar':

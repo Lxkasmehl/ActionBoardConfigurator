@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { restoreTableData } from '../utils/dataCleaner';
 
 const initialState = {
   components: [],
@@ -187,14 +188,24 @@ const uiBuilderSlice = createSlice({
     },
     loadConfigData: (state, action) => {
       const configData = action.payload;
+
       state.components = configData.components || [];
-      state.columnData = configData.columnData || {};
-      state.tableColumns = configData.tableColumns || {};
+
+      // Restore table data from Firebase format back to original array format
+      const originalTableData = configData.tableData || {};
+      const originalTableColumns = configData.tableColumns || {};
+
+      state.columnData = restoreTableData(configData.columnData || {});
+      state.tableColumns = restoreTableData(originalTableColumns);
+      state.tableData = restoreTableData(originalTableData);
+      state.visibleColumns = restoreTableData(configData.visibleColumns || {});
+      state.tableConfigEntries = restoreTableData(
+        configData.tableConfigEntries || {},
+      );
       state.componentGroups = configData.componentGroups || {};
-      state.tableData = configData.tableData || {};
-      state.visibleColumns = configData.visibleColumns || {};
-      state.tableConfigEntries = configData.tableConfigEntries || {};
-      state.textConfigEntries = configData.textConfigEntries || {};
+      state.textConfigEntries = restoreTableData(
+        configData.textConfigEntries || {},
+      );
     },
   },
 });
