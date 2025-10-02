@@ -32,11 +32,37 @@ export default function FilterArea({
       return Array.from(
         new Set(
           (columnData?.[tableComponentId]?.[filterLabel] || []).filter(
-            (option) =>
-              option !== undefined &&
-              option !== null &&
-              option !== '' &&
-              option.toString().trim() !== ''
+            (option) => {
+              // Filter out undefined, null, empty strings
+              if (option === undefined || option === null || option === '') {
+                return false;
+              }
+
+              // Filter out empty objects
+              if (
+                typeof option === 'object' &&
+                Object.keys(option).length === 0
+              ) {
+                return false;
+              }
+
+              // Filter out objects that only contain empty values
+              if (typeof option === 'object') {
+                const hasValidValue = Object.values(option).some(
+                  (val) =>
+                    val !== undefined &&
+                    val !== null &&
+                    val !== '' &&
+                    (typeof val !== 'string' || val.trim() !== '')
+                );
+                if (!hasValidValue) {
+                  return false;
+                }
+              }
+
+              // Filter out empty strings after toString
+              return option.toString().trim() !== '';
+            }
           )
         )
       );
@@ -55,18 +81,17 @@ export default function FilterArea({
       .filter((option) => !option.disabled)
       .map((option) => option.value);
 
-    setSelectedFilters((prev) => ({
-      ...prev,
+    const newSelectedFilters = {
+      ...selectedFilters,
       [filter.label]: validOptions,
-    }));
+    };
+
+    setSelectedFilters(newSelectedFilters);
 
     dispatch(
       setSelectedFilterOptions({
         tableComponentId,
-        options: {
-          ...selectedFilters,
-          [filter.label]: validOptions,
-        },
+        options: newSelectedFilters,
       })
     );
   };
@@ -129,54 +154,116 @@ export default function FilterArea({
                         disabled: true,
                       },
                     ]
-                  : getFilterOptions(filter.label).map((option) => ({
-                      label: option?.toString() || '',
-                      value: option,
-                      disabled: false,
-                    }))
+                  : getFilterOptions(filter.label)
+                      .map((option) => {
+                        // Handle different data types properly
+                        let displayValue = '';
+                        if (typeof option === 'string') {
+                          displayValue = option;
+                        } else if (option && typeof option === 'object') {
+                          // If it's an object, try to extract meaningful text
+                          if (option.label) {
+                            displayValue = option.label;
+                          } else if (option.value) {
+                            displayValue = option.value.toString();
+                          } else if (option.text) {
+                            displayValue = option.text;
+                          } else {
+                            // For objects without clear text properties, try to find any string value
+                            const stringValues = Object.values(option).filter(
+                              (val) =>
+                                typeof val === 'string' && val.trim() !== ''
+                            );
+                            if (stringValues.length > 0) {
+                              displayValue = stringValues[0];
+                            } else {
+                              // If no valid string values found, skip this option
+                              return null;
+                            }
+                          }
+                        } else {
+                          displayValue = option?.toString() || '';
+                        }
+
+                        return {
+                          label: displayValue,
+                          value: option,
+                          disabled: false,
+                        };
+                      })
+                      .filter((option) => option !== null)
               }
-              getOptionLabel={(option) =>
-                option.label || option?.toString() || ''
-              }
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') {
+                  return option;
+                }
+                if (option && typeof option === 'object') {
+                  if (option.label) {
+                    return option.label;
+                  } else if (option.value) {
+                    return option.value.toString();
+                  } else if (option.text) {
+                    return option.text;
+                  } else {
+                    // For objects without clear text properties, try to find any string value
+                    const stringValues = Object.values(option).filter(
+                      (val) => typeof val === 'string' && val.trim() !== ''
+                    );
+                    if (stringValues.length > 0) {
+                      return stringValues[0];
+                    } else {
+                      // If no valid string values found, return empty string
+                      return '';
+                    }
+                  }
+                }
+                return option?.toString() || '';
+              }}
               isOptionEqualToValue={(option, value) => option.value === value}
               multiple
               value={
                 hasNoFilterOptions(filter.label)
                   ? []
-                  : (selectedFilters[filter.label] || []).map((option) => ({
-                      label: option?.toString() || '',
-                      value: option,
-                      disabled: false,
-                    }))
+                  : (selectedFilters[filter.label] || [])
+                      .map((option) => {
+                        // Handle different data types properly for selected values
+                        let displayValue = '';
+                        if (typeof option === 'string') {
+                          displayValue = option;
+                        } else if (option && typeof option === 'object') {
+                          if (option.label) {
+                            displayValue = option.label;
+                          } else if (option.value) {
+                            displayValue = option.value.toString();
+                          } else if (option.text) {
+                            displayValue = option.text;
+                          } else {
+                            const stringValues = Object.values(option).filter(
+                              (val) =>
+                                typeof val === 'string' && val.trim() !== ''
+                            );
+                            if (stringValues.length > 0) {
+                              displayValue = stringValues[0];
+                            } else {
+                              // If no valid string values found, skip this option
+                              return null;
+                            }
+                          }
+                        } else {
+                          displayValue = option?.toString() || '';
+                        }
+
+                        return {
+                          label: displayValue,
+                          value: option,
+                          disabled: false,
+                        };
+                      })
+                      .filter((option) => option !== null)
               }
               onChange={(event, newValue) =>
                 handleFilterChange(filter, newValue)
               }
-              renderOption={(props, option) => (
-                <li
-                  {...props}
-                  style={{
-                    ...props.style,
-                    color: option.disabled
-                      ? 'var(--joy-palette-danger-500)'
-                      : 'inherit',
-                    backgroundColor: option.disabled
-                      ? 'var(--joy-palette-danger-50)'
-                      : 'inherit',
-                    cursor: option.disabled ? 'default' : 'pointer',
-                    fontStyle: option.disabled ? 'italic' : 'normal',
-                  }}
-                >
-                  {option.label || option?.toString() || ''}
-                </li>
-              )}
-              sx={{
-                '& .MuiAutocomplete-input': {
-                  color: hasNoFilterOptions(filter.label)
-                    ? 'text.secondary'
-                    : 'inherit',
-                },
-              }}
             />
           </div>
         ))}

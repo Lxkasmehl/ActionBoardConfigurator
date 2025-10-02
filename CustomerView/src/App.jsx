@@ -93,6 +93,7 @@ function AppContent() {
               columnData,
               tableColumns,
               componentGroups,
+              tableData: config?.tableData || {},
             }}
             onFilterChange={handleFilterChange}
             onButtonClick={handleButtonClick}

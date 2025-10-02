@@ -38,7 +38,15 @@ const ComponentRenderer = ({ component, onFilterChange, onButtonClick }) => {
 
       case 'buttonBar':
         return (
-          <ButtonBar component={component} onButtonClick={onButtonClick} />
+          <ButtonBar
+            component={component}
+            onButtonClick={onButtonClick}
+            fields={component.props?.fields}
+            componentId={component.id}
+            componentGroups={component.componentGroups}
+            tableColumns={component.tableColumns}
+            tableData={component.tableData}
+          />
         );
 
       case 'table':

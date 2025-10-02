@@ -13,6 +13,7 @@ const initialState = {
   groupFilters: {},
   groupFiltersEnabled: {},
   selectedFilterOptions: {},
+  appliedFilters: {},
   sortModalOpen: { isOpen: false, componentId: null },
   groupSortConfigs: {},
   visibleColumns: {},
@@ -207,6 +208,25 @@ const uiBuilderSlice = createSlice({
         configData.textConfigEntries || {},
       );
     },
+    applyFilters: (state, action) => {
+      const { tableComponentId } = action.payload;
+      // Apply the selected filter options to the applied filters
+      state.appliedFilters = state.appliedFilters || {};
+      state.appliedFilters[tableComponentId] = {
+        ...state.selectedFilterOptions[tableComponentId],
+      };
+    },
+    clearFilters: (state, action) => {
+      const { tableComponentId } = action.payload;
+      if (tableComponentId) {
+        state.selectedFilterOptions[tableComponentId] = {};
+        state.appliedFilters = state.appliedFilters || {};
+        state.appliedFilters[tableComponentId] = {};
+      } else {
+        state.selectedFilterOptions = {};
+        state.appliedFilters = {};
+      }
+    },
   },
 });
 
@@ -237,6 +257,8 @@ export const {
   setTextConfigEntries,
   setTableConfigEntries,
   loadConfigData,
+  applyFilters,
+  clearFilters,
 } = uiBuilderSlice.actions;
 
 export default uiBuilderSlice.reducer;

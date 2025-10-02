@@ -121,6 +121,9 @@ export default function TableComponent({ component, disabled = false }) {
   const tableConfigEntries = useSelector(
     (state) => state.uiBuilder.tableConfigEntries[component.id] || {},
   );
+  const appliedFilters = useSelector(
+    (state) => state.uiBuilder.appliedFilters[component.id] || {},
+  );
   const [shouldSyncWithBackend, setShouldSyncWithBackend] = useState(false);
   const isInitialized = useRef(false);
   const hasLoadedFromRedux = useRef(false);
@@ -556,20 +559,36 @@ export default function TableComponent({ component, disabled = false }) {
     };
   });
 
-  // Apply filters from groupFiltersForTable only when filters are enabled
+  // Apply filters from both groupFiltersForTable and appliedFilters
   const filteredRows = rows.filter((row) => {
+    // Apply group filters if enabled
     if (
-      !filtersEnabled ||
-      !groupFiltersForTable ||
-      groupFiltersForTable.length === 0
+      filtersEnabled &&
+      groupFiltersForTable &&
+      groupFiltersForTable.length > 0
     ) {
-      return true;
+      const groupFilterMatch = groupFiltersForTable.every((filter) => {
+        const columnValue = row[filter.column];
+        return filter.selectedOptions.includes(columnValue);
+      });
+      if (!groupFilterMatch) return false;
     }
 
-    return groupFiltersForTable.every((filter) => {
-      const columnValue = row[filter.column];
-      return filter.selectedOptions.includes(columnValue);
-    });
+    // Apply appliedFilters (from ButtonBar)
+    if (appliedFilters && Object.keys(appliedFilters).length > 0) {
+      const appliedFilterMatch = Object.entries(appliedFilters).every(
+        ([columnLabel, selectedValues]) => {
+          if (!selectedValues || selectedValues.length === 0) {
+            return true; // No filter applied for this column
+          }
+          const rowValue = row[columnLabel];
+          return selectedValues.includes(rowValue);
+        },
+      );
+      if (!appliedFilterMatch) return false;
+    }
+
+    return true;
   });
 
   const sortedRows = [...filteredRows].sort((a, b) => {

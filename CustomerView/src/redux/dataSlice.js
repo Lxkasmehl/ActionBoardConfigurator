@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { restoreTableData } from '../utils/dataCleaner';
 
 const initialState = {
   components: [],
@@ -34,12 +35,14 @@ const dataSlice = createSlice({
       }
 
       state.components = config.components || [];
-      state.columnData = config.columnData || {};
-      state.tableColumns = config.tableColumns || {};
+      state.columnData = restoreTableData(config.columnData || {});
+      state.tableColumns = restoreTableData(config.tableColumns || {});
       state.componentGroups = config.componentGroups || [];
-      state.tableData = config.tableData || {};
-      state.visibleColumns = config.visibleColumns || {};
-      state.tableConfigEntries = config.tableConfigEntries || {};
+      state.tableData = restoreTableData(config.tableData || {});
+      state.visibleColumns = restoreTableData(config.visibleColumns || {});
+      state.tableConfigEntries = restoreTableData(
+        config.tableConfigEntries || {}
+      );
       state.appConfig = config;
     },
     updateTableData: (state, action) => {
