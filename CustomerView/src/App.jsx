@@ -14,7 +14,7 @@ function AppContent() {
   const { config, loading, error } = useAppConfig();
   const dispatch = useDispatch();
   const selectedConfigId = useSelector(
-    (state) => state.configSelector.selectedConfigId
+    (state) => state.configSelector.selectedConfigId,
   );
   const [showConfigSelector, setShowConfigSelector] = useState(false);
 
@@ -31,8 +31,31 @@ function AppContent() {
       Object.entries(visibleColumns).forEach(([tableComponentId, columns]) => {
         dispatch(setVisibleColumns({ tableComponentId, columns }));
       });
+    } else if (
+      config &&
+      config.components &&
+      tableColumns &&
+      Object.keys(tableColumns).length > 0
+    ) {
+      // If no visibleColumns in config, initialize all table components with all columns visible
+      config.components.forEach((component) => {
+        if (component.type === 'table') {
+          // Try to get columns from tableColumns first, then from component.props
+          const componentTableColumns =
+            tableColumns[component.id] || component.props?.columns || [];
+          if (componentTableColumns.length > 0) {
+            const allColumnIds = componentTableColumns.map((col) => col.id);
+            dispatch(
+              setVisibleColumns({
+                tableComponentId: component.id,
+                columns: allColumnIds,
+              }),
+            );
+          }
+        }
+      });
     }
-  }, [visibleColumns, dispatch]);
+  }, [visibleColumns, dispatch, config, tableColumns]);
 
   const handleFilterChange = (filterValues) => {
     console.log('Filter changed:', filterValues);

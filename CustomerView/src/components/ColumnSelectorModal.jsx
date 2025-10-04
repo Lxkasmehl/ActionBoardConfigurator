@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import PropTypes from 'prop-types';
 import {
   Modal,
   ModalDialog,
-  ModalClose,
   Typography,
-  FormControl,
   FormLabel,
-  Checkbox,
   Button,
   Stack,
-  Box,
+  Checkbox,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemDecorator,
 } from '@mui/joy';
 import { useSelector, useDispatch } from 'react-redux';
 import { setVisibleColumns } from '../redux/uiStateSlice';
@@ -23,82 +25,85 @@ export default function ColumnSelectorModal({
 }) {
   const dispatch = useDispatch();
   const visibleColumns = useSelector(
-    (state) => state.uiState.visibleColumns[tableComponentId] || []
+    (state) => state.uiState.visibleColumns[tableComponentId] || [],
   );
-
   const [selectedColumns, setSelectedColumns] = useState([]);
+  const isInitialized = useRef(false);
 
+  // Initialize selected columns when modal opens
   useEffect(() => {
-    if (open) {
-      setSelectedColumns(visibleColumns);
-    }
-  }, [open, visibleColumns]);
+    if (open && !isInitialized.current) {
+      const allColumnIds = columnOptions.map((option) => option.value);
 
-  const handleColumnToggle = (columnId) => {
+      // If no visible columns are set in Redux, select all columns
+      if (visibleColumns.length === 0) {
+        setSelectedColumns(allColumnIds);
+      } else {
+        // Use visibleColumns from Redux, but ensure all available columns are included
+        const selectedIds = visibleColumns.filter((id) =>
+          allColumnIds.includes(id),
+        );
+        // If no columns are selected in Redux, select all (fallback for default behavior)
+        setSelectedColumns(selectedIds.length > 0 ? selectedIds : allColumnIds);
+      }
+      isInitialized.current = true;
+    } else if (!open) {
+      isInitialized.current = false;
+    }
+  }, [open, visibleColumns, columnOptions]);
+
+  const handleApply = () => {
+    if (tableComponentId) {
+      dispatch(
+        setVisibleColumns({ tableComponentId, columns: selectedColumns }),
+      );
+    }
+    onClose();
+  };
+
+  const handleToggleColumn = (columnId) => {
     setSelectedColumns((prev) =>
       prev.includes(columnId)
         ? prev.filter((id) => id !== columnId)
-        : [...prev, columnId]
+        : [...prev, columnId],
     );
-  };
-
-  const handleSelectAll = () => {
-    setSelectedColumns(columnOptions.map((option) => option.value));
-  };
-
-  const handleSelectNone = () => {
-    setSelectedColumns([]);
-  };
-
-  const handleApply = () => {
-    dispatch(
-      setVisibleColumns({
-        tableComponentId,
-        columns: selectedColumns,
-      })
-    );
-    onClose();
-  };
-
-  const handleClose = () => {
-    setSelectedColumns(visibleColumns);
-    onClose();
   };
 
   return (
-    <Modal open={open} onClose={handleClose}>
-      <ModalDialog sx={{ maxWidth: 400 }}>
-        <ModalClose />
+    <Modal open={open} onClose={onClose}>
+      <ModalDialog>
         <Typography level='h4' component='h2'>
           Select Columns
         </Typography>
-
         <Stack spacing={2} sx={{ mt: 2 }}>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button size='sm' variant='outlined' onClick={handleSelectAll}>
-              Select All
-            </Button>
-            <Button size='sm' variant='outlined' onClick={handleSelectNone}>
-              Select None
-            </Button>
-          </Box>
-
-          <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-            {columnOptions.map((option) => (
-              <FormControl key={option.value} orientation='horizontal'>
-                <Checkbox
-                  checked={selectedColumns.includes(option.value)}
-                  onChange={() => handleColumnToggle(option.value)}
-                />
-                <FormLabel sx={{ ml: 1 }}>{option.label}</FormLabel>
-              </FormControl>
+          <FormLabel>Visible Columns</FormLabel>
+          <List>
+            {columnOptions.map((column) => (
+              <ListItem key={column.value}>
+                <ListItemButton
+                  onClick={() => handleToggleColumn(column.value)}
+                  data-testid={`column-selector-checkbox-${column.label}`}
+                >
+                  <ListItemDecorator>
+                    <Checkbox
+                      checked={selectedColumns.includes(column.value)}
+                      onChange={() => handleToggleColumn(column.value)}
+                    />
+                  </ListItemDecorator>
+                  {column.label}
+                </ListItemButton>
+              </ListItem>
             ))}
-          </Box>
-
-          <Stack direction='row' spacing={1} sx={{ mt: 2 }}>
-            <Button onClick={handleApply}>Apply Selection</Button>
-            <Button variant='outlined' onClick={handleClose}>
+          </List>
+          <Stack direction='row' spacing={1} justifyContent='flex-end'>
+            <Button variant='plain' onClick={onClose}>
               Cancel
+            </Button>
+            <Button
+              onClick={handleApply}
+              data-testid='column-selector-apply-button'
+            >
+              Apply
             </Button>
           </Stack>
         </Stack>
@@ -106,3 +111,11 @@ export default function ColumnSelectorModal({
     </Modal>
   );
 }
+
+ColumnSelectorModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  componentId: PropTypes.string.isRequired,
+  columnOptions: PropTypes.array,
+  tableComponentId: PropTypes.string,
+};

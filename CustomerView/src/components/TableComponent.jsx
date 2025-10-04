@@ -59,34 +59,50 @@ export default function TableComponent({ component }) {
 
   // Get data from Redux store
   const columnData = useSelector(
-    (state) => state.data.columnData[component.id] || {}
+    (state) => state.data.columnData[component.id] || {},
   );
   const tableData = useSelector(
-    (state) => state.data.tableData[component.id] || []
+    (state) => state.data.tableData[component.id] || [],
   );
-  const tableColumns = useSelector(
-    (state) => state.data.tableColumns[component.id] || []
+  const reduxTableColumns = useSelector(
+    (state) => state.data.tableColumns[component.id] || [],
   );
   const tableConfigEntries = useSelector(
-    (state) => state.data.tableConfigEntries[component.id] || {}
+    (state) => state.data.tableConfigEntries[component.id] || {},
   );
   const currentVisibleColumns = useSelector(
-    (state) =>
-      state.uiState.visibleColumns[component.id] ||
-      tableColumns.map((col) => col.id)
+    (state) => state.uiState.visibleColumns[component.id] || [],
   );
   const appliedFilters = useSelector(
-    (state) => state.uiState.appliedFilters[component.id] || {}
+    (state) => state.uiState.appliedFilters[component.id] || {},
   );
 
-  // Use the column IDs from tableColumns directly if available, otherwise fall back to currentVisibleColumns
-  const effectiveVisibleColumns =
-    tableColumns && Array.isArray(tableColumns) && tableColumns.length > 0
-      ? tableColumns.map((col) => col.id)
-      : currentVisibleColumns;
+  // Use tableColumns from props if available, otherwise from Redux
+  const tableColumnsFromProps = component.tableColumns?.[component.id] || [];
+  const tableColumns =
+    tableColumnsFromProps.length > 0
+      ? tableColumnsFromProps
+      : reduxTableColumns;
 
-  // Use tableColumns from Redux store instead of component.props.columns
+  // Use tableColumns from props/Redux, fallback to component.props.columns
   const actualColumns = tableColumns.length > 0 ? tableColumns : columns;
+
+  // Use visibleColumns from Redux store, but ensure they exist in the current columns
+  const effectiveVisibleColumns = useMemo(() => {
+    // If no actualColumns, return empty array
+    if (!actualColumns || actualColumns.length === 0) {
+      return [];
+    }
+
+    // If no visible columns are set in Redux, show all columns
+    if (!currentVisibleColumns || currentVisibleColumns.length === 0) {
+      return actualColumns.map((col) => col.id);
+    }
+
+    // Filter visible columns to only include those that exist in the current columns
+    const currentColumnIds = actualColumns.map((col) => col.id);
+    return currentVisibleColumns.filter((id) => currentColumnIds.includes(id));
+  }, [currentVisibleColumns, actualColumns]);
 
   // Transform columns for DataGrid and filter based on visible columns
   const displayColumns = useMemo(() => {
@@ -102,14 +118,14 @@ export default function TableComponent({ component }) {
       columnId: column.id, // Add column ID for filtering
     }));
 
-    // Filter based on visible columns if they exist
-    if (effectiveVisibleColumns && effectiveVisibleColumns.length > 0) {
-      return gridColumns.filter((col) =>
-        effectiveVisibleColumns.includes(col.columnId)
-      );
+    // Filter based on visible columns - if no visible columns set, show all
+    if (effectiveVisibleColumns.length === 0) {
+      return gridColumns;
     }
 
-    return gridColumns;
+    return gridColumns.filter((col) =>
+      effectiveVisibleColumns.includes(col.columnId),
+    );
   }, [actualColumns, effectiveVisibleColumns, enableSorting, enableFiltering]);
 
   // Initialize table data from tableData (not columnData)
@@ -151,7 +167,7 @@ export default function TableComponent({ component }) {
                       return selectedValue.item_0;
                     }
                     return selectedValue;
-                  }
+                  },
                 );
 
                 // Compare arrays by checking if any selected value matches any row value
@@ -160,15 +176,15 @@ export default function TableComponent({ component }) {
                     Array.isArray(selectedValue) && Array.isArray(rowVal)
                       ? selectedValue.length === rowVal.length &&
                         selectedValue.every((val, i) => val === rowVal[i])
-                      : selectedValue === rowVal
-                  )
+                      : selectedValue === rowVal,
+                  ),
                 );
               } else {
                 matches = selectedValues.includes(rowValue);
               }
 
               return matches;
-            }
+            },
           );
         });
       }
