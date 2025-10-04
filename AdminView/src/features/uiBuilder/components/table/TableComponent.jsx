@@ -1,6 +1,6 @@
 import { IconButton } from '@mui/joy';
 import { Add } from '@mui/icons-material';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import EditModal from './EditModal';
 import PropTypes from 'prop-types';
@@ -67,26 +67,34 @@ export default function TableComponent({ component, disabled = false }) {
     if (
       reduxTableColumns &&
       Array.isArray(reduxTableColumns) &&
-      reduxTableColumns.length > 0
+      reduxTableColumns.length > 0 &&
+      (!visibleColumns || visibleColumns.length === 0)
     ) {
-      // Update visibleColumns to match the new column IDs
+      // Only update visibleColumns if none are set yet
       const newColumnIds = reduxTableColumns.map((col) => col.id);
       dispatch(
         setVisibleColumns({
-          componentId: component.id,
+          tableComponentId: component.id,
           columnIds: newColumnIds,
         }),
       );
     }
-  }, [reduxTableColumns, component.id, dispatch]);
+  }, [reduxTableColumns, component.id, dispatch, visibleColumns]);
 
-  // Use the column IDs from reduxTableColumns directly if available, otherwise fall back to visibleColumns
-  const effectiveVisibleColumns =
-    reduxTableColumns &&
-    Array.isArray(reduxTableColumns) &&
-    reduxTableColumns.length > 0
-      ? reduxTableColumns.map((col) => col.id)
-      : visibleColumns;
+  // Use visibleColumns from Redux store, but ensure they exist in the current columns
+  const effectiveVisibleColumns = useMemo(() => {
+    if (!visibleColumns || visibleColumns.length === 0) {
+      // If no visible columns are set, show all columns
+      return (
+        reduxTableColumns?.map((col) => col.id) || columns.map((col) => col.id)
+      );
+    }
+
+    // Filter visible columns to only include those that exist in the current columns
+    const currentColumnIds =
+      reduxTableColumns?.map((col) => col.id) || columns.map((col) => col.id);
+    return visibleColumns.filter((id) => currentColumnIds.includes(id));
+  }, [visibleColumns, reduxTableColumns, columns]);
 
   // Load columns from Redux store when config is loaded (only once)
   useEffect(() => {
@@ -178,7 +186,7 @@ export default function TableComponent({ component, disabled = false }) {
       const initialColumnIds = columns.map((col) => col.id);
       dispatch(
         setVisibleColumns({
-          componentId: component.id,
+          tableComponentId: component.id,
           columnIds: initialColumnIds,
         }),
       );
