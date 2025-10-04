@@ -1,5 +1,39 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { restoreTableData } from '../utils/dataCleaner';
+import { PREDEFINED_BUTTONS } from '../features/uiBuilder/components/buttonBar/predefinedButtons';
+
+// Helper function to restore onClick functions for ButtonBar fields
+const restoreButtonBarOnClickFunctions = (components) => {
+  return components.map((component) => {
+    if (component.type === 'buttonBar' && component.props?.fields) {
+      const restoredFields = component.props.fields.map((field) => {
+        // Find matching predefined button by text/icon
+        const predefinedButton = PREDEFINED_BUTTONS.find(
+          (predefined) => predefined['text/icon'] === field['text/icon'],
+        );
+
+        if (predefinedButton && predefinedButton.onClick) {
+          return {
+            ...field,
+            onClick: predefinedButton.onClick,
+          };
+        }
+
+        return field;
+      });
+
+      return {
+        ...component,
+        props: {
+          ...component.props,
+          fields: restoredFields,
+        },
+      };
+    }
+
+    return component;
+  });
+};
 
 const initialState = {
   components: [],
@@ -190,7 +224,9 @@ const uiBuilderSlice = createSlice({
     loadConfigData: (state, action) => {
       const configData = action.payload;
 
-      state.components = configData.components || [];
+      // Restore components and their onClick functions
+      const components = configData.components || [];
+      state.components = restoreButtonBarOnClickFunctions(components);
 
       // Restore table data from Firebase format back to original array format
       const originalTableData = configData.tableData || {};

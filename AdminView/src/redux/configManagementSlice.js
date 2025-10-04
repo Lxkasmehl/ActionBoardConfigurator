@@ -7,8 +7,6 @@ import {
   setDoc,
   deleteDoc,
   getDoc,
-  query,
-  orderBy,
 } from 'firebase/firestore';
 import {
   cleanDataForFirebase,
@@ -84,7 +82,7 @@ export const loadAvailableConfigs = () => async (dispatch) => {
   }
 };
 
-export const loadConfig = (configId) => async (dispatch, getState) => {
+export const loadConfig = (configId) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
     dispatch(setError(null));
@@ -96,7 +94,6 @@ export const loadConfig = (configId) => async (dispatch, getState) => {
       const configData = configSnap.data();
 
       // Load the config data into the UI Builder state
-      const { uiBuilder } = getState();
       dispatch({
         type: 'uiBuilder/loadConfigData',
         payload: configData,

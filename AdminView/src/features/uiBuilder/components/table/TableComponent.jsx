@@ -42,11 +42,11 @@ export default function TableComponent({ component, disabled = false }) {
   const reduxTableData = useSelector(
     (state) => state.uiBuilder.tableData[component.id],
   );
-  const reduxColumnData = useSelector(
-    (state) => state.uiBuilder.columnData[component.id],
-  );
   const reduxTableColumns = useSelector(
     (state) => state.uiBuilder.tableColumns[component.id],
+  );
+  const visibleColumns = useSelector(
+    (state) => state.uiBuilder.visibleColumns[component.id] || [],
   );
 
   // Load data from Redux store when config is loaded (only once)
@@ -60,7 +60,7 @@ export default function TableComponent({ component, disabled = false }) {
       setTableData(reduxTableData);
       hasLoadedFromRedux.current = true;
     }
-  }, [reduxTableData, component.id]);
+  }, [reduxTableData, component.id, setTableData]);
 
   // Update visibleColumns when columns change (separate from data loading)
   useEffect(() => {
@@ -111,9 +111,6 @@ export default function TableComponent({ component, disabled = false }) {
   );
   const groupSortConfigs = useSelector(
     (state) => state.uiBuilder.groupSortConfigs,
-  );
-  const visibleColumns = useSelector(
-    (state) => state.uiBuilder.visibleColumns[component.id] || [],
   );
   const columnOrder = useSelector(
     (state) => state.uiBuilder.columnOrder[component.id] || [],
