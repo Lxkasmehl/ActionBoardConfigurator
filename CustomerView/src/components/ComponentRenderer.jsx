@@ -5,6 +5,7 @@ import FilterArea from './FilterArea';
 import ButtonBar from './ButtonBar';
 import TableComponent from './TableComponent';
 import ChartComponent from './ChartComponent';
+import ImageComponent from './ImageComponent';
 
 const ComponentRenderer = ({ component, onFilterChange, onButtonClick }) => {
   const { type, props } = component;
@@ -19,10 +20,10 @@ const ComponentRenderer = ({ component, onFilterChange, onButtonClick }) => {
         return (
           <Button
             {...props}
-            sx={{ marginBottom: 2 }}
+            sx={{ marginBottom: 2, width: '100%' }}
             onClick={() => onButtonClick?.(component)}
           >
-            {props?.label || 'Button'}
+            {props?.label || 'Click me'}
           </Button>
         );
 
@@ -54,6 +55,9 @@ const ComponentRenderer = ({ component, onFilterChange, onButtonClick }) => {
 
       case 'chart':
         return <ChartComponent component={component} />;
+
+      case 'image':
+        return <ImageComponent component={component} />;
 
       default:
         return (
