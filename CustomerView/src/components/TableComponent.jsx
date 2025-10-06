@@ -76,6 +76,9 @@ export default function TableComponent({ component }) {
   const appliedFilters = useSelector(
     (state) => state.uiState.appliedFilters[component.id] || {},
   );
+  const appliedSorting = useSelector(
+    (state) => state.uiState.appliedSorting[component.id] || null,
+  );
 
   // Use tableColumns from props if available, otherwise from Redux
   const tableColumnsFromProps = component.tableColumns?.[component.id] || [];
@@ -189,11 +192,30 @@ export default function TableComponent({ component }) {
         });
       }
 
+      // Apply sorting if any is applied
+      if (appliedSorting && appliedSorting.field) {
+        initialData.sort((a, b) => {
+          const aValue = a[appliedSorting.field];
+          const bValue = b[appliedSorting.field];
+
+          // Handle different data types
+          let comparison = 0;
+          if (aValue < bValue) {
+            comparison = -1;
+          } else if (aValue > bValue) {
+            comparison = 1;
+          }
+
+          // Apply direction
+          return appliedSorting.direction === 'desc' ? -comparison : comparison;
+        });
+      }
+
       setData(initialData);
     } else {
       setData([]);
     }
-  }, [tableData, actualColumns, component.id, appliedFilters]);
+  }, [tableData, actualColumns, component.id, appliedFilters, appliedSorting]);
 
   const handleSortModelChange = (newSortModel) => {
     setSortModel(newSortModel);
@@ -202,6 +224,20 @@ export default function TableComponent({ component }) {
   const handleFilterModelChange = (newFilterModel) => {
     setFilterModel(newFilterModel);
   };
+
+  // Update sortModel when appliedSorting changes from Redux
+  useEffect(() => {
+    if (appliedSorting && appliedSorting.field) {
+      setSortModel([
+        {
+          field: appliedSorting.field,
+          sort: appliedSorting.direction,
+        },
+      ]);
+    } else {
+      setSortModel([]);
+    }
+  }, [appliedSorting]);
 
   // Fallback: If no data from Redux, show a simple table with test data
   if (!actualColumns || actualColumns.length === 0) {
@@ -253,7 +289,8 @@ export default function TableComponent({ component }) {
             disableColumnReorder={true}
             experimentalFeatures={{ newEditingApi: true }}
             hideFooter
-            disableColumnSorting
+            sortModel={sortModel}
+            onSortModelChange={handleSortModelChange}
             disableColumnMenu
           />
         </div>

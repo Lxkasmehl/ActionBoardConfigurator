@@ -5,6 +5,7 @@ const initialState = {
   selectedFilters: {},
   selectedFilterOptions: {},
   appliedFilters: {}, // New state for actually applied filters
+  appliedSorting: {}, // New state for applied sorting
   groupFilters: {},
   groupSortConfigs: {},
   sortModalOpen: { isOpen: false, componentId: null },
@@ -77,6 +78,18 @@ const uiStateSlice = createSlice({
         ...state.selectedFilterOptions[tableComponentId],
       };
     },
+    applySorting: (state, action) => {
+      const { tableComponentId, field, direction } = action.payload;
+      state.appliedSorting[tableComponentId] = { field, direction };
+    },
+    clearSorting: (state, action) => {
+      const { tableComponentId } = action.payload;
+      if (tableComponentId) {
+        delete state.appliedSorting[tableComponentId];
+      } else {
+        state.appliedSorting = {};
+      }
+    },
   },
 });
 
@@ -93,5 +106,7 @@ export const {
   setSortModalOpen,
   setColumnSelectorModalOpen,
   applyFilters,
+  applySorting,
+  clearSorting,
 } = uiStateSlice.actions;
 export default uiStateSlice.reducer;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   ModalDialog,
@@ -20,9 +20,25 @@ export default function SortModal({
   columnOptions = [],
   tableComponentId,
   onApplySort,
+  currentSorting = null,
 }) {
-  const [selectedField, setSelectedField] = useState('');
-  const [sortDirection, setSortDirection] = useState('asc');
+  const [selectedField, setSelectedField] = useState(
+    currentSorting?.field || '',
+  );
+  const [sortDirection, setSortDirection] = useState(
+    currentSorting?.direction || 'asc',
+  );
+
+  // Update state when currentSorting changes
+  useEffect(() => {
+    if (currentSorting) {
+      setSelectedField(currentSorting.field || '');
+      setSortDirection(currentSorting.direction || 'asc');
+    } else {
+      setSelectedField('');
+      setSortDirection('asc');
+    }
+  }, [currentSorting]);
 
   const handleApply = () => {
     if (selectedField) {

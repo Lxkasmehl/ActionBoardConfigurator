@@ -17,6 +17,8 @@ import {
   clearFilters,
   setSortModalOpen,
   setColumnSelectorModalOpen,
+  applySorting,
+  clearSorting,
 } from '../redux/uiStateSlice';
 import { exportToExcel } from '../utils/exportToExcelUtils';
 import SortModal from './SortModal';
@@ -45,21 +47,24 @@ export default function ButtonBar({
 
   // Get component group and table component
   const componentGroup = Object.values(componentGroups || {}).find((group) =>
-    group.components.includes(componentId)
+    group.components.includes(componentId),
   );
 
   const tableComponentId = componentGroup?.components?.find(
-    (id) => tableColumns?.[id]
+    (id) => tableColumns?.[id],
   );
 
   const columnOptions =
     tableColumns?.[tableComponentId]?.map((column) => ({
       label: column.label,
-      value: column.id,
+      value: column.label, // Use label as value since TableComponent uses label as field name
     })) || [];
 
   const visibleColumns = useSelector(
-    (state) => state.uiState.visibleColumns[tableComponentId] || []
+    (state) => state.uiState.visibleColumns[tableComponentId] || [],
+  );
+  const currentSorting = useSelector(
+    (state) => state.uiState.appliedSorting[tableComponentId] || null,
   );
 
   const handleButtonClick = (field, item) => {
@@ -76,6 +81,9 @@ export default function ButtonBar({
       case 'Sort':
         setIsSortModalOpen(true);
         break;
+      case 'Clear Sort':
+        dispatch(clearSorting({ tableComponentId }));
+        break;
       case 'Column Selector':
         setIsColumnSelectorModalOpen(true);
         break;
@@ -85,14 +93,14 @@ export default function ButtonBar({
             tableData?.[tableComponentId],
             null,
             null,
-            'table_export.xlsx'
+            'table_export.xlsx',
           );
         } else if (item?.label === 'Only visible columns') {
           exportToExcel(
             tableData?.[tableComponentId],
             visibleColumns,
             tableColumns?.[tableComponentId],
-            'table_export_visible_columns.xlsx'
+            'table_export_visible_columns.xlsx',
           );
         }
         break;
@@ -102,8 +110,15 @@ export default function ButtonBar({
   };
 
   const handleApplySort = (field, direction) => {
-    // This would be implemented based on your sorting logic
-    console.log('Applying sort:', field, direction);
+    if (tableComponentId) {
+      dispatch(
+        applySorting({
+          tableComponentId,
+          field,
+          direction,
+        }),
+      );
+    }
   };
 
   // If we have fields (AdminView structure), render the advanced ButtonBar
@@ -194,6 +209,7 @@ export default function ButtonBar({
           columnOptions={columnOptions}
           tableComponentId={tableComponentId}
           onApplySort={handleApplySort}
+          currentSorting={currentSorting}
         />
         <ColumnSelectorModal
           open={isColumnSelectorModalOpen}
