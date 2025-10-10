@@ -1,0 +1,113 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e9]: Job Requisition
+      - generic [ref=e10]:
+        - combobox "Select an option" [ref=e12]
+        - button "Open" [ref=e13] [cursor=pointer]:
+          - img [ref=e14] [cursor=pointer]
+    - generic [ref=e16]:
+      - generic [ref=e18]: Hiring Manager
+      - generic [ref=e19]:
+        - combobox "Select an option" [ref=e21]
+        - button "Open" [ref=e22] [cursor=pointer]:
+          - img [ref=e23] [cursor=pointer]
+    - generic [ref=e25]:
+      - generic [ref=e27]: Recruiter
+      - generic [ref=e28]:
+        - combobox "Select an option" [ref=e30]
+        - button "Open" [ref=e31] [cursor=pointer]:
+          - img [ref=e32] [cursor=pointer]
+  - generic [ref=e36]:
+    - button "Apply filter" [ref=e38] [cursor=pointer]
+    - button "Clear all filter" [ref=e40] [cursor=pointer]
+    - button "Reload Data" [ref=e42] [cursor=pointer]
+    - button "Export" [ref=e44] [cursor=pointer]
+    - button [ref=e46] [cursor=pointer]:
+      - img [ref=e47] [cursor=pointer]
+    - button "Column Selector" [ref=e50] [cursor=pointer]
+  - grid [ref=e55]:
+    - generic [ref=e56]:
+      - row "Job Requisition Hiring Manager Recruiter" [ref=e57]:
+        - columnheader "Job Requisition" [ref=e58] [cursor=pointer]:
+          - generic [ref=e60] [cursor=pointer]: Job Requisition
+          - generic [ref=e61]:
+            - img
+        - columnheader "Hiring Manager" [ref=e62] [cursor=pointer]:
+          - generic [ref=e64] [cursor=pointer]: Hiring Manager
+          - generic [ref=e65]:
+            - img
+        - columnheader "Recruiter" [ref=e66] [cursor=pointer]:
+          - generic [ref=e68] [cursor=pointer]: Recruiter
+          - generic [ref=e69]:
+            - img
+      - rowgroup [ref=e70]:
+        - row "VP services Hiring Manager GermanyTU Robert-DEURichardson" [ref=e71]:
+          - gridcell "VP services" [ref=e72]
+          - gridcell "Hiring Manager GermanyTU" [ref=e73]
+          - gridcell "Robert-DEURichardson" [ref=e74]
+        - row "Test Hiring Manager GlobalTU TheresaWagner" [ref=e75]:
+          - gridcell "Test" [ref=e76]
+          - gridcell "Hiring Manager GlobalTU" [ref=e77]
+          - gridcell "TheresaWagner" [ref=e78]
+        - row "Test Aida Hiring Manager GlobalTU TheresaWagner" [ref=e79]:
+          - gridcell "Test Aida" [ref=e80]
+          - gridcell "Hiring Manager GlobalTU" [ref=e81]
+          - gridcell "TheresaWagner" [ref=e82]
+        - row "Test Demo Hiring Manager GlobalTU TheresaWagner" [ref=e83]:
+          - gridcell "Test Demo" [ref=e84]
+          - gridcell "Hiring Manager GlobalTU" [ref=e85]
+          - gridcell "TheresaWagner" [ref=e86]
+        - row "abd TUHiring Manager RecruiterTU" [ref=e87]:
+          - gridcell "abd" [ref=e88]
+          - gridcell "TUHiring Manager" [ref=e89]
+          - gridcell "RecruiterTU" [ref=e90]
+        - row "abd TUHiring Manager RecruiterTU" [ref=e91]:
+          - gridcell "abd" [ref=e92]
+          - gridcell "TUHiring Manager" [ref=e93]
+          - gridcell "RecruiterTU" [ref=e94]
+        - row "test api AlexAnderson-Smith BrookeBrowne-Smith" [ref=e95]:
+          - gridcell "test api" [ref=e96]
+          - gridcell "AlexAnderson-Smith" [ref=e97]
+          - gridcell "BrookeBrowne-Smith" [ref=e98]
+        - row "abd TUHiring Manager RecruiterTU" [ref=e99]:
+          - gridcell "abd" [ref=e100]
+          - gridcell "TUHiring Manager" [ref=e101]
+          - gridcell "RecruiterTU" [ref=e102]
+        - row "Test Auto AndreasJessikowski RecruiterTU" [ref=e103]:
+          - gridcell "Test Auto" [ref=e104]
+          - gridcell "AndreasJessikowski" [ref=e105]
+          - gridcell "RecruiterTU" [ref=e106]
+        - row "HR Consultant Hiring Manager GlobalTU Robert-DEURichardson" [ref=e107]:
+          - gridcell "HR Consultant" [ref=e108]
+          - gridcell "Hiring Manager GlobalTU" [ref=e109]
+          - gridcell "Robert-DEURichardson" [ref=e110]
+        - row "AndreasJessikowski RecruiterTU" [ref=e111]:
+          - gridcell [ref=e112]
+          - gridcell "AndreasJessikowski" [ref=e113]
+          - gridcell "RecruiterTU" [ref=e114]
+        - row "AlexAnderson-Smith RecruiterTU" [ref=e115]:
+          - gridcell [ref=e116]
+          - gridcell "AlexAnderson-Smith" [ref=e117]
+          - gridcell "RecruiterTU" [ref=e118]
+    - generic: MUI X Missing license key
+  - img [ref=e124]:
+    - generic [ref=e169]:
+      - generic [ref=e174]: Hiring Manager GermanyTU
+      - generic [ref=e190]: HR_GlobalTU
+      - generic [ref=e200]: Bruna-rec1Barros
+      - generic [ref=e212]: AdminPentosRECTU
+      - generic [ref=e224]: Henry-rec1Howard
+      - generic [ref=e236]: Bruna-rec3Barros
+      - generic [ref=e248]: Walter-rec1Watson
+      - generic [ref=e260]: Nelly-rec2Neufourt
+      - generic [ref=e272]: Karel-rec2Krupicka
+    - generic [ref=e277]:
+      - generic [ref=e282]: "0"
+      - generic [ref=e286]: "50"
+      - generic [ref=e290]: "100"
+      - generic [ref=e294]: "150"
+```

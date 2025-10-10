@@ -3,7 +3,7 @@ import { dragAndVerifyComponent } from './componentHelpers';
 import {
   selectFromAutocomplete,
   selectFromEntitySelect,
-} from '../../../shared/helpers/autocompleteHelper';
+} from '../../../../shared/helpers/autocompleteHelper';
 import { setupFlowConnection } from '../../datapicker/helpers/flowSetup';
 import fs from 'fs';
 

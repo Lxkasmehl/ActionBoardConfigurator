@@ -5,7 +5,7 @@ import {
   setupNestedFilterCondition,
   setupFilterCondition,
 } from '../helpers/filterSetup';
-import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../../shared/helpers/autocompleteHelper';
 
 test('use expand with selected property with simple flow and simple filter', async ({
   page,

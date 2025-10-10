@@ -143,6 +143,7 @@ export default function ButtonBar({
                         {...commonProps}
                         color='primary'
                         onClick={() => handleButtonClick(field)}
+                        data-testid={`button-${field.label || field['text/icon'] || 'icon'}-${index}`}
                       >
                         <IconComponent />
                       </IconButton>
@@ -158,6 +159,7 @@ export default function ButtonBar({
                         sx={{
                           width: '170px',
                         }}
+                        data-testid={`autocomplete-${field.label || field['text/icon'] || 'autocomplete'}-${index}`}
                       />
                     </div>
                   );
@@ -165,7 +167,10 @@ export default function ButtonBar({
                   return (
                     <div key={index}>
                       <Dropdown>
-                        <MenuButton {...commonProps}>
+                        <MenuButton
+                          {...commonProps}
+                          data-testid={`menu-button-${field.label || field['text/icon'] || 'menu'}-${index}`}
+                        >
                           {field['text/icon']}
                         </MenuButton>
                         <Menu>
@@ -175,6 +180,7 @@ export default function ButtonBar({
                               color='neutral'
                               key={itemIndex}
                               onClick={() => handleButtonClick(field, item)}
+                              data-testid={`menu-item-${item.label || 'item'}-${itemIndex}`}
                             >
                               {item.label}
                             </MenuItem>
@@ -190,6 +196,7 @@ export default function ButtonBar({
                       <Button
                         {...commonProps}
                         onClick={() => handleButtonClick(field)}
+                        data-testid={`button-${field.label || field['text/icon'] || 'button'}-${index}`}
                       >
                         {field['text/icon']}
                       </Button>
@@ -240,6 +247,7 @@ export default function ButtonBar({
             disabled={button.disabled}
             startDecorator={button.startIcon}
             endDecorator={button.endIcon}
+            data-testid={`fallback-button-${button.label || button.id || 'button'}-${index}`}
           >
             {button.label || `Button ${index + 1}`}
           </Button>

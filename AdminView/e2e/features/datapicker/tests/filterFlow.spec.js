@@ -4,7 +4,7 @@ import {
   setupFilterCondition,
   setupComplexFilter,
 } from '../helpers/filterSetup';
-import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../../shared/helpers/autocompleteHelper';
 
 test('create simple flow with one entity section, a simple filter and one selected entity', async ({
   page,
@@ -95,7 +95,7 @@ test('use selected properties from one entity section as filter values in anothe
   const expectedNames = {
     Watson: 2,
     Hofmann: 1,
-    Granger: 2, 
+    Granger: 2,
   };
 
   await page.screenshot({
