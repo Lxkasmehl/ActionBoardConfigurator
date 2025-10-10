@@ -10,7 +10,7 @@ import {
   verifyFilterAppliedVirtual,
   handleTableDownload,
 } from '../helpers/tableHelpers';
-import { selectFromAutocomplete } from '../../../../shared/helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../../../shared/helpers/autocompleteHelper';
 
 test.describe('Group Tests', () => {
   let previewArea;

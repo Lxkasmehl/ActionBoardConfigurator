@@ -4,7 +4,7 @@ import {
   setupFilterCondition,
   setupComplexFilter,
 } from '../helpers/filterSetup';
-import { selectFromAutocomplete } from '../../../../shared/helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../../../shared/helpers/autocompleteHelper';
 
 test('create simple flow with one entity section, a simple filter and one selected entity', async ({
   page,
