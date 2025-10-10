@@ -278,9 +278,15 @@ export default function TableComponent({ component }) {
   }
 
   return (
-    <Box sx={{ marginBottom: 2 }}>
+    <Box
+      sx={{ marginBottom: 2 }}
+      data-testid={`table-component-${component.id}`}
+    >
       <ThemeProvider theme={theme}>
-        <div style={{ height: 500, width: '100%', overflow: 'auto' }}>
+        <div
+          style={{ height: 500, width: '100%', overflow: 'auto' }}
+          data-testid={`table-container-${component.id}`}
+        >
           <DataGridPro
             rows={data}
             columns={displayColumns}
@@ -292,6 +298,7 @@ export default function TableComponent({ component }) {
             sortModel={sortModel}
             onSortModelChange={handleSortModelChange}
             disableColumnMenu
+            data-testid={`data-grid-${component.id}`}
           />
         </div>
       </ThemeProvider>

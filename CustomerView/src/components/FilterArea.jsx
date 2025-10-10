@@ -17,11 +17,11 @@ export default function FilterArea({
 
   // Find the component group and table component
   const componentGroup = Object.values(componentGroups || {}).find((group) =>
-    group.components.includes(component.id)
+    group.components.includes(component.id),
   );
 
   const tableComponentId = componentGroup?.components?.find(
-    (id) => tableColumns?.[id]
+    (id) => tableColumns?.[id],
   );
 
   // Helper function to get filtered options for a filter
@@ -53,7 +53,7 @@ export default function FilterArea({
                     val !== undefined &&
                     val !== null &&
                     val !== '' &&
-                    (typeof val !== 'string' || val.trim() !== '')
+                    (typeof val !== 'string' || val.trim() !== ''),
                 );
                 if (!hasValidValue) {
                   return false;
@@ -62,9 +62,9 @@ export default function FilterArea({
 
               // Filter out empty strings after toString
               return option.toString().trim() !== '';
-            }
-          )
-        )
+            },
+          ),
+        ),
       );
     };
   }, [tableComponentId, columnData]);
@@ -92,7 +92,7 @@ export default function FilterArea({
       setSelectedFilterOptions({
         tableComponentId,
         options: newSelectedFilters,
-      })
+      }),
     );
   };
 
@@ -143,6 +143,7 @@ export default function FilterArea({
             <Autocomplete
               size='sm'
               placeholder='Select an option'
+              data-testid={`filter-autocomplete-${filter.label.toLowerCase().replace(/\s+/g, '-')}`}
               options={
                 hasNoFilterOptions(filter.label)
                   ? [
@@ -172,7 +173,7 @@ export default function FilterArea({
                             // For objects without clear text properties, try to find any string value
                             const stringValues = Object.values(option).filter(
                               (val) =>
-                                typeof val === 'string' && val.trim() !== ''
+                                typeof val === 'string' && val.trim() !== '',
                             );
                             if (stringValues.length > 0) {
                               displayValue = stringValues[0];
@@ -207,7 +208,7 @@ export default function FilterArea({
                   } else {
                     // For objects without clear text properties, try to find any string value
                     const stringValues = Object.values(option).filter(
-                      (val) => typeof val === 'string' && val.trim() !== ''
+                      (val) => typeof val === 'string' && val.trim() !== '',
                     );
                     if (stringValues.length > 0) {
                       return stringValues[0];
@@ -240,7 +241,7 @@ export default function FilterArea({
                           } else {
                             const stringValues = Object.values(option).filter(
                               (val) =>
-                                typeof val === 'string' && val.trim() !== ''
+                                typeof val === 'string' && val.trim() !== '',
                             );
                             if (stringValues.length > 0) {
                               displayValue = stringValues[0];
