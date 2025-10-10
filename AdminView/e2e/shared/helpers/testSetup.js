@@ -1,6 +1,6 @@
 import { setupFlowConnection } from '../../features/datapicker/helpers/flowSetup';
 import { setupFilterCondition } from '../../features/datapicker/helpers/filterSetup';
-import { selectFromAutocomplete } from '../../../../../shared/helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../../../../shared/helpers/autocompleteHelper';
 
 export async function setupTestData(page, isAlreadyConfigured = false) {
   if (!isAlreadyConfigured) {
