@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { dragAndVerifyComponent } from './componentHelpers';
-import { selectFromAutocomplete } from '../../../../../shared/helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../../../shared/helpers/autocompleteHelper.js';
 import { selectFromSelect } from '../../../shared/helpers/selectHelper';
 import { setupFlowConnection } from '../../datapicker/helpers/flowSetup';
 import fs from 'fs';

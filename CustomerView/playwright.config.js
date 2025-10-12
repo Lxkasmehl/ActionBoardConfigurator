@@ -53,5 +53,11 @@ export default defineConfig({
     url: 'http://localhost:5174/',
     reuseExistingServer: !process.env.CI,
     ignoreHTTPSErrors: true,
+    timeout: 120000, // Increase timeout to 2 minutes
+    stdout: 'pipe',
+    stderr: 'pipe',
+    env: {
+      NODE_OPTIONS: '--max-old-space-size=4096',
+    },
   },
 });
