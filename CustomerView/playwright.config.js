@@ -49,7 +49,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run dev:ssl',
     url: 'https://localhost:5174/',
     reuseExistingServer: !process.env.CI,
     ignoreHTTPSErrors: true,

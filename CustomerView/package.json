@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test": "npm run test:e2e"
+    "test": "npm run test:e2e",
+    "generate-ssl": "node generate-ssl-certs.js",
+    "dev:ssl": "npm run generate-ssl && npm run dev"
   },
   "dependencies": {
     "react": "^19.0.0",
