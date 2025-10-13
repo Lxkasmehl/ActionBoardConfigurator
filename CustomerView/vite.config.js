@@ -25,9 +25,20 @@ export default defineConfig({
     },
   },
   server: {
-    https: {
-      key: fs.readFileSync(path.resolve(__dirname, 'key.pem')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'cert.pem')),
-    },
+    https: (() => {
+      const keyPath = path.resolve(__dirname, 'key.pem');
+      const certPath = path.resolve(__dirname, 'cert.pem');
+
+      // Only enable HTTPS if certificate files exist (for local development)
+      if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+        return {
+          key: fs.readFileSync(keyPath),
+          cert: fs.readFileSync(certPath),
+        };
+      }
+
+      // Return false to disable HTTPS in CI or when certificates don't exist
+      return false;
+    })(),
   },
 });
