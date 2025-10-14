@@ -6,7 +6,11 @@ test.describe('CustomerView Tests', () => {
     page,
   }) => {
     // Navigate to the specific config URL
-    await page.goto('https://localhost:5173/?config=config_1758940707523');
+    // Use HTTP in CI environment, HTTPS in local development
+    const baseUrl = process.env.CI
+      ? 'http://localhost:5173'
+      : 'https://localhost:5173';
+    await page.goto(`${baseUrl}/?config=config_1758940707523`);
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
