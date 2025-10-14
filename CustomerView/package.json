@@ -12,7 +12,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test": "npm run test:e2e",
     "generate-ssl": "node generate-ssl-certs.js",
-    "dev:ssl": "npm run generate-ssl && npm run dev"
+    "dev:ssl": "npm run generate-ssl && npm run dev",
+    "dev:http": "vite --port 5173"
   },
   "dependencies": {
     "react": "^19.0.0",
