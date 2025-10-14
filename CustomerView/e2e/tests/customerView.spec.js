@@ -6,7 +6,7 @@ test.describe('CustomerView Tests', () => {
     page,
   }) => {
     // Navigate to the specific config URL
-    await page.goto('http://localhost:5174/?config=config_1758940707523');
+    await page.goto('https://localhost:5173/?config=config_1758940707523');
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
