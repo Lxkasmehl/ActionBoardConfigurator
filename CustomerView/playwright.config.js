@@ -53,7 +53,7 @@ export default defineConfig({
     url: process.env.CI ? 'http://localhost:5173/' : 'https://localhost:5173/',
     reuseExistingServer: !process.env.CI,
     ignoreHTTPSErrors: true,
-    timeout: process.env.CI ? 120000 : 300000, // Shorter timeout for CI (HTTP), longer for local (SSL)
+    timeout: process.env.CI ? 180000 : 300000, // Increased CI timeout to 3 minutes, longer for local (SSL)
     stdout: 'pipe',
     stderr: 'pipe',
     env: {
