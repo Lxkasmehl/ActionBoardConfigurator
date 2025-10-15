@@ -11,6 +11,15 @@ test.describe('CustomerView Tests', () => {
     const baseUrl = 'https://localhost:5174';
     await page.goto(`${baseUrl}/?config=config_1758940707523`);
 
+    const recruiterDashboardInitialStateScreenshot = await page.screenshot({
+      path: 'test-results/recruiter-dashboard-initial-state.png',
+      fullPage: true,
+    });
+    await test.info().attach('recruiter-dashboard-initial-state', {
+      body: recruiterDashboardInitialStateScreenshot,
+      contentType: 'image/png',
+    });
+
     await selectFromAutocomplete(
       page,
       'filter-autocomplete-job-requisition',
