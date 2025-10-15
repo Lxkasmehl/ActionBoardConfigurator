@@ -49,11 +49,11 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: process.env.CI ? 'npm run dev:http' : 'npm run dev:ssl',
-    url: process.env.CI ? 'http://localhost:5173/' : 'https://localhost:5173/',
+    command: 'npm run dev:ssl',
+    url: 'https://localhost:5175/',
     reuseExistingServer: !process.env.CI,
     ignoreHTTPSErrors: true,
-    timeout: process.env.CI ? 180000 : 300000, // Increased CI timeout to 3 minutes, longer for local (SSL)
+    timeout: 120000, // Increase timeout to 2 minutes
     stdout: 'pipe',
     stderr: 'pipe',
     env: {

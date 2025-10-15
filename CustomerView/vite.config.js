@@ -25,6 +25,9 @@ export default defineConfig({
     },
   },
   server: {
+    host: 'localhost',
+    port: 5174,
+    strictPort: true,
     https: (() => {
       const keyPath = path.resolve(__dirname, 'key.pem');
       const certPath = path.resolve(__dirname, 'cert.pem');

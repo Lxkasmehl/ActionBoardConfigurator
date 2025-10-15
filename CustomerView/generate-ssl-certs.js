@@ -6,21 +6,10 @@ import process from 'process';
 const keyPath = path.resolve(process.cwd(), 'key.pem');
 const certPath = path.resolve(process.cwd(), 'cert.pem');
 
-// Check if certificates already exist and are recent (less than 7 days old)
+// Check if certificates already exist
 if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
-  const keyStats = fs.statSync(keyPath);
-  const certStats = fs.statSync(certPath);
-  const now = new Date();
-  const keyAge = now - keyStats.mtime;
-  const certAge = now - certStats.mtime;
-
-  // If certificates are less than 7 days old, reuse them
-  if (keyAge < 7 * 24 * 60 * 60 * 1000 && certAge < 7 * 24 * 60 * 60 * 1000) {
-    console.log('Recent SSL certificates found. Skipping generation.');
-    process.exit(0);
-  } else {
-    console.log('SSL certificates are old. Regenerating...');
-  }
+  console.log('SSL certificates already exist. Skipping generation.');
+  process.exit(0);
 }
 
 console.log('Generating self-signed SSL certificates...');

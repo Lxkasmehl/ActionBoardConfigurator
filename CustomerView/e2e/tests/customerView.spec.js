@@ -7,10 +7,8 @@ test.describe('CustomerView Tests', () => {
   }) => {
     test.setTimeout(60000);
     // Navigate to the specific config URL
-    // Use HTTP in CI environment, HTTPS in local development
-    const baseUrl = process.env.CI
-      ? 'http://localhost:5173'
-      : 'https://localhost:5173';
+    // Always use HTTP since we're running tests with HTTP server
+    const baseUrl = 'https://localhost:5174';
     await page.goto(`${baseUrl}/?config=config_1758940707523`);
 
     await selectFromAutocomplete(
