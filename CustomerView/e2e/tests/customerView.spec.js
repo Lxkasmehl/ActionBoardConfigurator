@@ -11,6 +11,15 @@ test.describe('CustomerView Tests', () => {
     const baseUrl = 'https://localhost:5174';
     await page.goto(`${baseUrl}/?config=config_1758940707523`);
 
+    // Wait for the loading text to disappear before taking screenshot
+    await page.waitForFunction(
+      () => {
+        const bodyText = document.body.textContent || document.body.innerText;
+        return !bodyText.includes('Loading application configuration...');
+      },
+      { timeout: 30000 },
+    );
+
     const recruiterDashboardInitialStateScreenshot = await page.screenshot({
       path: 'test-results/recruiter-dashboard-initial-state.png',
       fullPage: true,
