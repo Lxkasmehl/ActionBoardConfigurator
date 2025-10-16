@@ -8,8 +8,7 @@ test.describe('CustomerView Tests', () => {
     test.setTimeout(60000);
     // Navigate to the specific config URL
     // Always use HTTP since we're running tests with HTTP server
-    const baseUrl = 'https://localhost:5174';
-    await page.goto(`${baseUrl}/?config=config_1758940707523`);
+    await page.goto(`https://localhost:5174/?config=config_1758940707523`);
 
     // Wait for the loading text to disappear before taking screenshot
     await page.waitForFunction(
