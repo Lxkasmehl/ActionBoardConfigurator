@@ -15,7 +15,7 @@ export async function selectFromAutocomplete(
 
   // Find the autocomplete component
   const autocompleteComponent = element.getByTestId(testId);
-  await autocompleteComponent.waitFor({ state: 'visible', timeout: 20000 });
+  await autocompleteComponent.waitFor({ state: 'visible', timeout: 10000 });
 
   // Try multiple strategies to find and click the button
   let autocompleteButton = null;
@@ -89,20 +89,11 @@ export async function selectFromAutocomplete(
   // Find the option
   let option = null;
   const optionStrategies = [
-    // Try exact match first
     () => page.getByRole('option', { name: optionName, exact: true }),
     () => page.getByRole('option', { name: optionName }),
-    // Try to find visible options with the text
-    () => page.locator(`[role="option"]:has-text("${optionName}"):visible`),
-    () => page.locator(`li:has-text("${optionName}"):visible`),
-    () =>
-      page.locator(`.MuiAutocomplete-option:has-text("${optionName}"):visible`),
-    // Try to find the first visible option that contains the text
-    () => page.locator(`[role="option"]:has-text("${optionName}")`).first(),
-    () => page.locator(`li:has-text("${optionName}")`).first(),
-    () =>
-      page.locator(`.MuiAutocomplete-option:has-text("${optionName}")`).first(),
-    // Fallback strategies
+    () => page.locator(`[role="option"]:has-text("${optionName}")`),
+    () => page.locator(`li:has-text("${optionName}")`),
+    () => page.locator(`.MuiAutocomplete-option:has-text("${optionName}")`),
     () => page.locator(`text="${optionName}"`),
     () => page.locator(`text=/.*${optionName}.*/i`),
   ];
@@ -114,22 +105,13 @@ export async function selectFromAutocomplete(
       break;
     } catch (error) {
       if (i === optionStrategies.length - 1) {
-        // Get all available options for better debugging
         const allOptions = await page
           .locator(
             '[role="option"], li, .MuiAutocomplete-option, [data-testid*="option"]',
           )
           .allTextContents();
-
-        // Also get visible options specifically
-        const visibleOptions = await page
-          .locator(
-            '[role="option"]:visible, li:visible, .MuiAutocomplete-option:visible',
-          )
-          .allTextContents();
-
         throw new Error(
-          `Could not find option "${optionName}" for testId: ${testId}. Available options: ${allOptions.join(', ')}. Visible options: ${visibleOptions.join(', ')}`,
+          `Could not find option "${optionName}" for testId: ${testId}. Available options: ${allOptions.join(', ')}`,
         );
       }
     }
@@ -238,16 +220,10 @@ export async function selectFromJoyAutocomplete(
   // Try to find the option with multiple strategies
   let option = null;
   const optionStrategies = [
-    // Try exact match first
     () => page.getByRole('option', { name: optionName, exact: true }),
     () => page.getByRole('option', { name: optionName }),
-    // Try to find visible options with the text
-    () => page.locator(`*:has-text("${optionName}"):visible`).first(),
-    () => page.locator(`li:has-text("${optionName}"):visible`).first(),
-    // Try to find the first option that contains the text
     () => page.locator(`*:has-text("${optionName}")`).first(),
-    () => page.locator(`li:has-text("${optionName}")`).first(),
-    // Filter strategy with visibility check
+    () => page.locator(`li:has-text("${optionName}")`),
     () =>
       page
         .locator(`[role="option"], li, button, div`)
@@ -262,18 +238,11 @@ export async function selectFromJoyAutocomplete(
       break;
     } catch (error) {
       if (i === optionStrategies.length - 1) {
-        // Get all available options for better debugging
         const allOptions = await page
           .locator('[role="option"], li')
           .allTextContents();
-
-        // Also get visible options specifically
-        const visibleOptions = await page
-          .locator('[role="option"]:visible, li:visible')
-          .allTextContents();
-
         throw new Error(
-          `Could not find option "${optionName}" for testId: ${testId}. Available options: ${allOptions.join(', ')}. Visible options: ${visibleOptions.join(', ')}`,
+          `Could not find option "${optionName}" for testId: ${testId}. Available options: ${allOptions.join(', ')}`,
         );
       }
     }
