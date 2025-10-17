@@ -17,11 +17,11 @@ export default function FilterArea({
 
   // Find the component group and table component
   const componentGroup = Object.values(componentGroups || {}).find((group) =>
-    group.components.includes(component.id)
+    group.components.includes(component.id),
   );
 
   const tableComponentId = componentGroup?.components?.find(
-    (id) => tableColumns?.[id]
+    (id) => tableColumns?.[id],
   );
 
   // Helper function to get filtered options for a filter
@@ -29,43 +29,76 @@ export default function FilterArea({
     return (filterLabel) => {
       if (!tableComponentId) return [];
 
-      return Array.from(
-        new Set(
-          (columnData?.[tableComponentId]?.[filterLabel] || []).filter(
-            (option) => {
-              // Filter out undefined, null, empty strings
-              if (option === undefined || option === null || option === '') {
-                return false;
-              }
+      const rawOptions = (
+        columnData?.[tableComponentId]?.[filterLabel] || []
+      ).filter((option) => {
+        // Filter out undefined, null, empty strings
+        if (option === undefined || option === null || option === '') {
+          return false;
+        }
 
-              // Filter out empty objects
-              if (
-                typeof option === 'object' &&
-                Object.keys(option).length === 0
-              ) {
-                return false;
-              }
+        // Filter out empty objects
+        if (typeof option === 'object' && Object.keys(option).length === 0) {
+          return false;
+        }
 
-              // Filter out objects that only contain empty values
-              if (typeof option === 'object') {
-                const hasValidValue = Object.values(option).some(
-                  (val) =>
-                    val !== undefined &&
-                    val !== null &&
-                    val !== '' &&
-                    (typeof val !== 'string' || val.trim() !== '')
-                );
-                if (!hasValidValue) {
-                  return false;
-                }
-              }
+        // Filter out objects that only contain empty values
+        if (typeof option === 'object') {
+          const hasValidValue = Object.values(option).some(
+            (val) =>
+              val !== undefined &&
+              val !== null &&
+              val !== '' &&
+              (typeof val !== 'string' || val.trim() !== ''),
+          );
+          if (!hasValidValue) {
+            return false;
+          }
+        }
 
-              // Filter out empty strings after toString
-              return option.toString().trim() !== '';
+        // Filter out empty strings after toString
+        return option.toString().trim() !== '';
+      });
+
+      // Convert to display values and deduplicate based on display value
+      const displayValueMap = new Map();
+
+      rawOptions.forEach((option) => {
+        // Handle different data types properly
+        let displayValue = '';
+        if (typeof option === 'string') {
+          displayValue = option;
+        } else if (option && typeof option === 'object') {
+          // If it's an object, try to extract meaningful text
+          if (option.label) {
+            displayValue = option.label;
+          } else if (option.value) {
+            displayValue = option.value.toString();
+          } else if (option.text) {
+            displayValue = option.text;
+          } else {
+            // For objects without clear text properties, try to find any string value
+            const stringValues = Object.values(option).filter(
+              (val) => typeof val === 'string' && val.trim() !== '',
+            );
+            if (stringValues.length > 0) {
+              displayValue = stringValues[0];
+            } else {
+              // If no valid string values found, skip this option
+              return;
             }
-          )
-        )
-      );
+          }
+        } else {
+          displayValue = option?.toString() || '';
+        }
+
+        // Only add if we have a valid display value and haven't seen it before
+        if (displayValue.trim() !== '' && !displayValueMap.has(displayValue)) {
+          displayValueMap.set(displayValue, option);
+        }
+      });
+
+      return Array.from(displayValueMap.values());
     };
   }, [tableComponentId, columnData]);
 
@@ -92,7 +125,7 @@ export default function FilterArea({
       setSelectedFilterOptions({
         tableComponentId,
         options: newSelectedFilters,
-      })
+      }),
     );
   };
 
@@ -143,6 +176,7 @@ export default function FilterArea({
             <Autocomplete
               size='sm'
               placeholder='Select an option'
+              data-testid={`filter-autocomplete-${filter.label.toLowerCase().replace(/\s+/g, '-')}`}
               options={
                 hasNoFilterOptions(filter.label)
                   ? [
@@ -172,7 +206,7 @@ export default function FilterArea({
                             // For objects without clear text properties, try to find any string value
                             const stringValues = Object.values(option).filter(
                               (val) =>
-                                typeof val === 'string' && val.trim() !== ''
+                                typeof val === 'string' && val.trim() !== '',
                             );
                             if (stringValues.length > 0) {
                               displayValue = stringValues[0];
@@ -207,7 +241,7 @@ export default function FilterArea({
                   } else {
                     // For objects without clear text properties, try to find any string value
                     const stringValues = Object.values(option).filter(
-                      (val) => typeof val === 'string' && val.trim() !== ''
+                      (val) => typeof val === 'string' && val.trim() !== '',
                     );
                     if (stringValues.length > 0) {
                       return stringValues[0];
@@ -240,7 +274,7 @@ export default function FilterArea({
                           } else {
                             const stringValues = Object.values(option).filter(
                               (val) =>
-                                typeof val === 'string' && val.trim() !== ''
+                                typeof val === 'string' && val.trim() !== '',
                             );
                             if (stringValues.length > 0) {
                               displayValue = stringValues[0];

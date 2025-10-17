@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { dragAndVerifyComponent } from '../helpers/componentHelpers';
 import { setupDynamicDataEditing } from '../helpers/uiHelpers';
 import { setupFilterCondition } from '../../datapicker/helpers/filterSetup';
-import { selectFromAutocomplete } from '../../../shared/helpers/autocompleteHelper';
+import { selectFromAutocomplete } from '../../../../../shared/helpers/autocompleteHelper.js';
 
 test.describe('Dynamic Data Tests', () => {
   let components;

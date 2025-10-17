@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
+    "format": "prettier --write ./src",
+    "test:unit": "jest",
     "test:e2e": "playwright test",
-    "test": "npm run test:e2e"
+    "test": "npm run test:unit && npm run test:e2e",
+    "generate-ssl": "node generate-ssl-certs.js",
+    "dev:ssl": "npm run generate-ssl && npm run dev"
   },
   "dependencies": {
     "react": "^19.0.0",
