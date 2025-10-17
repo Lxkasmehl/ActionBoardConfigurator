@@ -111,11 +111,29 @@ test.describe('Group Tests', () => {
       'Test Group',
     );
 
+    const beforeFirstColumnScreenshot = await page.screenshot({
+      path: 'test-results/before-first-column-configuration.png',
+      fullPage: true,
+    });
+    await test.info().attach('before-first-column-configuration', {
+      body: beforeFirstColumnScreenshot,
+      contentType: 'image/png',
+    });
+
     await configureTableColumn(page, sortableComponents.table, 0, {
       label: 'User - UserId',
       entity: 'User',
       property: 'userId',
       mainEntity: true,
+    });
+
+    const afterFirstColumnScreenshot = await page.screenshot({
+      path: 'test-results/after-first-column-configuration.png',
+      fullPage: true,
+    });
+    await test.info().attach('after-first-column-configuration', {
+      body: afterFirstColumnScreenshot,
+      contentType: 'image/png',
     });
 
     await configureTableColumn(page, sortableComponents.table, 1, {
@@ -124,10 +142,28 @@ test.describe('Group Tests', () => {
       property: 'addressLine1',
     });
 
+    const afterSecondColumnScreenshot = await page.screenshot({
+      path: 'test-results/after-second-column-configuration.png',
+      fullPage: true,
+    });
+    await test.info().attach('after-second-column-configuration', {
+      body: afterSecondColumnScreenshot,
+      contentType: 'image/png',
+    });
+
     await configureTableColumn(page, sortableComponents.table, 2, {
       label: 'User - gender',
       entity: 'User',
       property: 'gender',
+    });
+
+    const afterThirdColumnScreenshot = await page.screenshot({
+      path: 'test-results/after-third-column-configuration.png',
+      fullPage: true,
+    });
+    await test.info().attach('after-third-column-configuration', {
+      body: afterThirdColumnScreenshot,
+      contentType: 'image/png',
     });
 
     const columnHeader = sortableComponents.table
